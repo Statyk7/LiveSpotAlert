@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/splash_screen.dart';
+import '../presentation/screens/app_status_screen.dart';
+import '../../../features/geofencing/presentation/screens/geofence_list_screen.dart';
+import '../../../features/geofencing/presentation/screens/create_geofence_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -15,9 +18,33 @@ class AppRouter {
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => HomeScreen(),
       ),
-      // TODO: Add routes for geofencing, live activities, and media management screens
+      GoRoute(
+        path: '/status',
+        name: 'status',
+        builder: (context, state) => const AppStatusScreen(),
+      ),
+      GoRoute(
+        path: '/geofences',
+        name: 'geofences',
+        builder: (context, state) => const GeofenceListScreen(),
+        routes: [
+          GoRoute(
+            path: 'create',
+            name: 'create-geofence',
+            builder: (context, state) => const CreateGeofenceScreen(),
+          ),
+          GoRoute(
+            path: 'edit/:id',
+            name: 'edit-geofence',
+            builder: (context, state) {
+              final geofenceId = state.pathParameters['id']!;
+              return CreateGeofenceScreen(geofenceId: geofenceId);
+            },
+          ),
+        ],
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(

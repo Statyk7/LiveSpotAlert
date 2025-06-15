@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Location Services -->
+	<key>com.apple.developer.location.push</key>
+	<true/>
+	
+	<!-- Background Modes -->
+	<key>com.apple.developer.background-modes</key>
+	<array>
+		<string>location</string>
+		<string>background-processing</string>
+		<string>fetch</string>
+	</array>
+	
+	<!-- Push Notifications (required for Live Activities) -->
+	<key>aps-environment</key>
+	<string>development</string>
+	
+	<!-- Live Activities (iOS 16.1+) -->
+	<key>com.apple.developer.live-activities</key>
+	<true/>
+	
+	<!-- WidgetKit Extension Support -->
+	<key>com.apple.developer.widgetkit-extension</key>
+	<true/>
+	
+	<!-- Background App Refresh -->
+	<key>com.apple.developer.background-execution</key>
+	<true/>
+</dict>
+</plist>

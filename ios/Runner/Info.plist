@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -24,6 +26,34 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>MinimumOSVersion</key>
+	<string>16.1</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>LiveSpotAlert needs location access to trigger alerts when you arrive at specific places, even when the app is in the background.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>LiveSpotAlert needs always location access to trigger alerts when you arrive at specific places, even when the app is closed.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>AccuracyTesting</key>
+		<string>LiveSpotAlert needs precise location to test geofence accuracy and ensure reliable triggering.</string>
+		<key>GeofenceSetup</key>
+		<string>LiveSpotAlert needs your current location to help you set up geofences around your current area.</string>
+	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>LiveSpotAlert needs location access to create location-based alerts and monitor your proximity to saved locations.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>background-processing</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>UIBackgroundRefreshStatusDidChangeNotification</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -41,9 +71,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

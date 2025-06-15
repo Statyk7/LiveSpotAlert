@@ -1,16 +1,14 @@
 PODS:
-  - app_group_directory (1.0.0):
-    - Flutter
-  - background_fetch (1.3.7):
+  - background_fetch (1.3.8):
     - Flutter
   - CocoaLumberjack (3.8.5):
     - CocoaLumberjack/Core (= 3.8.5)
   - CocoaLumberjack/Core (3.8.5)
   - Flutter (1.0.0)
+  - flutter_app_group_directory (0.0.1):
+    - Flutter
   - flutter_background_geolocation (4.16.10):
     - CocoaLumberjack (~> 3.8.5)
-    - Flutter
-  - flutter_native_image (0.0.1):
     - Flutter
   - image_picker_ios (0.0.1):
     - Flutter
@@ -24,11 +22,10 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - app_group_directory (from `.symlinks/plugins/app_group_directory/ios`)
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
   - Flutter (from `Flutter`)
+  - flutter_app_group_directory (from `.symlinks/plugins/flutter_app_group_directory/ios`)
   - flutter_background_geolocation (from `.symlinks/plugins/flutter_background_geolocation/ios`)
-  - flutter_native_image (from `.symlinks/plugins/flutter_native_image/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - live_activities (from `.symlinks/plugins/live_activities/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -39,16 +36,14 @@ SPEC REPOS:
     - CocoaLumberjack
 
 EXTERNAL SOURCES:
-  app_group_directory:
-    :path: ".symlinks/plugins/app_group_directory/ios"
   background_fetch:
     :path: ".symlinks/plugins/background_fetch/ios"
   Flutter:
     :path: Flutter
+  flutter_app_group_directory:
+    :path: ".symlinks/plugins/flutter_app_group_directory/ios"
   flutter_background_geolocation:
     :path: ".symlinks/plugins/flutter_background_geolocation/ios"
-  flutter_native_image:
-    :path: ".symlinks/plugins/flutter_native_image/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   live_activities:
@@ -59,17 +54,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
-  app_group_directory: a2613caae8f771366673bd6ec80412b76bbb4fb4
-  background_fetch: 94b36ee293e82972852dba8ede1fbcd3bd3d9d57
+  background_fetch: 851122c99dc3f25a011a6aebec5379ccdf4ab5eb
   CocoaLumberjack: 6a459bc897d6d80bd1b8c78482ec7ad05dffc3f0
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_app_group_directory: 55b5362007d1c0cb45dc1dd1e94f67d615f45a6b
   flutter_background_geolocation: a67777b118f342ae7e59d42f5afafff42a131aaf
-  flutter_native_image: c0f200e4bc5da392b15878df38654cc85a78b090
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
-  live_activities: 771ebe091f68bc3dc0a5a3828f2747b01126ec28
+  live_activities: 4dfa736d0736e1c77866a2f9c056a76513cc9e7b
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
 
-PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+PODFILE CHECKSUM: b950e3ea593c03dc5153fe7b28a848dcaa69d6de
 
 COCOAPODS: 1.16.2

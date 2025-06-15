@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 2));
     if (mounted) {
       context.go('/home');
     }
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Location-based Live Activities',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 204),
               ),
             ),
             const SizedBox(height: 48),

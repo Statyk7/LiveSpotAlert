@@ -1,10 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../../../../shared/utils/constants.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+import 'package:live_activities/live_activities.dart';
+
+
+class HomeScreen extends StatefulWidget {
+
+  HomeScreen({super.key}) {}
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _liveActivitiesPlugin = LiveActivities();
+
+  String? _latestActivityId;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _liveActivitiesPlugin.init(appGroupId: "group.livespotalert.liveactivities");
+  }
+
+  @override
+  void dispose() {
+    _liveActivitiesPlugin.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +50,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Welcome to LiveSpotAlert',
               style: AppTextStyles.h2,
             ),
@@ -47,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                     subtitle: 'Manage locations',
                     color: AppColors.geofenceActive,
                     onTap: () {
-                      // TODO: Navigate to geofencing screen
+                      context.go('/geofences');
                     },
                   ),
                   _FeatureCard(
@@ -56,7 +83,7 @@ class HomeScreen extends StatelessWidget {
                     subtitle: 'View active alerts',
                     color: AppColors.primary,
                     onTap: () {
-                      // TODO: Navigate to live activities screen
+                      context.go('/status');
                     },
                   ),
                   _FeatureCard(
@@ -73,8 +100,34 @@ class HomeScreen extends StatelessWidget {
                     title: 'Settings',
                     subtitle: 'App preferences',
                     color: AppColors.textSecondary,
-                    onTap: () {
+                    onTap: () async {
                       // TODO: Navigate to settings screen
+
+                      // TEST Live Activity
+
+                      if (_latestActivityId == null) {
+                        final Map<String, dynamic> activityAttributes = {
+                          'name': 'Test',
+                          'activityType': 'test',
+                          'createdAt': DateTime.now().toIso8601String(),
+                        };
+
+                        final activityStatus =
+                          await _liveActivitiesPlugin.areActivitiesEnabled();
+                        print("Live Activity Enabled: ${activityStatus
+                              .toString()}");
+
+                        final activityId =
+                          await _liveActivitiesPlugin.createActivity(
+                            'test-activity-${DateTime
+                                .now()
+                                .millisecondsSinceEpoch}',
+                            activityAttributes,
+                            removeWhenAppIsKilled: true,
+                          );
+                        print("ActivityID: $activityId");
+                        setState(() => _latestActivityId = activityId);
+                      }
                     },
                   ),
                 ],

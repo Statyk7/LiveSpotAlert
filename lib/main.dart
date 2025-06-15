@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'apps/live_spot_alert/router/app_router.dart';
+import 'shared/di/service_locator.dart';
 import 'shared/ui_kit/colors.dart';
 import 'shared/utils/constants.dart';
 import 'shared/utils/logger.dart';
+import 'features/geofencing/presentation/controllers/geofencing_bloc.dart';
+import 'features/geofencing/presentation/controllers/geofencing_event.dart';
 
-void main() {
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   AppLogger.info('Starting ${AppConstants.appName} v${AppConstants.appVersion}');
+  
+  // Initialize dependency injection
+  await ServiceLocator.init();
   
   runApp(const LiveSpotAlertApp());
 }
@@ -18,23 +25,20 @@ class LiveSpotAlertApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(),
-      routerConfig: AppRouter.router,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<GeofencingBloc>(
+          create: (context) => ServiceLocator.createGeofencingBloc()
+            ..add(const GeofencingStarted()),
+        ),
+      ],
+      child: MaterialApp.router(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        theme: _buildTheme(),
+        routerConfig: AppRouter.router,
+      ),
     );
-    // return MultiBlocProvider(
-    //   providers: [
-    //     // TODO: Add BLoC providers for features
-    //   ],
-    //   child: MaterialApp.router(
-    //     title: AppConstants.appName,
-    //     debugShowCheckedModeBanner: false,
-    //     theme: _buildTheme(),
-    //     routerConfig: AppRouter.router,
-    //   ),
-    // );
   }
 
   ThemeData _buildTheme() {
@@ -49,11 +53,11 @@ class LiveSpotAlertApp extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: AppColors.surface,
         elevation: 4,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
