@@ -19,6 +19,7 @@ abstract class LiveActivitiesDataSource {
 
 class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
   LiveActivitiesDataSourceImpl() {
+    _initializeLiveActivities();
     _initializeStreams();
   }
   
@@ -26,6 +27,11 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       StreamController<ActivityUpdateDto>.broadcast();
   
   final LiveActivities _liveActivities = LiveActivities();
+  
+  void _initializeLiveActivities() {
+    // Initialize the LiveActivities plugin with the group ID
+    _liveActivities.init(appGroupId: "group.livespotalert.liveactivities");
+  }
   
   void _initializeStreams() {
     // Listen to activity state changes

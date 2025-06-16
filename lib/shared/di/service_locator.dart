@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:live_activities/live_activities.dart';
 import '../../shared/base_domain/failures/failure.dart';
 // import 'get_it_extensions.dart'; // For future use
 import '../../features/geofencing/data/data_sources/local/geofence_local_data_source.dart';
@@ -16,6 +17,14 @@ import '../../features/geofencing/domain/use_cases/stop_monitoring_use_case.dart
 import '../../features/geofencing/domain/use_cases/update_geofence_use_case.dart';
 import '../../features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../features/media_management/domain/services/media_service.dart';
+import '../../features/live_activities/data/data_sources/remote/live_activities_data_source.dart';
+import '../../features/live_activities/data/services/live_activity_service_impl.dart';
+import '../../features/live_activities/domain/services/live_activity_service.dart';
+import '../../features/live_activities/domain/use_cases/process_image_for_live_activity_use_case.dart';
+import '../../features/live_activities/domain/use_cases/start_live_activity_use_case.dart';
+import '../../features/live_activities/domain/use_cases/stop_live_activity_use_case.dart';
+import '../../features/live_activities/domain/use_cases/update_live_activity_use_case.dart';
+import '../../features/live_activities/presentation/controllers/live_activity_bloc.dart';
 
 // Global GetIt instance
 final GetIt getIt = GetIt.instance;
@@ -41,10 +50,33 @@ class ServiceLocator {
       () => BackgroundGeolocationDataSourceImpl(),
     );
 
+    // Register Live Activities plugin with proper initialization
+    getIt.registerLazySingleton<LiveActivities>(
+      () {
+        final liveActivities = LiveActivities();
+        // Initialize with the group ID
+        liveActivities.init(appGroupId: "group.livespotalert.liveactivities");
+        return liveActivities;
+      },
+    );
+
+    // Register Live Activities data sources
+    getIt.registerLazySingleton<LiveActivitiesDataSource>(
+      () => LiveActivitiesDataSourceImpl(),
+    );
+
     // Register mock media service
     getIt.registerLazySingleton<MediaService>(
       () => _MockMediaService(),
     );
+
+    // Register Live Activities services
+    getIt.registerLazySingleton<LiveActivityService>(
+      () => LiveActivityServiceImpl(
+        liveActivitiesPlugin: getIt<LiveActivities>(),
+      ),
+    );
+
 
     // Register main services
     getIt.registerLazySingleton<GeofencingService>(
@@ -84,6 +116,31 @@ class ServiceLocator {
       () => GetLocationEventsUseCase(getIt<GeofencingService>()),
     );
 
+    // Register Live Activities use cases
+    getIt.registerLazySingleton<ProcessImageForLiveActivityUseCase>(
+      () => ProcessImageForLiveActivityUseCase(),
+    );
+    
+    getIt.registerLazySingleton<StartLiveActivityUseCase>(
+      () => StartLiveActivityUseCase(
+        liveActivitiesPlugin: getIt<LiveActivities>(),
+        processImageUseCase: getIt<ProcessImageForLiveActivityUseCase>(),
+      ),
+    );
+    
+    getIt.registerLazySingleton<StopLiveActivityUseCase>(
+      () => StopLiveActivityUseCase(
+        liveActivitiesPlugin: getIt<LiveActivities>(),
+      ),
+    );
+    
+    getIt.registerLazySingleton<UpdateLiveActivityUseCase>(
+      () => UpdateLiveActivityUseCase(
+        liveActivitiesPlugin: getIt<LiveActivities>(),
+        processImageUseCase: getIt<ProcessImageForLiveActivityUseCase>(),
+      ),
+    );
+
     _isInitialized = true;
   }
 
@@ -98,6 +155,15 @@ class ServiceLocator {
       stopMonitoringUseCase: getIt<StopMonitoringUseCase>(),
       getLocationEventsUseCase: getIt<GetLocationEventsUseCase>(),
       geofencingService: getIt<GeofencingService>(),
+    );
+  }
+
+  /// Create a new LiveActivityBloc instance with all dependencies
+  static LiveActivityBloc createLiveActivityBloc() {
+    return LiveActivityBloc(
+      startLiveActivityUseCase: getIt<StartLiveActivityUseCase>(),
+      stopLiveActivityUseCase: getIt<StopLiveActivityUseCase>(),
+      updateLiveActivityUseCase: getIt<UpdateLiveActivityUseCase>(),
     );
   }
 
