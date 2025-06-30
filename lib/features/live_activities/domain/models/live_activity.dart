@@ -23,6 +23,7 @@ class LiveActivity extends Equatable {
     required this.title,
     required this.subtitle,
     required this.createdAt,
+    required this.updatedAt,
     this.imageUrl,
     this.imageData,
     this.geofenceId,
@@ -39,6 +40,7 @@ class LiveActivity extends Equatable {
   final String title;
   final String subtitle;
   final DateTime createdAt;
+  final DateTime updatedAt;
   final String? imageUrl;
   final String? imageData; // Base64 encoded image data
   final String? geofenceId;
@@ -55,6 +57,7 @@ class LiveActivity extends Equatable {
     String? title,
     String? subtitle,
     DateTime? createdAt,
+    DateTime? updatedAt,
     String? imageUrl,
     String? imageData,
     String? geofenceId,
@@ -71,6 +74,7 @@ class LiveActivity extends Equatable {
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       imageUrl: imageUrl ?? this.imageUrl,
       imageData: imageData ?? this.imageData,
       geofenceId: geofenceId ?? this.geofenceId,
@@ -104,6 +108,7 @@ class LiveActivity extends Equatable {
         title,
         subtitle,
         createdAt,
+        updatedAt,
         imageUrl,
         imageData,
         geofenceId,

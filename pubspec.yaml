@@ -42,6 +42,7 @@ dependencies:
   
   # Image management
   image_picker: ^1.0.0
+  image: ^4.1.7
   
   # Storage and preferences
   shared_preferences: ^2.2.0

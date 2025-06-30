@@ -27,12 +27,8 @@ class _LocationPickerState extends State<LocationPicker> {
   
   // Predefined locations for demo purposes
   final List<_PredefinedLocation> _predefinedLocations = [
-    _PredefinedLocation('San Francisco, CA', 37.7749, -122.4194),
-    _PredefinedLocation('New York, NY', 40.7128, -74.0060),
-    _PredefinedLocation('Los Angeles, CA', 34.0522, -118.2437),
-    _PredefinedLocation('London, UK', 51.5074, -0.1278),
-    _PredefinedLocation('Paris, France', 48.8566, 2.3522),
-    _PredefinedLocation('Tokyo, Japan', 35.6762, 139.6503),
+    _PredefinedLocation('Apple (iOS Simulator)', 37.33233141, -122.0312186),
+    _PredefinedLocation('TAE Preescolar', 19.3837389, -99.1655118),
   ];
   
   @override

@@ -7,6 +7,7 @@ import 'shared/utils/constants.dart';
 import 'shared/utils/logger.dart';
 import 'features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import 'features/geofencing/presentation/controllers/geofencing_event.dart';
+import 'features/live_activities/presentation/controllers/live_activity_bloc.dart';
 
 
 void main() async {
@@ -30,6 +31,9 @@ class LiveSpotAlertApp extends StatelessWidget {
         BlocProvider<GeofencingBloc>(
           create: (context) => ServiceLocator.createGeofencingBloc()
             ..add(const GeofencingStarted()),
+        ),
+        BlocProvider<LiveActivityBloc>(
+          create: (context) => ServiceLocator.createLiveActivityBloc(),
         ),
       ],
       child: MaterialApp.router(

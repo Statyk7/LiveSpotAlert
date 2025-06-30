@@ -416,6 +416,3 @@ class GeofencingServiceImpl implements GeofencingService {
   }
 }
 
-extension _GeofenceListExtension on List<Geofence> {
-  Geofence? get firstOrNull => isEmpty ? null : first;
-}

@@ -201,6 +201,3 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
   }
 }
 
-extension _GeofenceDtoListExtension on List<GeofenceDto> {
-  GeofenceDto? get firstOrNull => isEmpty ? null : first;
-}

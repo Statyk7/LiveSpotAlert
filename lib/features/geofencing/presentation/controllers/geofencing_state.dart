@@ -68,6 +68,15 @@ class GeofencingState extends Equatable {
   int get activeGeofenceCount => geofences.where((g) => g.isActive).length;
   int get totalGeofenceCount => geofences.length;
   
+  // MVP Single Geofence getters
+  bool get hasSingleGeofence => geofences.length == 1;
+  Geofence? get singleGeofence => geofences.isNotEmpty ? geofences.first : null;
+  GeofenceStatus? get singleGeofenceStatus => singleGeofence != null 
+      ? getGeofenceStatus(singleGeofence!.id) 
+      : null;
+  bool get isSingleGeofenceActive => singleGeofence?.isActive ?? false;
+  bool get isUserInsideSingleGeofence => singleGeofenceStatus?.isUserInside ?? false;
+  
   // Get recent location events (last 10)
   List<LocationEvent> get recentLocationEvents {
     final sortedEvents = List<LocationEvent>.from(locationEvents)

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:live_activities/live_activities.dart';
-import 'dart:io';
 
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
@@ -14,13 +11,13 @@ import '../../../../features/geofencing/presentation/widgets/location_picker.dar
 import '../../../../features/geofencing/domain/models/geofence.dart';
 import '../../../../features/geofencing/domain/use_cases/create_geofence_use_case.dart';
 import '../../../../features/geofencing/domain/use_cases/delete_geofence_use_case.dart';
-import '../../../../features/live_activities/presentation/widgets/live_activity_preview.dart';
+import '../../../../features/live_activities/presentation/widgets/live_activity_controller_widget.dart';
+import '../../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
 
 enum ViewMode { 
   empty,        // No geofence exists
   viewing,      // Viewing current geofence
   creating,     // Creating new geofence
-  configuring   // Configuring live activity
 }
 
 class MainScreen extends StatefulWidget {
@@ -32,28 +29,17 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   ViewMode _currentMode = ViewMode.empty;
-  final _liveActivitiesPlugin = LiveActivities();
   
   // Form controllers
   final _nameController = TextEditingController();
-  final _liveActivityTitleController = TextEditingController();
   
   // Form data
   double? _selectedLatitude;
   double? _selectedLongitude;
-  File? _selectedImage;
-  String? _selectedImagePath;
-  
-  // Live Activity data
-  String _liveActivityTitle = '';
-  String? _liveActivityImagePath;
-  String? _currentActivityId;
 
   @override
   void initState() {
     super.initState();
-    _liveActivitiesPlugin.init(appGroupId: "group.livespotalert.liveactivities");
-    
     // Load initial data
     context.read<GeofencingBloc>().add(const GeofencingStarted());
   }
@@ -61,8 +47,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _liveActivityTitleController.dispose();
-    _liveActivitiesPlugin.dispose();
     super.dispose();
   }
 
@@ -102,8 +86,6 @@ class _MainScreenState extends State<MainScreen> {
         return _buildViewingState(state);
       case ViewMode.creating:
         return _buildCreatingState();
-      case ViewMode.configuring:
-        return _buildConfigureState(state);
     }
   }
 
@@ -297,101 +279,15 @@ class _MainScreenState extends State<MainScreen> {
               
               const SizedBox(height: 24),
               
-              // Live Activity Section
-              Row(
-                children: [
-                  Icon(Icons.notifications_active, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Live Activity',
-                    style: AppTextStyles.h4,
-                  ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () => _switchToConfigureMode(),
-                    icon: const Icon(Icons.settings),
-                    label: const Text('Configure'),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 12),
-              
-              Card(
-                elevation: 2,
-                color: AppColors.surface,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (_liveActivityImagePath != null) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                File(_liveActivityImagePath!),
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _liveActivityTitle.isEmpty 
-                                    ? 'Arrived at ${geofence.name}' 
-                                    : _liveActivityTitle,
-                                  style: AppTextStyles.bodyLarge,
-                                ),
-                                Text(
-                                  'This will appear when you enter the geofence',
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_currentActivityId != null) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.success.withValues(alpha: 26),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Live Activity Active',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.success,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+              // Location Monitoring Section
+              _buildMonitoringControlCard(state),
               
               const SizedBox(height: 24),
               
-              // Toggle Live Activity Button
-              OutlinedButton.icon(
-                onPressed: () => _toggleLiveActivity(),
-                icon: Icon(_currentActivityId != null ? Icons.stop : Icons.play_arrow),
-                label: Text(_currentActivityId != null ? 'Stop Live Activity' : 'Start Live Activity'),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: _currentActivityId != null ? Colors.red : AppColors.primary),
-                  foregroundColor: _currentActivityId != null ? Colors.red : AppColors.primary,
-                ),
+              // Live Activity Section
+              LiveActivityControllerWidget(
+                title: 'Arrived at ${geofence.name}',
+                onConfigurePressed: () => _showLiveActivityConfiguration(context),
               ),
             ]),
           ),
@@ -506,115 +402,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildConfigureState(GeofencingState state) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          title: Text(
-            'Configure Live Activity',
-            style: AppTextStyles.h3.copyWith(color: Colors.white),
-          ),
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          leading: IconButton(
-            onPressed: () => _switchToViewMode(),
-            icon: const Icon(Icons.close),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => _saveLiveActivityConfig(),
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(16.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              // Title Field
-              Text(
-                'Notification Title',
-                style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _liveActivityTitleController,
-                decoration: InputDecoration(
-                  hintText: 'e.g., You\'ve arrived!',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surface,
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Image Section
-              Text(
-                'Notification Image',
-                style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Card(
-                elevation: 2,
-                color: AppColors.surface,
-                child: InkWell(
-                  onTap: () => _pickImage(),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    height: 120,
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    child: _selectedImage != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              _selectedImage!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_photo_alternate,
-                                size: 48,
-                                color: AppColors.textSecondary,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tap to add image',
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Preview Section
-              LiveActivityPreview(
-                title: _liveActivityTitleController.text,
-                imageFile: _selectedImage,
-              ),
-            ]),
-          ),
-        ),
-      ],
-    );
-  }
 
   // Navigation methods
   void _switchToCreateMode({Geofence? editingGeofence}) {
@@ -635,12 +422,6 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _switchToConfigureMode() {
-    setState(() {
-      _currentMode = ViewMode.configuring;
-      _liveActivityTitleController.text = _liveActivityTitle;
-    });
-  }
 
   // Form methods
   bool _canSaveGeofence() {
@@ -693,108 +474,176 @@ class _MainScreenState extends State<MainScreen> {
     _nameController.clear();
     _selectedLatitude = null;
     _selectedLongitude = null;
-    _selectedImage = null;
-    _selectedImagePath = null;
+  }
+
+  // Monitoring control methods
+  Widget _buildMonitoringControlCard(GeofencingState state) {
+    return Card(
+      elevation: 2,
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_searching,
+                  color: state.isMonitoring ? AppColors.success : AppColors.textSecondary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Location Monitoring',
+                      style: AppTextStyles.h4,
+                    ),
+                    Text(
+                      state.isMonitoring 
+                        ? 'Actively monitoring your location'
+                        : 'Monitoring is disabled',
+                      style: AppTextStyles.caption.copyWith(
+                        color: state.isMonitoring ? AppColors.success : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Switch(
+                  value: state.isMonitoring,
+                  onChanged: state.hasLocationPermissions ? (value) {
+                    if (value) {
+                      _startMonitoring();
+                    } else {
+                      _stopMonitoring();
+                    }
+                  } : null,
+                  activeColor: AppColors.success,
+                ),
+              ],
+            ),
+            
+            if (!state.hasLocationPermissions) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 26),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.warning.withValues(alpha: 77)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: AppColors.warning, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Location permissions required',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _requestLocationPermissions(),
+                      child: Text(
+                        'Grant',
+                        style: TextStyle(color: AppColors.warning),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            
+            if (state.isMonitoring && state.locationEvents.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 26),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.history, color: AppColors.info, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Last event: ${_formatLastLocationEvent(state.locationEvents.first)}',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.info,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _startMonitoring() {
+    context.read<GeofencingBloc>().add(const StartMonitoring());
+  }
+
+  void _stopMonitoring() {
+    context.read<GeofencingBloc>().add(const StopMonitoring());
+  }
+
+  void _requestLocationPermissions() {
+    context.read<GeofencingBloc>().add(const RequestLocationPermissions());
+  }
+
+  String _formatLastLocationEvent(locationEvent) {
+    final eventType = locationEvent.eventType.toString();
+    final timeAgo = DateTime.now().difference(locationEvent.timestamp);
+    
+    String eventDescription;
+    switch (eventType) {
+      case 'geofence_enter':
+      case 'enter':
+        eventDescription = 'Entered ${locationEvent.geofence.name}';
+        break;
+      case 'geofence_exit':
+      case 'exit':
+        eventDescription = 'Exited ${locationEvent.geofence.name}';
+        break;
+      default:
+        eventDescription = 'Location update';
+    }
+    
+    String timeDescription;
+    if (timeAgo.inMinutes < 1) {
+      timeDescription = 'just now';
+    } else if (timeAgo.inHours < 1) {
+      timeDescription = '${timeAgo.inMinutes}m ago';
+    } else if (timeAgo.inDays < 1) {
+      timeDescription = '${timeAgo.inHours}h ago';
+    } else {
+      timeDescription = '${timeAgo.inDays}d ago';
+    }
+    
+    return '$eventDescription $timeDescription';
   }
 
   // Live Activity methods
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-        _selectedImagePath = pickedFile.path;
-      });
-    }
-  }
-
-  void _saveLiveActivityConfig() {
-    setState(() {
-      _liveActivityTitle = _liveActivityTitleController.text;
-      if (_selectedImagePath != null) {
-        _liveActivityImagePath = _selectedImagePath;
-      }
-    });
-    _switchToViewMode();
-  }
-
-  Future<void> _toggleLiveActivity() async {
-    if (_currentActivityId != null) {
-      // Stop existing Live Activity
-      await _stopLiveActivity();
-    } else {
-      // Start new Live Activity
-      await _startLiveActivity();
-    }
-  }
-
-  Future<void> _startLiveActivity() async {
-    try {
-      final activityStatus = await _liveActivitiesPlugin.areActivitiesEnabled();
-      debugPrint("Live Activity Enabled: $activityStatus");
-
-      if (!activityStatus) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Live Activities are not enabled on this device')),
-          );
-        }
-        return;
-      }
-
-      final activityAttributes = {
-        'title': _liveActivityTitle.isEmpty ? 'Test Live Activity' : _liveActivityTitle,
-        'activityType': 'geofence_alert',
-        'createdAt': DateTime.now().toIso8601String(),
-      };
-
-      final activityId = await _liveActivitiesPlugin.createActivity(
-        'test-activity-${DateTime.now().millisecondsSinceEpoch}',
-        activityAttributes,
-        removeWhenAppIsKilled: true,
-      );
-
-      debugPrint("ActivityID: $activityId");
-      
-      if (activityId != null && mounted) {
-        setState(() => _currentActivityId = activityId);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Live Activity started successfully!')),
-        );
-      }
-    } catch (e) {
-      debugPrint("Error starting Live Activity: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error starting Live Activity: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _stopLiveActivity() async {
-    if (_currentActivityId == null) return;
-
-    try {
-      await _liveActivitiesPlugin.endActivity(_currentActivityId!);
-      debugPrint("Live Activity stopped: $_currentActivityId");
-      
-      if (mounted) {
-        setState(() => _currentActivityId = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Live Activity stopped successfully!')),
-        );
-      }
-    } catch (e) {
-      debugPrint("Error stopping Live Activity: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error stopping Live Activity: $e')),
-        );
-      }
-    }
+  void _showLiveActivityConfiguration(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LiveActivityConfigurationWidget(
+          onSave: () => Navigator.of(context).pop(),
+          onCancel: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
   }
 
   bool get _isEditing => _currentMode == ViewMode.creating && 

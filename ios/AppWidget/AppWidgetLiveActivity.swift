@@ -109,6 +109,29 @@ private func getLiveActivityImageData(for attributes: LiveActivitiesAppAttribute
     return sharedDefault.string(forKey: key)
 }
 
+private func createUIImageFromBase64(_ base64String: String) -> UIImage? {
+    guard let imageData = Data(base64Encoded: base64String) else {
+        print("LiveActivity: Failed to decode base64 image data")
+        return nil
+    }
+    
+    guard let uiImage = UIImage(data: imageData) else {
+        print("LiveActivity: Failed to create UIImage from decoded data")
+        return nil
+    }
+    
+    print("LiveActivity: Successfully created UIImage with size: \(uiImage.size)")
+    return uiImage
+}
+
+private func getOptimizedImage(for attributes: LiveActivitiesAppAttributes) -> UIImage? {
+    guard let base64String = getLiveActivityImageData(for: attributes) else {
+        return nil
+    }
+    
+    return createUIImageFromBase64(base64String)
+}
+
 // MARK: - Custom Views
 
 struct LiveActivityLockScreenView: View {
@@ -143,25 +166,38 @@ struct LiveActivityImageView: View {
     
     var body: some View {
         Group {
-            if let imageData = getLiveActivityImageData(for: attributes),
-               let data = Data(base64Encoded: imageData),
-               let uiImage = UIImage(data: data) {
+            if let uiImage = getOptimizedImage(for: attributes) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+                    .clipped()
             } else {
-                // Default placeholder with location icon
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.blue.opacity(0.1))
-                    .overlay(
-                        Image(systemName: "location.fill")
-                            .font(.system(size: size * 0.5))
-                            .foregroundColor(.blue)
-                    )
+                // Enhanced placeholder with better visual design
+                ZStack {
+                    RoundedRectangle(cornerRadius: size * 0.25)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.blue.opacity(0.15),
+                                    Color.blue.opacity(0.05)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: size * 0.25)
+                                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                        )
+                    
+                    Image(systemName: "photo")
+                        .font(.system(size: size * 0.4, weight: .medium))
+                        .foregroundColor(.blue.opacity(0.6))
+                }
             }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.25))
     }
 }
 
