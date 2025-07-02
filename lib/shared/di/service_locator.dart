@@ -7,6 +7,7 @@ import '../../shared/base_domain/failures/failure.dart';
 import '../../features/geofencing/data/data_sources/local/geofence_local_data_source.dart';
 import '../../features/geofencing/data/data_sources/remote/background_geolocation_data_source.dart';
 import '../../features/geofencing/data/services/geofencing_service_impl.dart';
+import '../../features/geofencing/data/services/geofencing_live_activity_integration.dart';
 import '../../features/geofencing/domain/services/geofencing_service.dart';
 import '../../features/geofencing/domain/use_cases/create_geofence_use_case.dart';
 import '../../features/geofencing/domain/use_cases/delete_geofence_use_case.dart';
@@ -17,6 +18,7 @@ import '../../features/geofencing/domain/use_cases/stop_monitoring_use_case.dart
 import '../../features/geofencing/domain/use_cases/update_geofence_use_case.dart';
 import '../../features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../features/media_management/domain/services/media_service.dart';
+import '../services/user_preferences_service.dart';
 import '../../features/live_activities/data/data_sources/remote/live_activities_data_source.dart';
 import '../../features/live_activities/data/services/live_activity_service_impl.dart';
 import '../../features/live_activities/domain/services/live_activity_service.dart';
@@ -70,20 +72,33 @@ class ServiceLocator {
       () => _MockMediaService(),
     );
 
+    // Register user preferences service
+    getIt.registerLazySingleton<UserPreferencesService>(
+      () => UserPreferencesServiceImpl(getIt<SharedPreferences>()),
+    );
+
     // Register Live Activities services
     getIt.registerLazySingleton<LiveActivityService>(
       () => LiveActivityServiceImpl(
         liveActivitiesPlugin: getIt<LiveActivities>(),
+        mediaService: getIt<MediaService>(),
       ),
     );
 
+    // Register Live Activity integration for geofencing
+    getIt.registerLazySingleton<GeofencingLiveActivityIntegration>(
+      () => GeofencingLiveActivityIntegration(
+        liveActivityService: getIt<LiveActivityService>(),
+        mediaService: getIt<MediaService>(),
+      ),
+    );
 
     // Register main services
     getIt.registerLazySingleton<GeofencingService>(
       () => GeofencingServiceImpl(
         localDataSource: getIt<GeofenceLocalDataSource>(),
         backgroundGeolocationDataSource: getIt<BackgroundGeolocationDataSource>(),
-        // liveActivityIntegration: null, // Will be added when Live Activities are complete
+        liveActivityIntegration: getIt<GeofencingLiveActivityIntegration>(),
       ),
     );
 
@@ -155,6 +170,7 @@ class ServiceLocator {
       stopMonitoringUseCase: getIt<StopMonitoringUseCase>(),
       getLocationEventsUseCase: getIt<GetLocationEventsUseCase>(),
       geofencingService: getIt<GeofencingService>(),
+      userPreferencesService: getIt<UserPreferencesService>(),
     );
   }
 

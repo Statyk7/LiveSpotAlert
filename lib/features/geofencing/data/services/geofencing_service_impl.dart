@@ -155,6 +155,9 @@ class GeofencingServiceImpl implements GeofencingService {
       // Update cache
       _cachedGeofences.add(geofence);
       
+      // Trigger geofence status update
+      await _updateGeofenceStatuses();
+      
       AppLogger.info('Created geofence: ${geofence.name}');
       return Right(geofence);
     } catch (e, stackTrace) {
@@ -183,6 +186,9 @@ class GeofencingServiceImpl implements GeofencingService {
         _cachedGeofences[index] = geofence;
       }
       
+      // Trigger geofence status update
+      await _updateGeofenceStatuses();
+      
       AppLogger.info('Updated geofence: ${geofence.name}');
       return Right(geofence);
     } catch (e, stackTrace) {
@@ -202,6 +208,9 @@ class GeofencingServiceImpl implements GeofencingService {
       
       // Update cache
       _cachedGeofences.removeWhere((g) => g.id == id);
+      
+      // Trigger geofence status update
+      await _updateGeofenceStatuses();
       
       AppLogger.info('Deleted geofence: $id');
       return const Right(null);
@@ -227,6 +236,9 @@ class GeofencingServiceImpl implements GeofencingService {
           }
         },
       );
+      
+      // Trigger geofence status update
+      await _updateGeofenceStatuses();
       
       AppLogger.info('Started geofence monitoring');
       return const Right(null);

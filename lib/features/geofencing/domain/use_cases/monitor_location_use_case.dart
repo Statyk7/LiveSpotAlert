@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../shared/base_domain/failures/failure.dart';
@@ -58,30 +59,61 @@ class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, Mon
       }
     }
     
-    // Listen to location events if requested
-    if (params.includeLocationEvents) {
-      yield* _geofencingService.locationEventStream.map((eventResult) {
-        return eventResult.fold(
-          (failure) => Left(failure),
-          (event) => Right(MonitorLocationResult(
-            locationEvent: event,
-            geofenceStatuses: null,
-          )),
-        );
-      });
-    }
+    // Create a stream controller to merge both streams
+    final controller = StreamController<Either<Failure, MonitorLocationResult>>();
+    final subscriptions = <StreamSubscription>[];
     
-    // Listen to geofence status updates if requested
-    if (params.includeGeofenceStatuses) {
-      yield* _geofencingService.geofenceStatusStream.map((statusResult) {
-        return statusResult.fold(
-          (failure) => Left(failure),
-          (statuses) => Right(MonitorLocationResult(
-            locationEvent: null,
-            geofenceStatuses: statuses,
-          )),
+    try {
+      // Subscribe to location event stream if requested
+      if (params.includeLocationEvents) {
+        final subscription = _geofencingService.locationEventStream.listen(
+          (eventResult) {
+            final result = eventResult.fold(
+              (failure) => Left<Failure, MonitorLocationResult>(failure),
+              (event) => Right<Failure, MonitorLocationResult>(MonitorLocationResult(
+                locationEvent: event,
+                geofenceStatuses: null,
+              )),
+            );
+            controller.add(result);
+          },
+          onError: (error) {
+            controller.add(Left(LocationFailure(message: 'Location event stream error: $error')));
+          },
         );
-      });
+        subscriptions.add(subscription);
+      }
+      
+      // Subscribe to geofence status stream if requested
+      if (params.includeGeofenceStatuses) {
+        final subscription = _geofencingService.geofenceStatusStream.listen(
+          (statusResult) {
+            final result = statusResult.fold(
+              (failure) => Left<Failure, MonitorLocationResult>(failure),
+              (statuses) => Right<Failure, MonitorLocationResult>(MonitorLocationResult(
+                locationEvent: null,
+                geofenceStatuses: statuses,
+              )),
+            );
+            controller.add(result);
+          },
+          onError: (error) {
+            controller.add(Left(LocationFailure(message: 'Geofence status stream error: $error')));
+          },
+        );
+        subscriptions.add(subscription);
+      }
+      
+      // Yield from the merged stream
+      if (subscriptions.isNotEmpty) {
+        yield* controller.stream;
+      }
+    } finally {
+      // Clean up subscriptions when the stream is closed
+      for (final subscription in subscriptions) {
+        await subscription.cancel();
+      }
+      await controller.close();
     }
   }
 }

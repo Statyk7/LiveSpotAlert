@@ -11,6 +11,7 @@ import '../../domain/use_cases/monitor_location_use_case.dart';
 import '../../domain/use_cases/stop_monitoring_use_case.dart';
 import '../../domain/use_cases/update_geofence_use_case.dart';
 import '../../domain/services/geofencing_service.dart';
+import '../../../../shared/services/user_preferences_service.dart';
 import 'geofencing_event.dart';
 import 'geofencing_state.dart';
 
@@ -43,6 +44,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     required this.stopMonitoringUseCase,
     required this.getLocationEventsUseCase,
     required this.geofencingService,
+    required this.userPreferencesService,
   }) : super(const GeofencingState()) {
     
     // Register event handlers
@@ -72,6 +74,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
   final StopMonitoringUseCase stopMonitoringUseCase;
   final GetLocationEventsUseCase getLocationEventsUseCase;
   final GeofencingService geofencingService;
+  final UserPreferencesService userPreferencesService;
 
   StreamSubscription<dynamic>? _monitoringSubscription;
 
@@ -89,6 +92,39 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     
     // Load recent location events
     add(const LoadLocationEvents(GetLocationEventsParams.recent()));
+    
+    // Load monitoring preference and start monitoring if enabled (after permissions are checked)
+    // Add a small delay to prevent race conditions with user actions
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    final monitoringResult = await userPreferencesService.getMonitoringEnabled();
+    monitoringResult.fold(
+      (failure) {
+        AppLogger.error('Failed to load monitoring preference: ${failure.message}');
+      },
+      (isEnabled) async {
+        AppLogger.info('Loaded monitoring preference: $isEnabled, current isMonitoring: ${state.isMonitoring}');
+        if (isEnabled && !state.isMonitoring) { // Only auto-start if not already monitoring
+          // Check if we have permissions first
+          final permissionResult = await geofencingService.hasRequiredPermissions();
+          permissionResult.fold(
+            (failure) {
+              AppLogger.warning('Cannot auto-start monitoring: ${failure.message}');
+            },
+            (hasPermissions) {
+              if (hasPermissions) {
+                AppLogger.info('Auto-starting monitoring from saved preference');
+                add(const StartMonitoring());
+              } else {
+                AppLogger.info('Monitoring preference saved but permissions not granted');
+              }
+            },
+          );
+        } else if (isEnabled && state.isMonitoring) {
+          AppLogger.info('Monitoring preference is enabled but already monitoring - skipping auto-start');
+        }
+      },
+    );
   }
 
   Future<void> _onLoadGeofences(
@@ -304,6 +340,9 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
         clearError: true,
       ));
       
+      // Save monitoring preference
+      await _saveMonitoringPreference(true);
+      
     } catch (e, stackTrace) {
       AppLogger.error('Error starting monitoring', e, stackTrace);
       emit(state.copyWith(
@@ -319,7 +358,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     try {
-      // Cancel stream subscription
+      // Cancel stream subscription first
       await _monitoringSubscription?.cancel();
       _monitoringSubscription = null;
       
@@ -332,6 +371,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
           emit(state.copyWith(
             status: GeofencingStatus.error,
             errorMessage: failure.message,
+            isMonitoring: false,
           ));
         },
         (_) {
@@ -343,12 +383,20 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
           ));
         },
       );
+      
+      // Save monitoring preference after state is updated
+      await _saveMonitoringPreference(false);
+      
     } catch (e, stackTrace) {
       AppLogger.error('Error stopping monitoring', e, stackTrace);
       emit(state.copyWith(
         status: GeofencingStatus.error,
         errorMessage: 'Failed to stop monitoring: $e',
+        isMonitoring: false,
       ));
+      
+      // Still save preference even on error
+      await _saveMonitoringPreference(false);
     }
   }
 
@@ -511,6 +559,19 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     emit(state.copyWith(clearError: true));
+  }
+
+  /// Save monitoring preference to persistent storage
+  Future<void> _saveMonitoringPreference(bool enabled) async {
+    final result = await userPreferencesService.setMonitoringEnabled(enabled);
+    result.fold(
+      (failure) {
+        AppLogger.error('Failed to save monitoring preference: ${failure.message}');
+      },
+      (_) {
+        AppLogger.debug('Monitoring preference saved: $enabled');
+      },
+    );
   }
 
   @override

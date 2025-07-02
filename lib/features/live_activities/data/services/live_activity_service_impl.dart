@@ -7,14 +7,17 @@ import '../../domain/services/live_activity_service.dart';
 import '../../domain/models/live_activity.dart';
 import '../../../geofencing/domain/models/location_event.dart';
 import '../../../geofencing/domain/models/geofence.dart';
+import '../../../media_management/domain/services/media_service.dart';
 import '../mappers/live_activity_mapper.dart';
 
 class LiveActivityServiceImpl implements LiveActivityService {
   LiveActivityServiceImpl({
     required this.liveActivitiesPlugin,
+    this.mediaService,
   });
 
   final LiveActivities liveActivitiesPlugin;
+  final MediaService? mediaService;
   final StreamController<Either<Failure, LiveActivity>> _activityUpdatesController = 
       StreamController<Either<Failure, LiveActivity>>.broadcast();
 
@@ -177,17 +180,39 @@ class LiveActivityServiceImpl implements LiveActivityService {
     try {
       final activityId = 'geofence-${geofence.id}-${DateTime.now().millisecondsSinceEpoch}';
       
+      // Create meaningful title and subtitle based on event type and geofence
+      final title = _createNotificationTitle(event, geofence);
+      final subtitle = _createNotificationSubtitle(event, geofence);
+      
+      // Load media item if available
+      String? imageData;
+      String? imageUrl;
+      
+      final targetMediaItemId = mediaItemId ?? geofence.mediaItemId;
+      if (targetMediaItemId != null && mediaService != null) {
+        final mediaResult = await mediaService!.getMediaItemById(targetMediaItemId);
+        mediaResult.fold(
+          (failure) => debugPrint('Failed to load media for Live Activity: ${failure.message}'),
+          (mediaItem) {
+            imageData = mediaItem.base64Data;
+            imageUrl = mediaItem.filePath;
+          },
+        );
+      }
+      
       final liveActivity = LiveActivity(
         id: activityId,
         activityType: 'geofence',
-        title: 'Geofence ${event.eventType.name}',
-        subtitle: geofence.name,
+        title: title,
+        subtitle: subtitle,
         status: LiveActivityStatus.active,
         contentType: _getContentTypeFromEvent(event),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         geofenceId: geofence.id,
         locationName: geofence.name,
+        imageData: imageData,
+        imageUrl: imageUrl,
         customData: customData,
       );
 
@@ -195,6 +220,42 @@ class LiveActivityServiceImpl implements LiveActivityService {
     } catch (e) {
       debugPrint("Error creating activity for location event: $e");
       return Left(LiveActivityFailure(message: 'Failed to create activity for location event: $e'));
+    }
+  }
+
+  /// Create a meaningful notification title based on the event and geofence
+  String _createNotificationTitle(LocationEvent event, Geofence geofence) {
+    switch (event.eventType) {
+      case LocationEventType.enter:
+        // Use geofence description as title if available, otherwise create meaningful default
+        if (geofence.description != null && geofence.description!.isNotEmpty) {
+          return geofence.description!;
+        }
+        return "You've arrived at ${geofence.name}!";
+      
+      case LocationEventType.exit:
+        return "You've left ${geofence.name}";
+      
+      case LocationEventType.dwell:
+        return "Still at ${geofence.name}";
+    }
+  }
+
+  /// Create a meaningful notification subtitle
+  String _createNotificationSubtitle(LocationEvent event, Geofence geofence) {
+    final accuracy = event.accuracy?.toStringAsFixed(0) ?? "Unknown";
+    final timestamp = event.timestamp;
+    final timeString = "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
+    
+    switch (event.eventType) {
+      case LocationEventType.enter:
+        return "Entered at $timeString • ${accuracy}m accuracy";
+      
+      case LocationEventType.exit:
+        return "Left at $timeString • ${accuracy}m accuracy";
+      
+      case LocationEventType.dwell:
+        return "Dwelling since $timeString • ${accuracy}m accuracy";
     }
   }
 

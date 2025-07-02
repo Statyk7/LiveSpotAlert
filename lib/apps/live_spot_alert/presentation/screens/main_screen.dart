@@ -10,9 +10,9 @@ import '../../../../features/geofencing/presentation/controllers/geofencing_even
 import '../../../../features/geofencing/presentation/widgets/location_picker.dart';
 import '../../../../features/geofencing/domain/models/geofence.dart';
 import '../../../../features/geofencing/domain/use_cases/create_geofence_use_case.dart';
-import '../../../../features/geofencing/domain/use_cases/delete_geofence_use_case.dart';
 import '../../../../features/live_activities/presentation/widgets/live_activity_controller_widget.dart';
 import '../../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
+import '../../../../features/live_activities/presentation/widgets/live_activity_info_card.dart';
 
 enum ViewMode { 
   empty,        // No geofence exists
@@ -168,36 +168,17 @@ class _MainScreenState extends State<MainScreen> {
           backgroundColor: AppColors.primary,
           elevation: 0,
           floating: true,
-          actions: [
-            IconButton(
-              onPressed: () => _switchToCreateMode(editingGeofence: geofence),
-              icon: const Icon(Icons.edit),
-            ),
-            PopupMenuButton(
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'delete',
-                  child: const Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Delete Geofence'),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (value) {
-                if (value == 'delete') {
-                  _deleteGeofence(geofence);
-                }
-              },
-            ),
-          ],
         ),
         SliverPadding(
           padding: const EdgeInsets.all(16.0),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+
+              // Location Monitoring Section
+              _buildMonitoringControlCard(state),
+
+              const SizedBox(height: 24),
+
               // Current Geofence Card
               Card(
                 elevation: 4,
@@ -246,6 +227,15 @@ class _MainScreenState extends State<MainScreen> {
                               style: AppTextStyles.caption.copyWith(color: Colors.white),
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () => _switchToCreateMode(editingGeofence: geofence),
+                            icon: const Icon(Icons.edit),
+                            tooltip: 'Configure Geofence',
+                            style: IconButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -278,13 +268,16 @@ class _MainScreenState extends State<MainScreen> {
               ),
               
               const SizedBox(height: 24),
-              
-              // Location Monitoring Section
-              _buildMonitoringControlCard(state),
-              
-              const SizedBox(height: 24),
-              
+
               // Live Activity Section
+              LiveActivityInfoCard(
+                title: 'Arrived at ${geofence.name}',
+                onConfigurePressed: () => _showLiveActivityConfiguration(context),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Live Activity Preview/Controls
               LiveActivityControllerWidget(
                 title: 'Arrived at ${geofence.name}',
                 onConfigurePressed: () => _showLiveActivityConfiguration(context),
@@ -444,31 +437,6 @@ class _MainScreenState extends State<MainScreen> {
     context.read<GeofencingBloc>().add(CreateGeofence(params));
   }
 
-  void _deleteGeofence(Geofence geofence) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Geofence'),
-        content: Text('Are you sure you want to delete "${geofence.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<GeofencingBloc>().add(
-                DeleteGeofence(DeleteGeofenceParams(geofenceId: geofence.id)),
-              );
-              setState(() => _currentMode = ViewMode.empty);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _clearForm() {
     _nameController.clear();

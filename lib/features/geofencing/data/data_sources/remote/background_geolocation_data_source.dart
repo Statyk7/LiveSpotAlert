@@ -41,19 +41,19 @@ class BackgroundGeolocationDataSourceImpl implements BackgroundGeolocationDataSo
       try {
         AppLogger.info('Geofence event received: ${event.action} for ${event.identifier}');
         
-        // final locationEventDto = LocationEventDto.fromBackgroundGeolocationEvent({
-        //   'identifier': event.identifier,
-        //   'action': event.action,
-        //   'location': {
-        //     'coords': {
-        //       'latitude': event.location.coords.latitude,
-        //       'longitude': event.location.coords.longitude,
-        //       'accuracy': event.location.coords.accuracy,
-        //     }
-        //   }
-        // });
-        //
-        // _geofenceEventController.add(locationEventDto);
+        final locationEventDto = LocationEventDto.fromBackgroundGeolocationEvent({
+          'identifier': event.identifier,
+          'action': event.action,
+          'location': {
+            'coords': {
+              'latitude': event.location.coords.latitude,
+              'longitude': event.location.coords.longitude,
+              'accuracy': event.location.coords.accuracy,
+            }
+          }
+        });
+
+        _geofenceEventController.add(locationEventDto);
       } catch (e, stackTrace) {
         AppLogger.error('Error processing geofence event', e, stackTrace);
       }
@@ -61,7 +61,7 @@ class BackgroundGeolocationDataSourceImpl implements BackgroundGeolocationDataSo
     
     // Listen to location updates
     bg.BackgroundGeolocation.onLocation((bg.Location location) {
-      // _locationController.add(location);
+      _locationController.add(location);
       AppLogger.debug('Location changed: ${location.toString()}');
     });
     
