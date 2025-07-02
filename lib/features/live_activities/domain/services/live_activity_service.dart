@@ -51,6 +51,18 @@ abstract class LiveActivityService {
   Future<Either<Failure, bool>> isLiveActivitiesEnabled();
   Future<Either<Failure, void>> requestLiveActivitiesPermission();
   
+  // Live Activity Configuration Management
+  Future<Either<Failure, LiveActivity?>> getActiveConfiguration();
+  Future<Either<Failure, void>> saveConfiguration({
+    required String title,
+    String? subtitle,
+    String? imageUrl,
+    String? imageData,
+    String? activityType,
+    Map<String, dynamic>? customData,
+  });
+  Future<Either<Failure, void>> clearConfiguration();
+  
   // Streams
   Stream<Either<Failure, LiveActivity>> get liveActivityUpdates;
   

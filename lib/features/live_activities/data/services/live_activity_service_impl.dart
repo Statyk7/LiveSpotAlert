@@ -3,23 +3,30 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:live_activities/live_activities.dart';
 import '../../../../shared/base_domain/failures/failure.dart';
+import '../../../../shared/utils/logger.dart';
 import '../../domain/services/live_activity_service.dart';
 import '../../domain/models/live_activity.dart';
 import '../../../geofencing/domain/models/location_event.dart';
 import '../../../geofencing/domain/models/geofence.dart';
 import '../../../media_management/domain/services/media_service.dart';
 import '../mappers/live_activity_mapper.dart';
+import '../data_sources/local/live_activity_local_data_source.dart';
 
 class LiveActivityServiceImpl implements LiveActivityService {
   LiveActivityServiceImpl({
     required this.liveActivitiesPlugin,
+    required this.localDataSource,
     this.mediaService,
   });
 
   final LiveActivities liveActivitiesPlugin;
+  final LiveActivityLocalDataSource localDataSource;
   final MediaService? mediaService;
   final StreamController<Either<Failure, LiveActivity>> _activityUpdatesController = 
       StreamController<Either<Failure, LiveActivity>>.broadcast();
+
+  // Cache for active activities
+  List<LiveActivity>? _cachedActivities;
 
   @override
   Stream<Either<Failure, LiveActivity>> get liveActivityUpdates => 
@@ -76,14 +83,21 @@ class LiveActivityServiceImpl implements LiveActivityService {
           updatedAt: DateTime.now(),
         );
         
+        // Save to local storage
+        final activityDto = LiveActivityMapper.toDto(startedActivity);
+        await localDataSource.saveLiveActivity(activityDto);
+        
+        // Update cache
+        _cachedActivities = null;
+        
         _activityUpdatesController.add(Right(startedActivity));
-        debugPrint("Started Live Activity: $createdActivityId");
+        AppLogger.debug("Started Live Activity: $createdActivityId");
         return Right(startedActivity);
       } else {
         return Left(LiveActivityFailure(message: 'Failed to start Live Activity'));
       }
     } catch (e) {
-      debugPrint("Error starting Live Activity: $e");
+      AppLogger.error('Error starting Live Activity', e);
       return Left(LiveActivityFailure(message: 'Failed to start Live Activity: $e'));
     }
   }
@@ -95,11 +109,19 @@ class LiveActivityServiceImpl implements LiveActivityService {
       await liveActivitiesPlugin.updateActivity(activity.id, updateData);
       
       final updatedActivity = activity.copyWith(updatedAt: DateTime.now());
+      
+      // Update in local storage
+      final activityDto = LiveActivityMapper.toDto(updatedActivity);
+      await localDataSource.saveLiveActivity(activityDto);
+      
+      // Update cache
+      _cachedActivities = null;
+      
       _activityUpdatesController.add(Right(updatedActivity));
-      debugPrint("Updated Live Activity: ${activity.id}");
+      AppLogger.debug("Updated Live Activity: ${activity.id}");
       return Right(updatedActivity);
     } catch (e) {
-      debugPrint("Error updating Live Activity: $e");
+      AppLogger.error('Error updating Live Activity', e);
       return Left(LiveActivityFailure(message: 'Failed to update Live Activity: $e'));
     }
   }
@@ -108,10 +130,23 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, void>> endLiveActivity(String activityId) async {
     try {
       await liveActivitiesPlugin.endActivity(activityId);
-      debugPrint("Ended Live Activity: $activityId");
+      
+      // Update status in local storage
+      final activityDto = await localDataSource.getLiveActivityById(activityId);
+      if (activityDto != null) {
+        final updatedDto = activityDto.copyWith(
+          status: LiveActivityStatus.ended.name,
+        );
+        await localDataSource.saveLiveActivity(updatedDto);
+      }
+      
+      // Update cache
+      _cachedActivities = null;
+      
+      AppLogger.debug("Ended Live Activity: $activityId");
       return const Right(null);
     } catch (e) {
-      debugPrint("Error ending Live Activity: $e");
+      AppLogger.error('Error ending Live Activity', e);
       return Left(LiveActivityFailure(message: 'Failed to end Live Activity: $e'));
     }
   }
@@ -120,10 +155,25 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, void>> endAllLiveActivities() async {
     try {
       await liveActivitiesPlugin.endAllActivities();
-      debugPrint("Ended all Live Activities");
+      
+      // Update all activities to ended status in local storage
+      final activities = await localDataSource.getLiveActivities();
+      for (final activity in activities) {
+        if (activity.status != LiveActivityStatus.ended.name) {
+          final updatedActivity = activity.copyWith(
+            status: LiveActivityStatus.ended.name,
+          );
+          await localDataSource.saveLiveActivity(updatedActivity);
+        }
+      }
+      
+      // Clear cache
+      _cachedActivities = null;
+      
+      AppLogger.debug("Ended all Live Activities");
       return const Right(null);
     } catch (e) {
-      debugPrint("Error ending all Live Activities: $e");
+      AppLogger.error('Error ending all Live Activities', e);
       return Left(LiveActivityFailure(message: 'Failed to end all Live Activities: $e'));
     }
   }
@@ -131,25 +181,38 @@ class LiveActivityServiceImpl implements LiveActivityService {
   @override
   Future<Either<Failure, List<LiveActivity>>> getActiveLiveActivities() async {
     try {
-      // The live_activities plugin doesn't provide a direct way to list all activities
-      // This would require custom implementation or plugin enhancement
-      debugPrint("Getting all Live Activities is not supported by the plugin");
-      return const Right([]);
+      if (_cachedActivities != null) {
+        return Right(_cachedActivities!);
+      }
+      
+      final activityDtos = await localDataSource.getLiveActivities();
+      final activities = activityDtos
+          .where((dto) => dto.status != LiveActivityStatus.ended.name)
+          .map((dto) => LiveActivityMapper.fromDto(dto))
+          .toList();
+      
+      _cachedActivities = activities;
+      AppLogger.debug('Retrieved ${activities.length} active live activities');
+      return Right(activities);
     } catch (e) {
-      debugPrint("Error getting all Live Activities: $e");
-      return Left(LiveActivityFailure(message: 'Failed to get all Live Activities: $e'));
+      AppLogger.error('Error getting active Live Activities', e);
+      return Left(LiveActivityFailure(message: 'Failed to get active Live Activities: $e'));
     }
   }
 
   @override
   Future<Either<Failure, LiveActivity?>> getLiveActivityById(String id) async {
     try {
-      // The live_activities plugin doesn't provide a direct way to get activity by ID
-      // This would require custom implementation or plugin enhancement
-      debugPrint("Getting Live Activity by ID is not supported by the plugin");
-      return const Right(null);
+      final activityDto = await localDataSource.getLiveActivityById(id);
+      if (activityDto == null) {
+        return const Right(null);
+      }
+      
+      final activity = LiveActivityMapper.fromDto(activityDto);
+      AppLogger.debug('Retrieved live activity by ID: $id');
+      return Right(activity);
     } catch (e) {
-      debugPrint("Error getting Live Activity: $e");
+      AppLogger.error('Error getting Live Activity by ID', e);
       return Left(LiveActivityFailure(message: 'Failed to get Live Activity: $e'));
     }
   }
@@ -161,11 +224,20 @@ class LiveActivityServiceImpl implements LiveActivityService {
     int? limit,
   }) async {
     try {
-      // This would require custom storage implementation
-      debugPrint("Live Activity history is not implemented");
-      return const Right([]);
+      final activityDtos = await localDataSource.getLiveActivityHistory(
+        startDate: startDate,
+        endDate: endDate,
+        limit: limit,
+      );
+      
+      final activities = activityDtos
+          .map((dto) => LiveActivityMapper.fromDto(dto))
+          .toList();
+      
+      AppLogger.debug('Retrieved ${activities.length} live activity history items');
+      return Right(activities);
     } catch (e) {
-      debugPrint("Error getting Live Activity history: $e");
+      AppLogger.error('Error getting Live Activity history', e);
       return Left(LiveActivityFailure(message: 'Failed to get Live Activity history: $e'));
     }
   }
@@ -321,11 +393,97 @@ class LiveActivityServiceImpl implements LiveActivityService {
   }) async {
     try {
       // This would require custom implementation to track and cleanup old activities
-      debugPrint("Cleanup old activities is not yet implemented");
+      AppLogger.debug("Cleanup old activities is not yet implemented");
       return const Right(null);
     } catch (e) {
-      debugPrint("Error cleaning up old activities: $e");
+      AppLogger.error('Error cleaning up old activities', e);
       return Left(LiveActivityFailure(message: 'Failed to cleanup old activities: $e'));
+    }
+  }
+
+  /// Get the current active Live Activity configuration
+  @override
+  Future<Either<Failure, LiveActivity?>> getActiveConfiguration() async {
+    try {
+      final configDto = await localDataSource.getActiveConfiguration();
+      if (configDto == null) {
+        debugPrint('ServiceImpl: No active configuration found');
+        return const Right(null);
+      }
+      
+      debugPrint('ServiceImpl: Found config DTO - title: "${configDto.title}", hasImageData: ${configDto.imageData != null}');
+      if (configDto.imageData != null) {
+        debugPrint('ServiceImpl: ImageData length: ${configDto.imageData!.length}');
+      }
+      
+      final config = LiveActivityMapper.fromDto(configDto);
+      debugPrint('ServiceImpl: Mapped to domain - title: "${config.title}", hasImageData: ${config.imageData != null}');
+      AppLogger.debug('Retrieved active Live Activity configuration: ${config.title}');
+      return Right(config);
+    } catch (e) {
+      AppLogger.error('Error getting active Live Activity configuration', e);
+      return Left(LiveActivityFailure(message: 'Failed to get active configuration: $e'));
+    }
+  }
+
+  /// Save Live Activity configuration (title and image)
+  @override
+  Future<Either<Failure, void>> saveConfiguration({
+    required String title,
+    String? subtitle,
+    String? imageUrl,
+    String? imageData,
+    String? activityType,
+    Map<String, dynamic>? customData,
+  }) async {
+    try {
+      final configId = 'config_${DateTime.now().millisecondsSinceEpoch}';
+      
+      debugPrint('ServiceImpl: Saving config - title: "$title", hasImageData: ${imageData != null}');
+      if (imageData != null) {
+        debugPrint('ServiceImpl: ImageData length: ${imageData!.length}');
+        debugPrint('ServiceImpl: ImageData preview: ${imageData!.substring(0, imageData!.length > 100 ? 100 : imageData!.length)}...');
+      }
+      
+      final config = LiveActivity(
+        id: configId,
+        activityType: activityType ?? 'LocationAlert',
+        title: title,
+        subtitle: subtitle ?? '',
+        status: LiveActivityStatus.configured,
+        contentType: LiveActivityContentType.configuration,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        imageUrl: imageUrl,
+        imageData: imageData,
+        customData: customData,
+      );
+      
+      debugPrint('ServiceImpl: Created domain object - hasImageData: ${config.imageData != null}');
+      
+      final configDto = LiveActivityMapper.toDto(config);
+      debugPrint('ServiceImpl: Mapped to DTO - hasImageData: ${configDto.imageData != null}');
+      
+      await localDataSource.saveActiveConfiguration(configDto);
+      
+      AppLogger.debug('Saved Live Activity configuration: $title');
+      return const Right(null);
+    } catch (e) {
+      AppLogger.error('Error saving Live Activity configuration', e);
+      return Left(LiveActivityFailure(message: 'Failed to save configuration: $e'));
+    }
+  }
+
+  /// Clear the active Live Activity configuration
+  @override
+  Future<Either<Failure, void>> clearConfiguration() async {
+    try {
+      await localDataSource.clearActiveConfiguration();
+      AppLogger.debug('Cleared Live Activity configuration');
+      return const Right(null);
+    } catch (e) {
+      AppLogger.error('Error clearing Live Activity configuration', e);
+      return Left(LiveActivityFailure(message: 'Failed to clear configuration: $e'));
     }
   }
 

@@ -20,6 +20,7 @@ import '../../features/geofencing/presentation/controllers/geofencing_bloc.dart'
 import '../../features/media_management/domain/services/media_service.dart';
 import '../services/user_preferences_service.dart';
 import '../../features/live_activities/data/data_sources/remote/live_activities_data_source.dart';
+import '../../features/live_activities/data/data_sources/local/live_activity_local_data_source.dart';
 import '../../features/live_activities/data/services/live_activity_service_impl.dart';
 import '../../features/live_activities/domain/services/live_activity_service.dart';
 import '../../features/live_activities/domain/use_cases/process_image_for_live_activity_use_case.dart';
@@ -67,6 +68,10 @@ class ServiceLocator {
       () => LiveActivitiesDataSourceImpl(),
     );
 
+    getIt.registerLazySingleton<LiveActivityLocalDataSource>(
+      () => LiveActivityLocalDataSourceImpl(getIt<SharedPreferences>()),
+    );
+
     // Register mock media service
     getIt.registerLazySingleton<MediaService>(
       () => _MockMediaService(),
@@ -81,6 +86,7 @@ class ServiceLocator {
     getIt.registerLazySingleton<LiveActivityService>(
       () => LiveActivityServiceImpl(
         liveActivitiesPlugin: getIt<LiveActivities>(),
+        localDataSource: getIt<LiveActivityLocalDataSource>(),
         mediaService: getIt<MediaService>(),
       ),
     );
@@ -180,6 +186,7 @@ class ServiceLocator {
       startLiveActivityUseCase: getIt<StartLiveActivityUseCase>(),
       stopLiveActivityUseCase: getIt<StopLiveActivityUseCase>(),
       updateLiveActivityUseCase: getIt<UpdateLiveActivityUseCase>(),
+      liveActivityService: getIt<LiveActivityService>(),
     );
   }
 

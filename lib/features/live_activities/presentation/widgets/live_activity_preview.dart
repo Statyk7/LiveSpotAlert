@@ -275,6 +275,10 @@ class LiveActivityDetailedPreview extends StatelessWidget {
         chipColor = Colors.grey;
         statusText = 'Stale';
         break;
+      case LiveActivityStatus.configured:
+        chipColor = Colors.blue;
+        statusText = 'Configured';
+        break;
     }
 
     return Container(
@@ -304,6 +308,8 @@ class LiveActivityDetailedPreview extends StatelessWidget {
         return Icons.timer;
       case LiveActivityContentType.locationUpdate:
         return Icons.my_location;
+      case LiveActivityContentType.configuration:
+        return Icons.settings;
     }
   }
 }

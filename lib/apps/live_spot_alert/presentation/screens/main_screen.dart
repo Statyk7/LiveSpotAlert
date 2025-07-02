@@ -13,6 +13,8 @@ import '../../../../features/geofencing/domain/use_cases/create_geofence_use_cas
 import '../../../../features/live_activities/presentation/widgets/live_activity_controller_widget.dart';
 import '../../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
 import '../../../../features/live_activities/presentation/widgets/live_activity_info_card.dart';
+import '../../../../features/live_activities/presentation/controllers/live_activity_bloc.dart';
+import '../../../../features/live_activities/presentation/controllers/live_activity_event.dart';
 
 enum ViewMode { 
   empty,        // No geofence exists
@@ -42,6 +44,8 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     // Load initial data
     context.read<GeofencingBloc>().add(const GeofencingStarted());
+    // Load saved Live Activity configuration
+    context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
   }
 
   @override

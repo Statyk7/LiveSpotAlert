@@ -5,6 +5,7 @@ enum LiveActivityStatus {
   dismissed,
   ended,
   stale,
+  configured,
 }
 
 enum LiveActivityContentType {
@@ -12,6 +13,7 @@ enum LiveActivityContentType {
   geofenceExit,
   geofenceDwell,
   locationUpdate,
+  configuration,
 }
 
 class LiveActivity extends Equatable {

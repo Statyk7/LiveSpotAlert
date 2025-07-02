@@ -1,4 +1,5 @@
 import '../../domain/models/live_activity.dart';
+import '../dto/activity_dto.dart';
 
 class LiveActivityMapper {
   static Map<String, dynamic> toUpdateData(LiveActivity liveActivity) {
@@ -65,6 +66,49 @@ class LiveActivityMapper {
               'createdAt',
               'updatedAt'
             ].contains(key)),
+    );
+  }
+
+  /// Convert LiveActivity domain model to ActivityDto
+  static ActivityDto toDto(LiveActivity liveActivity) {
+    return ActivityDto(
+      id: liveActivity.id,
+      activityType: liveActivity.activityType,
+      title: liveActivity.title,
+      subtitle: liveActivity.subtitle,
+      contentType: liveActivity.contentType.name,
+      createdAt: liveActivity.createdAt.toIso8601String(),
+      imageUrl: liveActivity.imageUrl,
+      imageData: liveActivity.imageData,
+      geofenceId: liveActivity.geofenceId,
+      locationName: liveActivity.locationName,
+      customData: liveActivity.customData,
+      status: liveActivity.status.name,
+    );
+  }
+
+  /// Convert ActivityDto to LiveActivity domain model
+  static LiveActivity fromDto(ActivityDto dto) {
+    return LiveActivity(
+      id: dto.id,
+      activityType: dto.activityType,
+      title: dto.title,
+      subtitle: dto.subtitle,
+      status: LiveActivityStatus.values.firstWhere(
+        (status) => status.name == dto.status,
+        orElse: () => LiveActivityStatus.active,
+      ),
+      contentType: LiveActivityContentType.values.firstWhere(
+        (type) => type.name == dto.contentType,
+        orElse: () => LiveActivityContentType.geofenceEntry,
+      ),
+      createdAt: DateTime.parse(dto.createdAt),
+      updatedAt: DateTime.now(), // ActivityDto doesn't have updatedAt, use current time
+      imageUrl: dto.imageUrl,
+      imageData: dto.imageData,
+      geofenceId: dto.geofenceId,
+      locationName: dto.locationName,
+      customData: dto.customData,
     );
   }
 }

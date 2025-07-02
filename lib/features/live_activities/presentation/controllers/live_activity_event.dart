@@ -66,3 +66,20 @@ class ConfigureLiveActivity extends LiveActivityEvent {
 class ResetLiveActivity extends LiveActivityEvent {
   const ResetLiveActivity();
 }
+
+class SaveConfigurationImmediately extends LiveActivityEvent {
+  const SaveConfigurationImmediately({
+    required this.title,
+    this.imagePath,
+  });
+
+  final String title;
+  final String? imagePath;
+
+  @override
+  List<Object?> get props => [title, imagePath];
+}
+
+class LoadSavedConfiguration extends LiveActivityEvent {
+  const LoadSavedConfiguration();
+}

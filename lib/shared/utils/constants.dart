@@ -6,6 +6,7 @@ class AppConstants {
   static const String geofencesKey = 'geofences';
   static const String mediaItemsKey = 'media_items';
   static const String settingsKey = 'app_settings';
+  static const String liveActivitiesKey = 'live_activities';
   
   // Geofencing
   static const double defaultGeofenceRadius = 100.0; // meters
