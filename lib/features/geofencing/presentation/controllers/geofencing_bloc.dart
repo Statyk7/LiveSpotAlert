@@ -18,18 +18,18 @@ import 'geofencing_state.dart';
 // Internal events (from streams)
 class _LocationEventReceived extends GeofencingEvent {
   const _LocationEventReceived(this.result);
-  
+
   final MonitorLocationResult result;
-  
+
   @override
   List<Object?> get props => [result];
 }
 
 class _MonitoringError extends GeofencingEvent {
   const _MonitoringError(this.message);
-  
+
   final String message;
-  
+
   @override
   List<Object?> get props => [message];
 }
@@ -46,7 +46,6 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     required this.geofencingService,
     required this.userPreferencesService,
   }) : super(const GeofencingState()) {
-    
     // Register event handlers
     on<GeofencingStarted>(_onGeofencingStarted);
     on<LoadGeofences>(_onLoadGeofences);
@@ -84,48 +83,57 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     AppLogger.info('Geofencing BLoC started');
-    
+
     // Check permissions first
     add(const CheckLocationPermissions());
-    
+
     // Load existing geofences
     add(const LoadGeofences());
-    
+
     // Load recent location events
     add(const LoadLocationEvents(GetLocationEventsParams.recent()));
-    
+
     // Load monitoring preference and start monitoring if enabled (only on first startup)
     if (!_hasAttemptedAutoStart) {
       _hasAttemptedAutoStart = true;
-      
+
       // Add a small delay to prevent race conditions with user actions
       await Future.delayed(const Duration(milliseconds: 100));
-      
-      final monitoringResult = await userPreferencesService.getMonitoringEnabled();
+
+      final monitoringResult =
+          await userPreferencesService.getMonitoringEnabled();
       monitoringResult.fold(
         (failure) {
-          AppLogger.error('Failed to load monitoring preference: ${failure.message}');
+          AppLogger.error(
+              'Failed to load monitoring preference: ${failure.message}');
         },
         (isEnabled) async {
-          AppLogger.info('Initial startup - Loaded monitoring preference: $isEnabled, current isMonitoring: ${state.isMonitoring}');
-          if (isEnabled && !state.isMonitoring) { // Only auto-start if not already monitoring
+          AppLogger.info(
+              'Initial startup - Loaded monitoring preference: $isEnabled, current isMonitoring: ${state.isMonitoring}');
+          if (isEnabled && !state.isMonitoring) {
+            // Only auto-start if not already monitoring
             // Check if we have permissions first
-            final permissionResult = await geofencingService.hasRequiredPermissions();
+            final permissionResult =
+                await geofencingService.hasRequiredPermissions();
             permissionResult.fold(
               (failure) {
-                AppLogger.warning('Cannot auto-start monitoring: ${failure.message}');
+                AppLogger.warning(
+                    'Cannot auto-start monitoring: ${failure.message}');
               },
               (hasPermissions) {
                 if (hasPermissions) {
-                  AppLogger.info('Auto-starting monitoring from saved preference');
+                  AppLogger.info(
+                      'Auto-starting monitoring from saved preference');
                   add(const StartMonitoring());
                 } else {
-                  AppLogger.info('Monitoring preference saved but permissions not granted');
+                  AppLogger.info(
+                      'Monitoring preference saved but permissions not granted');
                 }
               },
             );
           } else if (isEnabled && state.isMonitoring) {
-            AppLogger.info('Monitoring preference is enabled but already monitoring - skipping auto-start');
+            AppLogger.info(
+                'Monitoring preference is enabled but already monitoring - skipping auto-start');
           }
         },
       );
@@ -139,10 +147,10 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     emit(state.copyWith(status: GeofencingStatus.loading));
-    
+
     try {
       final result = await getGeofencesUseCase(const NoParams());
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to load geofences: ${failure.message}');
@@ -151,13 +159,48 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
             errorMessage: failure.message,
           ));
         },
-        (geofences) {
+        (geofences) async {
           AppLogger.info('Loaded ${geofences.length} geofences');
-          emit(state.copyWith(
-            status: GeofencingStatus.loaded,
-            geofences: geofences,
-            clearError: true,
-          ));
+
+          // Create empty geofence if none exist for MVP
+          if (geofences.isEmpty) {
+            AppLogger.info(
+                'No geofences found, creating default empty geofence');
+            final defaultGeofence = CreateGeofenceParams(
+              name: 'My Location',
+              latitude: 0.0,
+              longitude: 0.0,
+              radius: 100.0,
+              description: 'Configure this geofence by tapping the edit button',
+            );
+
+            final createResult = await createGeofenceUseCase(defaultGeofence);
+            createResult.fold(
+              (failure) {
+                AppLogger.error(
+                    'Failed to create default geofence: ${failure.message}');
+                emit(state.copyWith(
+                  status: GeofencingStatus.loaded,
+                  geofences: geofences,
+                  clearError: true,
+                ));
+              },
+              (newGeofence) {
+                AppLogger.info('Created default geofence: ${newGeofence.name}');
+                emit(state.copyWith(
+                  status: GeofencingStatus.loaded,
+                  geofences: [newGeofence],
+                  clearError: true,
+                ));
+              },
+            );
+          } else {
+            emit(state.copyWith(
+              status: GeofencingStatus.loaded,
+              geofences: geofences,
+              clearError: true,
+            ));
+          }
         },
       );
     } catch (e, stackTrace) {
@@ -174,10 +217,10 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     emit(state.copyWith(status: GeofencingStatus.loading));
-    
+
     try {
       final result = await createGeofenceUseCase(event.params);
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to create geofence: ${failure.message}');
@@ -188,18 +231,18 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
         },
         (geofence) {
           AppLogger.info('Created geofence: ${geofence.name}');
-          
+
           // Add to current list
           final updatedGeofences = List<Geofence>.from(state.geofences)
             ..add(geofence);
-          
+
           emit(state.copyWith(
             status: GeofencingStatus.loaded,
             geofences: updatedGeofences,
             selectedGeofence: geofence,
             clearError: true,
           ));
-          
+
           // If monitoring is active and geofence is active, restart monitoring
           if (state.isMonitoring && geofence.isActive) {
             add(const StartMonitoring());
@@ -220,10 +263,10 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     emit(state.copyWith(status: GeofencingStatus.loading));
-    
+
     try {
       final result = await updateGeofenceUseCase(event.params);
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to update geofence: ${failure.message}');
@@ -234,19 +277,19 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
         },
         (updatedGeofence) {
           AppLogger.info('Updated geofence: ${updatedGeofence.name}');
-          
+
           // Update in current list
           final updatedGeofences = state.geofences.map((g) {
             return g.id == updatedGeofence.id ? updatedGeofence : g;
           }).toList();
-          
+
           emit(state.copyWith(
             status: GeofencingStatus.loaded,
             geofences: updatedGeofences,
             selectedGeofence: updatedGeofence,
             clearError: true,
           ));
-          
+
           // Restart monitoring to pick up changes
           if (state.isMonitoring) {
             add(const StartMonitoring());
@@ -267,10 +310,10 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     emit(state.copyWith(status: GeofencingStatus.loading));
-    
+
     try {
       final result = await deleteGeofenceUseCase(event.params);
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to delete geofence: ${failure.message}');
@@ -281,15 +324,16 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
         },
         (_) {
           AppLogger.info('Deleted geofence: ${event.params.geofenceId}');
-          
+
           // Remove from current list
           final updatedGeofences = state.geofences
               .where((g) => g.id != event.params.geofenceId)
               .toList();
-          
+
           // Clear selection if deleted geofence was selected
-          final clearSelection = state.selectedGeofence?.id == event.params.geofenceId;
-          
+          final clearSelection =
+              state.selectedGeofence?.id == event.params.geofenceId;
+
           emit(state.copyWith(
             status: GeofencingStatus.loaded,
             geofences: updatedGeofences,
@@ -314,15 +358,15 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     try {
       // Cancel existing subscription
       await _monitoringSubscription?.cancel();
-      
+
       emit(state.copyWith(status: GeofencingStatus.loading));
-      
+
       final params = MonitorLocationParams(
         startMonitoring: true,
         includeLocationEvents: event.includeLocationEvents,
         includeGeofenceStatuses: event.includeGeofenceStatuses,
       );
-      
+
       // Start monitoring stream
       _monitoringSubscription = monitorLocationUseCase(params).listen(
         (result) {
@@ -339,17 +383,16 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
           add(_MonitoringError('Monitoring stream error: $error'));
         },
       );
-      
+
       AppLogger.info('Started geofence monitoring');
       emit(state.copyWith(
         status: GeofencingStatus.monitoring,
         isMonitoring: true,
         clearError: true,
       ));
-      
+
       // Save monitoring preference
       await _saveMonitoringPreference(true);
-      
     } catch (e, stackTrace) {
       AppLogger.error('Error starting monitoring', e, stackTrace);
       emit(state.copyWith(
@@ -368,10 +411,10 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
       // Cancel stream subscription first
       await _monitoringSubscription?.cancel();
       _monitoringSubscription = null;
-      
+
       // Stop monitoring service
       final result = await stopMonitoringUseCase(const NoParams());
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to stop monitoring: ${failure.message}');
@@ -390,10 +433,9 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
           ));
         },
       );
-      
+
       // Save monitoring preference after state is updated
       await _saveMonitoringPreference(false);
-      
     } catch (e, stackTrace) {
       AppLogger.error('Error stopping monitoring', e, stackTrace);
       emit(state.copyWith(
@@ -401,7 +443,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
         errorMessage: 'Failed to stop monitoring: $e',
         isMonitoring: false,
       ));
-      
+
       // Still save preference even on error
       await _saveMonitoringPreference(false);
     }
@@ -419,7 +461,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
       ));
       return;
     }
-    
+
     final updatedGeofence = geofence.copyWith(isActive: !geofence.isActive);
     add(UpdateGeofence(UpdateGeofenceParams(geofence: updatedGeofence)));
   }
@@ -430,7 +472,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
   ) async {
     try {
       final result = await getLocationEventsUseCase(event.params);
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to load location events: ${failure.message}');
@@ -444,7 +486,8 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
         },
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Unexpected error loading location events', e, stackTrace);
+      AppLogger.error(
+          'Unexpected error loading location events', e, stackTrace);
     }
   }
 
@@ -454,7 +497,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
   ) async {
     try {
       final result = await geofencingService.requestLocationPermissions();
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to request permissions: ${failure.message}');
@@ -486,7 +529,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
   ) async {
     try {
       final result = await geofencingService.hasRequiredPermissions();
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Failed to check permissions: ${failure.message}');
@@ -508,24 +551,26 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     Emitter<GeofencingState> emit,
   ) async {
     final result = event.result;
-    
+
     // Handle location events
     if (result.locationEvent != null) {
       final newEvent = result.locationEvent!;
-      AppLogger.info('Received location event: ${newEvent.eventType} for ${newEvent.geofence.name}');
-      
+      AppLogger.info(
+          'Received location event: ${newEvent.eventType} for ${newEvent.geofence.name}');
+
       // Add to events list (keep last 100 events)
       final updatedEvents = [newEvent, ...state.locationEvents];
       if (updatedEvents.length > 100) {
         updatedEvents.removeRange(100, updatedEvents.length);
       }
-      
+
       emit(state.copyWith(locationEvents: updatedEvents));
     }
-    
+
     // Handle geofence status updates
     if (result.geofenceStatuses != null) {
-      AppLogger.debug('Received geofence status update for ${result.geofenceStatuses!.length} geofences');
+      AppLogger.debug(
+          'Received geofence status update for ${result.geofenceStatuses!.length} geofences');
       emit(state.copyWith(geofenceStatuses: result.geofenceStatuses));
     }
   }
@@ -540,7 +585,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
       errorMessage: event.message,
       isMonitoring: false,
     ));
-    
+
     // Cancel monitoring subscription
     await _monitoringSubscription?.cancel();
     _monitoringSubscription = null;
@@ -573,7 +618,8 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     final result = await userPreferencesService.setMonitoringEnabled(enabled);
     result.fold(
       (failure) {
-        AppLogger.error('Failed to save monitoring preference: ${failure.message}');
+        AppLogger.error(
+            'Failed to save monitoring preference: ${failure.message}');
       },
       (_) {
         AppLogger.debug('Monitoring preference saved: $enabled');

@@ -29,7 +29,7 @@ class GeofenceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isUserInside = status?.isUserInside ?? false;
     final double? distanceToCenter = status?.distanceToCenter;
-    
+
     return Card(
       elevation: isSelected ? 8 : 4,
       color: AppColors.surface,
@@ -61,7 +61,7 @@ class GeofenceCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Geofence Name
                   Expanded(
                     child: Text(
@@ -71,7 +71,7 @@ class GeofenceCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  
+
                   // Actions
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -83,9 +83,13 @@ class GeofenceCard extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(4),
                           child: Icon(
-                            geofence.isActive ? Icons.notifications_active : Icons.notifications_off,
+                            geofence.isActive
+                                ? Icons.notifications_active
+                                : Icons.notifications_off,
                             size: 20,
-                            color: geofence.isActive ? AppColors.geofenceActive : AppColors.geofenceInactive,
+                            color: geofence.isActive
+                                ? AppColors.geofenceActive
+                                : AppColors.geofenceInactive,
                           ),
                         ),
                       ),
@@ -94,9 +98,9 @@ class GeofenceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Geofence Details
               Row(
                 children: [
@@ -108,7 +112,8 @@ class GeofenceCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     '${geofence.radius.toInt()}m radius',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: AppColors.textSecondary),
                   ),
                   const SizedBox(width: 16),
                   if (distanceToCenter != null) ...[
@@ -120,19 +125,23 @@ class GeofenceCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '${distanceToCenter.toInt()}m away',
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: AppColors.textSecondary),
                     ),
                   ],
                 ],
               ),
-              
+
               // User Status
               if (isUserInside || distanceToCenter != null) ...[
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isUserInside ? AppColors.success.withValues(alpha: 26) : AppColors.info.withValues(alpha: 26),
+                    color: isUserInside
+                        ? AppColors.success.withValues(alpha: 26)
+                        : AppColors.info.withValues(alpha: 26),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isUserInside ? AppColors.success : AppColors.info,
@@ -143,15 +152,19 @@ class GeofenceCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isUserInside ? Icons.location_on : Icons.location_searching,
+                        isUserInside
+                            ? Icons.location_on
+                            : Icons.location_searching,
                         size: 12,
-                        color: isUserInside ? AppColors.success : AppColors.info,
+                        color:
+                            isUserInside ? AppColors.success : AppColors.info,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         isUserInside ? 'Inside' : 'Outside',
                         style: AppTextStyles.caption.copyWith(
-                          color: isUserInside ? AppColors.success : AppColors.info,
+                          color:
+                              isUserInside ? AppColors.success : AppColors.info,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -159,18 +172,20 @@ class GeofenceCard extends StatelessWidget {
                   ),
                 ),
               ],
-              
+
               // Description
-              if (geofence.description != null && geofence.description!.isNotEmpty) ...[
+              if (geofence.description != null &&
+                  geofence.description!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
                   geofence.description!,
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              
+
               // Recent Activity
               if (recentEvents.isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -192,29 +207,29 @@ class GeofenceCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       ...recentEvents.take(2).map((event) => Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _getEventIcon(event.eventType),
-                              size: 12,
-                              color: _getEventColor(event.eventType),
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _getEventIcon(event.eventType),
+                                  size: 12,
+                                  color: _getEventColor(event.eventType),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    '${_getEventText(event.eventType)} ${_formatTime(event.timestamp)}',
+                                    style: AppTextStyles.caption,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '${_getEventText(event.eventType)} ${_formatTime(event.timestamp)}',
-                                style: AppTextStyles.caption,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
+                          )),
                     ],
                   ),
                 ),
               ],
-              
+
               // Media Indicator
               if (geofence.mediaItemId != null) ...[
                 const SizedBox(height: 8),
@@ -247,11 +262,11 @@ class GeofenceCard extends StatelessWidget {
     if (!geofence.isActive) {
       return AppColors.geofenceInactive;
     }
-    
+
     if (status?.isUserInside == true) {
       return AppColors.success;
     }
-    
+
     return AppColors.geofenceActive;
   }
 
@@ -291,7 +306,7 @@ class GeofenceCard extends StatelessWidget {
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inMinutes < 1) {
       return 'just now';
     } else if (difference.inMinutes < 60) {
