@@ -91,6 +91,8 @@ class BackgroundGeolocationDataSourceImpl implements BackgroundGeolocationDataSo
         
         // Activity Recognition config
         stopDetectionDelay: 1,
+        stopOnTerminate: false,
+        startOnBoot: true,
         
         // Application config
         debug: false, // Set to true for debugging

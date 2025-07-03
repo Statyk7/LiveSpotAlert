@@ -42,8 +42,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // Load initial data
-    context.read<GeofencingBloc>().add(const GeofencingStarted());
     // Load saved Live Activity configuration
     context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
   }

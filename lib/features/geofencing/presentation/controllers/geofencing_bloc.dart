@@ -77,6 +77,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
   final UserPreferencesService userPreferencesService;
 
   StreamSubscription<dynamic>? _monitoringSubscription;
+  bool _hasAttemptedAutoStart = false;
 
   Future<void> _onGeofencingStarted(
     GeofencingStarted event,
@@ -93,38 +94,44 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     // Load recent location events
     add(const LoadLocationEvents(GetLocationEventsParams.recent()));
     
-    // Load monitoring preference and start monitoring if enabled (after permissions are checked)
-    // Add a small delay to prevent race conditions with user actions
-    await Future.delayed(const Duration(milliseconds: 100));
-    
-    final monitoringResult = await userPreferencesService.getMonitoringEnabled();
-    monitoringResult.fold(
-      (failure) {
-        AppLogger.error('Failed to load monitoring preference: ${failure.message}');
-      },
-      (isEnabled) async {
-        AppLogger.info('Loaded monitoring preference: $isEnabled, current isMonitoring: ${state.isMonitoring}');
-        if (isEnabled && !state.isMonitoring) { // Only auto-start if not already monitoring
-          // Check if we have permissions first
-          final permissionResult = await geofencingService.hasRequiredPermissions();
-          permissionResult.fold(
-            (failure) {
-              AppLogger.warning('Cannot auto-start monitoring: ${failure.message}');
-            },
-            (hasPermissions) {
-              if (hasPermissions) {
-                AppLogger.info('Auto-starting monitoring from saved preference');
-                add(const StartMonitoring());
-              } else {
-                AppLogger.info('Monitoring preference saved but permissions not granted');
-              }
-            },
-          );
-        } else if (isEnabled && state.isMonitoring) {
-          AppLogger.info('Monitoring preference is enabled but already monitoring - skipping auto-start');
-        }
-      },
-    );
+    // Load monitoring preference and start monitoring if enabled (only on first startup)
+    if (!_hasAttemptedAutoStart) {
+      _hasAttemptedAutoStart = true;
+      
+      // Add a small delay to prevent race conditions with user actions
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      final monitoringResult = await userPreferencesService.getMonitoringEnabled();
+      monitoringResult.fold(
+        (failure) {
+          AppLogger.error('Failed to load monitoring preference: ${failure.message}');
+        },
+        (isEnabled) async {
+          AppLogger.info('Initial startup - Loaded monitoring preference: $isEnabled, current isMonitoring: ${state.isMonitoring}');
+          if (isEnabled && !state.isMonitoring) { // Only auto-start if not already monitoring
+            // Check if we have permissions first
+            final permissionResult = await geofencingService.hasRequiredPermissions();
+            permissionResult.fold(
+              (failure) {
+                AppLogger.warning('Cannot auto-start monitoring: ${failure.message}');
+              },
+              (hasPermissions) {
+                if (hasPermissions) {
+                  AppLogger.info('Auto-starting monitoring from saved preference');
+                  add(const StartMonitoring());
+                } else {
+                  AppLogger.info('Monitoring preference saved but permissions not granted');
+                }
+              },
+            );
+          } else if (isEnabled && state.isMonitoring) {
+            AppLogger.info('Monitoring preference is enabled but already monitoring - skipping auto-start');
+          }
+        },
+      );
+    } else {
+      AppLogger.info('Skipping auto-start monitoring - already attempted');
+    }
   }
 
   Future<void> _onLoadGeofences(

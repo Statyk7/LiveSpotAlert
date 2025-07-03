@@ -101,12 +101,37 @@ struct AppWidgetLiveActivity: Widget {
 
 private func getLiveActivityTitle(for attributes: LiveActivitiesAppAttributes) -> String {
     let key = attributes.prefixedKey("title")
-    return sharedDefault.string(forKey: key) ?? "LiveSpotAlert"
+    var title = sharedDefault.string(forKey: key)
+    
+    // If not found with activity-specific key, try fallback key
+    if title == nil {
+        title = sharedDefault.string(forKey: "current_title")
+        print("LIVE_ACTIVITY_DEBUG: No title found for key '\(key)', using fallback 'current_title': '\(title ?? "nil")'")
+    } else {
+        print("LIVE_ACTIVITY_DEBUG: Found title for key '\(key)': '\(title!)'")
+    }
+    
+    // Debug: List all keys in UserDefaults to see what's actually stored
+    let allKeys = sharedDefault.dictionaryRepresentation().keys
+    let titleKeys = allKeys.filter { $0.contains("title") }
+    print("LIVE_ACTIVITY_DEBUG: All title-related keys in UserDefaults: \(titleKeys)")
+    
+    return title ?? "LiveSpotAlert"
 }
 
 private func getLiveActivityImageData(for attributes: LiveActivitiesAppAttributes) -> String? {
     let key = attributes.prefixedKey("image")
-    return sharedDefault.string(forKey: key)
+    var imageData = sharedDefault.string(forKey: key)
+    
+    // If not found with activity-specific key, try fallback key
+    if imageData == nil {
+        imageData = sharedDefault.string(forKey: "current_image")
+        print("LIVE_ACTIVITY_DEBUG: No image found for key '\(key)', using fallback 'current_image': \(imageData != nil ? "Found (\(imageData!.count) chars)" : "Not found")")
+    } else {
+        print("LIVE_ACTIVITY_DEBUG: Found image for key '\(key)': Found (\(imageData!.count) chars)")
+    }
+    
+    return imageData
 }
 
 private func createUIImageFromBase64(_ base64String: String) -> UIImage? {

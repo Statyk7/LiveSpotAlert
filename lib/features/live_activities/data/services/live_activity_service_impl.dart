@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:live_activities/live_activities.dart';
 import '../../../../shared/base_domain/failures/failure.dart';
 import '../../../../shared/utils/logger.dart';
+import '../../../../shared/utils/shared_user_defaults.dart';
 import '../../domain/services/live_activity_service.dart';
 import '../../domain/models/live_activity.dart';
 import '../../../geofencing/domain/models/location_event.dart';
@@ -70,6 +71,7 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, LiveActivity>> startLiveActivity(LiveActivity activity) async {
     try {
       final createData = LiveActivityMapper.toCreateData(activity);
+      
       final createdActivityId = await liveActivitiesPlugin.createActivity(
         activity.id,
         createData,
@@ -83,6 +85,9 @@ class LiveActivityServiceImpl implements LiveActivityService {
           updatedAt: DateTime.now(),
         );
         
+        // Store title and image in shared UserDefaults AFTER getting the actual activity ID
+        await _storeDataForIOSWidget(startedActivity);
+        
         // Save to local storage
         final activityDto = LiveActivityMapper.toDto(startedActivity);
         await localDataSource.saveLiveActivity(activityDto);
@@ -91,7 +96,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
         _cachedActivities = null;
         
         _activityUpdatesController.add(Right(startedActivity));
-        AppLogger.debug("Started Live Activity: $createdActivityId");
+        AppLogger.debug("Started Live Activity: $createdActivityId, stored title: '${activity.title}', hasImage: ${activity.imageData != null}");
+        debugPrint("LIVE_ACTIVITY_DEBUG: Created activity with ID '$createdActivityId', stored keys: '${createdActivityId}_title' and '${createdActivityId}_image'");
         return Right(startedActivity);
       } else {
         return Left(LiveActivityFailure(message: 'Failed to start Live Activity'));
@@ -106,6 +112,10 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, LiveActivity>> updateLiveActivity(LiveActivity activity) async {
     try {
       final updateData = LiveActivityMapper.toUpdateData(activity);
+      
+      // Update shared data for iOS widget
+      await _storeDataForIOSWidget(activity);
+      
       await liveActivitiesPlugin.updateActivity(activity.id, updateData);
       
       final updatedActivity = activity.copyWith(updatedAt: DateTime.now());
@@ -130,6 +140,9 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, void>> endLiveActivity(String activityId) async {
     try {
       await liveActivitiesPlugin.endActivity(activityId);
+      
+      // Clean up shared data for iOS widget
+      await _cleanupDataForIOSWidget(activityId);
       
       // Update status in local storage
       final activityDto = await localDataSource.getLiveActivityById(activityId);
@@ -250,27 +263,66 @@ class LiveActivityServiceImpl implements LiveActivityService {
     Map<String, dynamic>? customData,
   }) async {
     try {
-      final activityId = 'geofence-${geofence.id}-${DateTime.now().millisecondsSinceEpoch}';
+      final activityId = 'geofence-${geofence.id}';
       
-      // Create meaningful title and subtitle based on event type and geofence
-      final title = _createNotificationTitle(event, geofence);
-      final subtitle = _createNotificationSubtitle(event, geofence);
-      
-      // Load media item if available
+      // Load saved Live Activity configuration first
+      String title = '';
+      String subtitle = '';
       String? imageData;
       String? imageUrl;
       
-      final targetMediaItemId = mediaItemId ?? geofence.mediaItemId;
-      if (targetMediaItemId != null && mediaService != null) {
-        final mediaResult = await mediaService!.getMediaItemById(targetMediaItemId);
-        mediaResult.fold(
-          (failure) => debugPrint('Failed to load media for Live Activity: ${failure.message}'),
-          (mediaItem) {
-            imageData = mediaItem.base64Data;
-            imageUrl = mediaItem.filePath;
-          },
-        );
-      }
+      final configResult = await getActiveConfiguration();
+      await configResult.fold(
+        (failure) async {
+          debugPrint('No saved Live Activity configuration, using default titles');
+          // Fallback to generated titles if no configuration
+          title = _createNotificationTitle(event, geofence);
+          subtitle = _createNotificationSubtitle(event, geofence);
+          
+          // Try to load media item if available
+          final targetMediaItemId = mediaItemId ?? geofence.mediaItemId;
+          if (targetMediaItemId != null && mediaService != null) {
+            final mediaResult = await mediaService!.getMediaItemById(targetMediaItemId);
+            mediaResult.fold(
+              (failure) => debugPrint('Failed to load media for Live Activity: ${failure.message}'),
+              (mediaItem) {
+                imageData = mediaItem.base64Data;
+                imageUrl = mediaItem.filePath;
+              },
+            );
+          }
+        },
+        (config) async {
+          if (config != null) {
+            debugPrint('Using saved Live Activity configuration for geofence event');
+            // Use configured title and image
+            title = config.title;
+            subtitle = _createGeofenceSubtitle(event, geofence); // Create geofence-specific subtitle
+            imageData = config.imageData;
+            imageUrl = config.imageUrl;
+            
+            debugPrint('Live Activity for geofence - title: "$title", subtitle: "$subtitle", hasImage: ${imageData != null || imageUrl != null}');
+          } else {
+            debugPrint('No active configuration found, using default titles');
+            // Fallback to generated titles if no configuration
+            title = _createNotificationTitle(event, geofence);
+            subtitle = _createNotificationSubtitle(event, geofence);
+            
+            // Try to load media item if available
+            final targetMediaItemId = mediaItemId ?? geofence.mediaItemId;
+            if (targetMediaItemId != null && mediaService != null) {
+              final mediaResult = await mediaService!.getMediaItemById(targetMediaItemId);
+              mediaResult.fold(
+                (failure) => debugPrint('Failed to load media for Live Activity: ${failure.message}'),
+                (mediaItem) {
+                  imageData = mediaItem.base64Data;
+                  imageUrl = mediaItem.filePath;
+                },
+              );
+            }
+          }
+        },
+      );
       
       final liveActivity = LiveActivity(
         id: activityId,
@@ -328,6 +380,23 @@ class LiveActivityServiceImpl implements LiveActivityService {
       
       case LocationEventType.dwell:
         return "Dwelling since $timeString • ${accuracy}m accuracy";
+    }
+  }
+
+  /// Create a geofence-specific subtitle for Live Activity when using configured settings
+  String _createGeofenceSubtitle(LocationEvent event, Geofence geofence) {
+    final timestamp = event.timestamp;
+    final timeString = "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
+    
+    switch (event.eventType) {
+      case LocationEventType.enter:
+        return "Entered ${geofence.name} at $timeString";
+      
+      case LocationEventType.exit:
+        return "Left ${geofence.name} at $timeString";
+      
+      case LocationEventType.dwell:
+        return "Dwelling at ${geofence.name} since $timeString";
     }
   }
 
@@ -441,8 +510,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       
       debugPrint('ServiceImpl: Saving config - title: "$title", hasImageData: ${imageData != null}');
       if (imageData != null) {
-        debugPrint('ServiceImpl: ImageData length: ${imageData!.length}');
-        debugPrint('ServiceImpl: ImageData preview: ${imageData!.substring(0, imageData!.length > 100 ? 100 : imageData!.length)}...');
+        debugPrint('ServiceImpl: ImageData length: ${imageData.length}');
+        debugPrint('ServiceImpl: ImageData preview: ${imageData.substring(0, imageData.length > 100 ? 100 : imageData.length)}...');
       }
       
       final config = LiveActivity(
@@ -500,6 +569,59 @@ class LiveActivityServiceImpl implements LiveActivityService {
         return LiveActivityContentType.geofenceDwell;
       default:
         return LiveActivityContentType.locationUpdate;
+    }
+  }
+
+  /// Store title and image data in App Group UserDefaults for iOS widget access
+  /// Uses both activity-specific keys and a fallback "current" key
+  Future<void> _storeDataForIOSWidget(LiveActivity activity) async {
+    try {
+      // Store with activity-specific keys
+      final titleKey = '${activity.id}_title';
+      final imageKey = '${activity.id}_image';
+      
+      await SharedUserDefaults.setString(titleKey, activity.title);
+      debugPrint('Stored title for iOS widget: $titleKey = "${activity.title}"');
+      
+      // Also store as "current" for fallback
+      await SharedUserDefaults.setString('current_title', activity.title);
+      debugPrint('Stored current title fallback: "${activity.title}"');
+      
+      // Store image data if available
+      if (activity.imageData != null && activity.imageData!.isNotEmpty) {
+        String imageData = activity.imageData!;
+        
+        // Clean base64 data if it contains data URL prefix
+        if (imageData.contains(',')) {
+          imageData = imageData.split(',').last;
+        }
+        
+        await SharedUserDefaults.setString(imageKey, imageData);
+        await SharedUserDefaults.setString('current_image', imageData);
+        debugPrint('Stored image data for iOS widget: $imageKey (length: ${imageData.length})');
+        debugPrint('Stored current image fallback (length: ${imageData.length})');
+      } else {
+        debugPrint('No image data to store for iOS widget');
+      }
+    } catch (e) {
+      debugPrint('Error storing data for iOS widget: $e');
+      // Don't throw - this shouldn't prevent Live Activity creation
+    }
+  }
+
+  /// Clean up shared data for iOS widget when ending Live Activity
+  Future<void> _cleanupDataForIOSWidget(String activityId) async {
+    try {
+      final titleKey = '${activityId}_title';
+      final imageKey = '${activityId}_image';
+      
+      await SharedUserDefaults.remove(titleKey);
+      await SharedUserDefaults.remove(imageKey);
+      
+      debugPrint('Cleaned up iOS widget data for activity: $activityId');
+    } catch (e) {
+      debugPrint('Error cleaning up iOS widget data: $e');
+      // Don't throw - this shouldn't prevent Live Activity cleanup
     }
   }
 }
