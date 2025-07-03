@@ -262,6 +262,9 @@ class LiveActivityServiceImpl implements LiveActivityService {
     String? mediaItemId,
     Map<String, dynamic>? customData,
   }) async {
+
+    return Left(LiveActivityFailure(message: 'Live Activities Disabled'));
+
     try {
       final activityId = 'geofence-${geofence.id}';
       

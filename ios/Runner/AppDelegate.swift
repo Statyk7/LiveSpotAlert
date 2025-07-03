@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -7,6 +8,9 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    
+    // Set up local notifications delegate
+    UNUserNotificationCenter.current().delegate = self
     
     // Set up method channel for shared UserDefaults
     let controller = window?.rootViewController as! FlutterViewController
@@ -58,5 +62,23 @@ import UIKit
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+  
+  // MARK: - UNUserNotificationCenterDelegate
+  
+  // Handle notifications when app is in foreground
+  override func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                       willPresent notification: UNNotification,
+                                       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    // Show notification even when app is in foreground (banner, sound, badge)
+    completionHandler([.banner, .sound, .badge])
+  }
+  
+  // Handle notification tap
+  override func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                       didReceive response: UNNotificationResponse,
+                                       withCompletionHandler completionHandler: @escaping () -> Void) {
+    // Let flutter_local_notifications plugin handle the response
+    completionHandler()
   }
 }

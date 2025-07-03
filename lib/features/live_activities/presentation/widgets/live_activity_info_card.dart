@@ -6,6 +6,7 @@ import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../controllers/live_activity_bloc.dart';
 import '../controllers/live_activity_state.dart';
+import 'live_activity_controller_widget.dart';
 
 class LiveActivityInfoCard extends StatelessWidget {
   const LiveActivityInfoCard({
@@ -116,6 +117,15 @@ class LiveActivityInfoCard extends StatelessWidget {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 16),
+
+                  // Live Activity Preview/Controls
+                  LiveActivityControllerWidget(
+                    title: 'Test Live Activity',
+                    onConfigurePressed: () => onConfigurePressed!(),
+                  ),
+
                 ] else ...[
                   Row(
                     children: [

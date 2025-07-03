@@ -10,11 +10,12 @@ import '../../../../features/geofencing/presentation/controllers/geofencing_even
 import '../../../../features/geofencing/presentation/widgets/location_picker.dart';
 import '../../../../features/geofencing/domain/models/geofence.dart';
 import '../../../../features/geofencing/domain/use_cases/create_geofence_use_case.dart';
-import '../../../../features/live_activities/presentation/widgets/live_activity_controller_widget.dart';
-import '../../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
-import '../../../../features/live_activities/presentation/widgets/live_activity_info_card.dart';
-import '../../../../features/live_activities/presentation/controllers/live_activity_bloc.dart';
-import '../../../../features/live_activities/presentation/controllers/live_activity_event.dart';
+// import '../../../../features/live_activities/presentation/widgets/live_activity_controller_widget.dart';
+// import '../../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
+// import '../../../../features/live_activities/presentation/widgets/live_activity_info_card.dart';
+// import '../../../../features/live_activities/presentation/controllers/live_activity_bloc.dart';
+// import '../../../../features/live_activities/presentation/controllers/live_activity_event.dart';
+import '../../../../features/local_notifications/presentation/widgets/notification_config_card.dart';
 
 enum ViewMode { 
   empty,        // No geofence exists
@@ -43,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     // Load saved Live Activity configuration
-    context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
+    // context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
   }
 
   @override
@@ -272,17 +273,16 @@ class _MainScreenState extends State<MainScreen> {
               const SizedBox(height: 24),
 
               // Live Activity Section
-              LiveActivityInfoCard(
-                title: 'Arrived at ${geofence.name}',
-                onConfigurePressed: () => _showLiveActivityConfiguration(context),
-              ),
+              // LiveActivityInfoCard(
+              //   title: 'Arrived at ${geofence.name}',
+              //   onConfigurePressed: () => _showLiveActivityConfiguration(context),
+              // ),
+              //
+              // const SizedBox(height: 24),
 
-              const SizedBox(height: 16),
-
-              // Live Activity Preview/Controls
-              LiveActivityControllerWidget(
-                title: 'Arrived at ${geofence.name}',
-                onConfigurePressed: () => _showLiveActivityConfiguration(context),
+              // Local Notifications Section
+              NotificationConfigCard(
+                title: 'Notification',
               ),
             ]),
           ),
@@ -605,16 +605,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Live Activity methods
-  void _showLiveActivityConfiguration(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => LiveActivityConfigurationWidget(
-          onSave: () => Navigator.of(context).pop(),
-          onCancel: () => Navigator.of(context).pop(),
-        ),
-      ),
-    );
-  }
+  // void _showLiveActivityConfiguration(BuildContext context) {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => LiveActivityConfigurationWidget(
+  //         onSave: () => Navigator.of(context).pop(),
+  //         onCancel: () => Navigator.of(context).pop(),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   bool get _isEditing => _currentMode == ViewMode.creating && 
                        _nameController.text.isNotEmpty;

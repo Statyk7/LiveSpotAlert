@@ -28,6 +28,15 @@ import '../../features/live_activities/domain/use_cases/start_live_activity_use_
 import '../../features/live_activities/domain/use_cases/stop_live_activity_use_case.dart';
 import '../../features/live_activities/domain/use_cases/update_live_activity_use_case.dart';
 import '../../features/live_activities/presentation/controllers/live_activity_bloc.dart';
+import '../../features/local_notifications/data/data_sources/local/notification_config_local_data_source.dart';
+import '../../features/local_notifications/data/data_sources/remote/local_notifications_data_source.dart';
+import '../../features/local_notifications/data/services/local_notifications_service_impl.dart';
+import '../../features/local_notifications/domain/services/local_notifications_service.dart';
+import '../../features/local_notifications/domain/use_cases/load_notification_config_use_case.dart';
+import '../../features/local_notifications/domain/use_cases/save_notification_config_use_case.dart';
+import '../../features/local_notifications/domain/use_cases/request_notification_permissions_use_case.dart';
+import '../../features/local_notifications/presentation/controllers/local_notifications_bloc.dart';
+import '../../features/geofencing/data/services/geofencing_notification_integration.dart';
 
 // Global GetIt instance
 final GetIt getIt = GetIt.instance;
@@ -99,12 +108,37 @@ class ServiceLocator {
       ),
     );
 
+    // Register Local Notifications data sources
+    getIt.registerLazySingleton<NotificationConfigLocalDataSource>(
+      () => NotificationConfigLocalDataSourceImpl(getIt<SharedPreferences>()),
+    );
+
+    getIt.registerLazySingleton<LocalNotificationsDataSource>(
+      () => LocalNotificationsDataSourceImpl(),
+    );
+
+    // Register Local Notifications service
+    getIt.registerLazySingleton<LocalNotificationsService>(
+      () => LocalNotificationsServiceImpl(
+        localDataSource: getIt<NotificationConfigLocalDataSource>(),
+        notificationsDataSource: getIt<LocalNotificationsDataSource>(),
+      ),
+    );
+
+    // Register Notification integration for geofencing
+    getIt.registerLazySingleton<GeofencingNotificationIntegration>(
+      () => GeofencingNotificationIntegration(
+        notificationsService: getIt<LocalNotificationsService>(),
+      ),
+    );
+
     // Register main services
     getIt.registerLazySingleton<GeofencingService>(
       () => GeofencingServiceImpl(
         localDataSource: getIt<GeofenceLocalDataSource>(),
         backgroundGeolocationDataSource: getIt<BackgroundGeolocationDataSource>(),
         liveActivityIntegration: getIt<GeofencingLiveActivityIntegration>(),
+        notificationIntegration: getIt<GeofencingNotificationIntegration>(),
       ),
     );
 
@@ -162,6 +196,19 @@ class ServiceLocator {
       ),
     );
 
+    // Register Local Notifications use cases
+    getIt.registerLazySingleton<LoadNotificationConfigUseCase>(
+      () => LoadNotificationConfigUseCase(getIt<LocalNotificationsService>()),
+    );
+    
+    getIt.registerLazySingleton<SaveNotificationConfigUseCase>(
+      () => SaveNotificationConfigUseCase(getIt<LocalNotificationsService>()),
+    );
+    
+    getIt.registerLazySingleton<RequestNotificationPermissionsUseCase>(
+      () => RequestNotificationPermissionsUseCase(getIt<LocalNotificationsService>()),
+    );
+
     _isInitialized = true;
   }
 
@@ -187,6 +234,16 @@ class ServiceLocator {
       stopLiveActivityUseCase: getIt<StopLiveActivityUseCase>(),
       updateLiveActivityUseCase: getIt<UpdateLiveActivityUseCase>(),
       liveActivityService: getIt<LiveActivityService>(),
+    );
+  }
+
+  /// Create a new LocalNotificationsBloc instance with all dependencies
+  static LocalNotificationsBloc createLocalNotificationsBloc() {
+    return LocalNotificationsBloc(
+      loadNotificationConfigUseCase: getIt<LoadNotificationConfigUseCase>(),
+      saveNotificationConfigUseCase: getIt<SaveNotificationConfigUseCase>(),
+      requestNotificationPermissionsUseCase: getIt<RequestNotificationPermissionsUseCase>(),
+      notificationsService: getIt<LocalNotificationsService>(),
     );
   }
 

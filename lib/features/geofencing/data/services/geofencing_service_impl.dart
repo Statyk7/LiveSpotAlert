@@ -11,12 +11,14 @@ import '../data_sources/remote/background_geolocation_data_source.dart';
 import '../mappers/geofence_mapper.dart';
 import '../dto/location_event_dto.dart';
 import 'geofencing_live_activity_integration.dart';
+import 'geofencing_notification_integration.dart';
 
 class GeofencingServiceImpl implements GeofencingService {
   GeofencingServiceImpl({
     required this.localDataSource,
     required this.backgroundGeolocationDataSource,
     this.liveActivityIntegration,
+    this.notificationIntegration,
   }) {
     _initializeStreams();
   }
@@ -24,6 +26,7 @@ class GeofencingServiceImpl implements GeofencingService {
   final GeofenceLocalDataSource localDataSource;
   final BackgroundGeolocationDataSource backgroundGeolocationDataSource;
   final GeofencingLiveActivityIntegration? liveActivityIntegration;
+  final GeofencingNotificationIntegration? notificationIntegration;
   
   final StreamController<Either<Failure, LocationEvent>> _locationEventController = 
       StreamController<Either<Failure, LocationEvent>>.broadcast();
@@ -55,6 +58,9 @@ class GeofencingServiceImpl implements GeofencingService {
           
           // Trigger Live Activity if integration is available
           await _handleLiveActivityTrigger(locationEvent, geofence);
+          
+          // Trigger notification if integration is available
+          await _handleNotificationTrigger(locationEvent, geofence);
           
           // Update geofence status
           await _updateGeofenceStatuses();
@@ -418,6 +424,33 @@ class GeofencingServiceImpl implements GeofencingService {
     }
   }
   
+  /// Handle notification triggers for location events
+  Future<void> _handleNotificationTrigger(
+    LocationEvent event,
+    Geofence geofence,
+  ) async {
+    if (notificationIntegration == null) {
+      AppLogger.debug('Notification integration not available');
+      return;
+    }
+    
+    try {
+      switch (event.eventType) {
+        case LocationEventType.enter:
+          await notificationIntegration!.handleGeofenceEntry(event, geofence);
+          break;
+        case LocationEventType.exit:
+          await notificationIntegration!.handleGeofenceExit(event, geofence);
+          break;
+        case LocationEventType.dwell:
+          await notificationIntegration!.handleGeofenceDwell(event, geofence);
+          break;
+      }
+    } catch (e, stackTrace) {
+      AppLogger.error('Error handling notification trigger', e, stackTrace);
+    }
+  }
+  
   void dispose() {
     _backgroundLocationSubscription?.cancel();
     _locationEventController.close();
@@ -425,6 +458,9 @@ class GeofencingServiceImpl implements GeofencingService {
     
     // Clean up Live Activity integration
     liveActivityIntegration?.cleanup();
+    
+    // Clean up notification integration
+    notificationIntegration?.cleanup();
   }
 }
 

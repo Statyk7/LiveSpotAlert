@@ -32,3 +32,7 @@ class MediaFailure extends Failure {
 class LiveActivityFailure extends Failure {
   const LiveActivityFailure({required super.message});
 }
+
+class NotificationFailure extends Failure {
+  const NotificationFailure({required super.message});
+}

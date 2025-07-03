@@ -40,6 +40,9 @@ dependencies:
   # Live Activities
   live_activities: ^2.4.0+2
   
+  # Local notifications
+  flutter_local_notifications: ^17.2.2
+  
   # Image management
   image_picker: ^1.0.0
   image: ^4.1.7

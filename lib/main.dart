@@ -8,6 +8,8 @@ import 'shared/utils/logger.dart';
 import 'features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import 'features/geofencing/presentation/controllers/geofencing_event.dart';
 import 'features/live_activities/presentation/controllers/live_activity_bloc.dart';
+import 'features/local_notifications/presentation/controllers/local_notifications_bloc.dart';
+import 'features/local_notifications/presentation/controllers/local_notifications_event.dart';
 
 
 void main() async {
@@ -34,6 +36,10 @@ class LiveSpotAlertApp extends StatelessWidget {
         ),
         BlocProvider<LiveActivityBloc>(
           create: (context) => ServiceLocator.createLiveActivityBloc(),
+        ),
+        BlocProvider<LocalNotificationsBloc>(
+          create: (context) => ServiceLocator.createLocalNotificationsBloc()
+            ..add(const LoadNotificationConfiguration()),
         ),
       ],
       child: MaterialApp.router(
