@@ -43,7 +43,9 @@ class LocalNotificationsState extends Equatable {
   /// Clear error message
   LocalNotificationsState clearError() {
     return copyWith(
-      status: status == NotificationStatus.error ? NotificationStatus.loaded : status,
+      status: status == NotificationStatus.error
+          ? NotificationStatus.loaded
+          : status,
       errorMessage: null,
     );
   }
@@ -53,12 +55,14 @@ class LocalNotificationsState extends Equatable {
   bool get isLoaded => status == NotificationStatus.loaded;
   bool get hasError => status == NotificationStatus.error;
   bool get isInitial => status == NotificationStatus.initial;
-  
+
   /// Get effective configuration (default if null)
-  NotificationConfig get effectiveConfig => config ?? NotificationConfig.defaultConfig();
-  
+  NotificationConfig get effectiveConfig =>
+      config ?? NotificationConfig.defaultConfig();
+
   /// Check if notifications are available (enabled and has permissions)
-  bool get areNotificationsAvailable => effectiveConfig.isEnabled && hasPermissions;
+  bool get areNotificationsAvailable =>
+      effectiveConfig.isEnabled && hasPermissions;
 
   @override
   List<Object?> get props => [status, config, hasPermissions, errorMessage];

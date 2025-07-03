@@ -11,15 +11,15 @@ import 'features/live_activities/presentation/controllers/live_activity_bloc.dar
 import 'features/local_notifications/presentation/controllers/local_notifications_bloc.dart';
 import 'features/local_notifications/presentation/controllers/local_notifications_event.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  AppLogger.info('Starting ${AppConstants.appName} v${AppConstants.appVersion}');
-  
+
+  AppLogger.info(
+      'Starting ${AppConstants.appName} v${AppConstants.appVersion}');
+
   // Initialize dependency injection
   await ServiceLocator.init();
-  
+
   runApp(const LiveSpotAlertApp());
 }
 

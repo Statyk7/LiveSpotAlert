@@ -32,7 +32,8 @@ class LiveActivityPreview extends StatelessWidget {
         if (showHeader) ...[
           Text(
             'Preview',
-            style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+            style:
+                AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
         ],
@@ -86,7 +87,7 @@ class LiveActivityPreview extends StatelessWidget {
         ),
       );
     }
-    
+
     if (imageUrl != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
@@ -95,16 +96,17 @@ class LiveActivityPreview extends StatelessWidget {
           width: 48,
           height: 48,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPlaceholderImage(),
         ),
       );
     }
-    
+
     if (imageData != null) {
       // TODO: Implement base64 image display when needed
       return _buildPlaceholderImage();
     }
-    
+
     return const SizedBox.shrink();
   }
 
@@ -150,7 +152,8 @@ class LiveActivityDetailedPreview extends StatelessWidget {
         if (showHeader) ...[
           Text(
             'Live Activity',
-            style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+            style:
+                AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
         ],
@@ -225,16 +228,17 @@ class LiveActivityDetailedPreview extends StatelessWidget {
           width: 48,
           height: 48,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPlaceholderImage(),
         ),
       );
     }
-    
+
     if (liveActivity.imageData != null) {
       // TODO: Implement base64 image display when needed
       return _buildPlaceholderImage();
     }
-    
+
     return const SizedBox.shrink();
   }
 
@@ -257,7 +261,7 @@ class LiveActivityDetailedPreview extends StatelessWidget {
   Widget _buildStatusChip() {
     Color chipColor;
     String statusText;
-    
+
     switch (liveActivity.status) {
       case LiveActivityStatus.active:
         chipColor = Colors.green;

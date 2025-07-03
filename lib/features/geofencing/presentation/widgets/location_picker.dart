@@ -24,13 +24,13 @@ class _LocationPickerState extends State<LocationPicker> {
   final _latController = TextEditingController();
   final _lngController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   // Predefined locations for demo purposes
   final List<_PredefinedLocation> _predefinedLocations = [
     _PredefinedLocation('Apple (iOS Simulator)', 37.33233141, -122.0312186),
     _PredefinedLocation('TAE Preescolar', 19.3837389, -99.1655118),
   ];
-  
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +39,7 @@ class _LocationPickerState extends State<LocationPicker> {
       _lngController.text = widget.initialLongitude!.toStringAsFixed(6);
     }
   }
-  
+
   @override
   void dispose() {
     _latController.dispose();
@@ -66,7 +66,7 @@ class _LocationPickerState extends State<LocationPicker> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
+
           // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -81,15 +81,16 @@ class _LocationPickerState extends State<LocationPicker> {
                   onPressed: widget.onCancel,
                   child: Text(
                     'Cancel',
-                    style: AppTextStyles.button.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.button
+                        .copyWith(color: AppColors.textSecondary),
                   ),
                 ),
               ],
             ),
           ),
-          
+
           const Divider(height: 1),
-          
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -101,16 +102,18 @@ class _LocationPickerState extends State<LocationPicker> {
                     // Manual Coordinates Entry
                     Text(
                       'Enter Coordinates',
-                      style: AppTextStyles.h4.copyWith(color: AppColors.primary),
+                      style:
+                          AppTextStyles.h4.copyWith(color: AppColors.primary),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       children: [
                         Expanded(
                           child: TextFormField(
                             controller: _latController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             decoration: InputDecoration(
                               labelText: 'Latitude',
                               hintText: 'e.g., 37.7749',
@@ -119,7 +122,8 @@ class _LocationPickerState extends State<LocationPicker> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
                               ),
                             ),
                             validator: (value) {
@@ -141,7 +145,8 @@ class _LocationPickerState extends State<LocationPicker> {
                         Expanded(
                           child: TextFormField(
                             controller: _lngController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             decoration: InputDecoration(
                               labelText: 'Longitude',
                               hintText: 'e.g., -122.4194',
@@ -150,7 +155,8 @@ class _LocationPickerState extends State<LocationPicker> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
                               ),
                             ),
                             validator: (value) {
@@ -170,9 +176,9 @@ class _LocationPickerState extends State<LocationPicker> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -185,18 +191,19 @@ class _LocationPickerState extends State<LocationPicker> {
                         child: const Text('Use These Coordinates'),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Predefined Locations
                     Text(
                       'Or Choose a Predefined Location',
-                      style: AppTextStyles.h4.copyWith(color: AppColors.primary),
+                      style:
+                          AppTextStyles.h4.copyWith(color: AppColors.primary),
                     ),
                     const SizedBox(height: 16),
-                    
-                    ..._predefinedLocations.map((location) => 
-                      Padding(
+
+                    ..._predefinedLocations.map(
+                      (location) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Card(
                           child: ListTile(
@@ -218,15 +225,16 @@ class _LocationPickerState extends State<LocationPicker> {
                               color: AppColors.textSecondary,
                             ),
                             onTap: () {
-                              widget.onLocationSelected(location.latitude, location.longitude);
+                              widget.onLocationSelected(
+                                  location.latitude, location.longitude);
                             },
                           ),
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Info Box
                     Container(
                       width: double.infinity,
@@ -234,7 +242,8 @@ class _LocationPickerState extends State<LocationPicker> {
                       decoration: BoxDecoration(
                         color: AppColors.info.withValues(alpha: 26),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.info.withValues(alpha: 77)),
+                        border: Border.all(
+                            color: AppColors.info.withValues(alpha: 77)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +258,8 @@ class _LocationPickerState extends State<LocationPicker> {
                               const SizedBox(width: 8),
                               Text(
                                 'Location Tips',
-                                style: AppTextStyles.label.copyWith(color: AppColors.info),
+                                style: AppTextStyles.label
+                                    .copyWith(color: AppColors.info),
                               ),
                             ],
                           ),
@@ -259,7 +269,8 @@ class _LocationPickerState extends State<LocationPicker> {
                             '• Right-click on any location and select "What\'s here?"\n'
                             '• Coordinates appear at the bottom of the screen\n'
                             '• For testing, you can use the predefined locations above',
-                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.info),
+                            style: AppTextStyles.bodySmall
+                                .copyWith(color: AppColors.info),
                           ),
                         ],
                       ),
@@ -273,22 +284,22 @@ class _LocationPickerState extends State<LocationPicker> {
       ),
     );
   }
-  
+
   void _selectManualCoordinates() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     final lat = double.parse(_latController.text);
     final lng = double.parse(_lngController.text);
-    
+
     widget.onLocationSelected(lat, lng);
   }
 }
 
 class _PredefinedLocation {
   const _PredefinedLocation(this.name, this.latitude, this.longitude);
-  
+
   final String name;
   final double latitude;
   final double longitude;

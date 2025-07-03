@@ -8,7 +8,8 @@ import '../../domain/services/local_notifications_service.dart';
 import 'local_notifications_event.dart';
 import 'local_notifications_state.dart';
 
-class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotificationsState> {
+class LocalNotificationsBloc
+    extends Bloc<LocalNotificationsEvent, LocalNotificationsState> {
   LocalNotificationsBloc({
     required this.loadNotificationConfigUseCase,
     required this.saveNotificationConfigUseCase,
@@ -27,7 +28,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
 
   final LoadNotificationConfigUseCase loadNotificationConfigUseCase;
   final SaveNotificationConfigUseCase saveNotificationConfigUseCase;
-  final RequestNotificationPermissionsUseCase requestNotificationPermissionsUseCase;
+  final RequestNotificationPermissionsUseCase
+      requestNotificationPermissionsUseCase;
   final LocalNotificationsService notificationsService;
 
   Future<void> _onLoadNotificationConfiguration(
@@ -42,13 +44,15 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
 
       // Load saved configuration
       final configResult = await loadNotificationConfigUseCase(NoParams());
-      
+
       // Check current permissions
-      final permissionsResult = await notificationsService.areNotificationsAvailable();
+      final permissionsResult =
+          await notificationsService.areNotificationsAvailable();
 
       await configResult.fold(
         (failure) async {
-          AppLogger.error('Failed to load notification config: ${failure.message}');
+          AppLogger.error(
+              'Failed to load notification config: ${failure.message}');
           emit(state.copyWith(
             status: NotificationStatus.error,
             errorMessage: failure.message,
@@ -56,18 +60,20 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
         },
         (config) async {
           final hasPermissions = permissionsResult.getOrElse(() => false);
-          
+
           emit(state.copyWith(
             status: NotificationStatus.loaded,
             config: config,
             hasPermissions: hasPermissions,
           ));
-          
-          AppLogger.info('Notification configuration loaded: ${config.toString()}');
+
+          AppLogger.info(
+              'Notification configuration loaded: ${config.toString()}');
         },
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Error loading notification configuration', e, stackTrace);
+      AppLogger.error(
+          'Error loading notification configuration', e, stackTrace);
       emit(state.copyWith(
         status: NotificationStatus.error,
         errorMessage: 'Failed to load notification configuration: $e',
@@ -88,7 +94,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
 
       await result.fold(
         (failure) async {
-          AppLogger.error('Failed to save notification config: ${failure.message}');
+          AppLogger.error(
+              'Failed to save notification config: ${failure.message}');
           emit(state.copyWith(
             status: NotificationStatus.error,
             errorMessage: failure.message,
@@ -99,8 +106,9 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
             status: NotificationStatus.loaded,
             config: event.config,
           ));
-          
-          AppLogger.info('Notification configuration saved: ${event.config.toString()}');
+
+          AppLogger.info(
+              'Notification configuration saved: ${event.config.toString()}');
         },
       );
     } catch (e, stackTrace) {
@@ -124,7 +132,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
     ToggleNotificationsEnabled event,
     Emitter<LocalNotificationsState> emit,
   ) async {
-    final updatedConfig = state.effectiveConfig.copyWith(isEnabled: event.enabled);
+    final updatedConfig =
+        state.effectiveConfig.copyWith(isEnabled: event.enabled);
     add(SaveNotificationConfiguration(updatedConfig));
   }
 
@@ -132,7 +141,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
     ToggleForegroundNotifications event,
     Emitter<LocalNotificationsState> emit,
   ) async {
-    final updatedConfig = state.effectiveConfig.copyWith(showInForeground: event.showInForeground);
+    final updatedConfig = state.effectiveConfig
+        .copyWith(showInForeground: event.showInForeground);
     add(SaveNotificationConfiguration(updatedConfig));
   }
 
@@ -147,7 +157,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
 
       await result.fold(
         (failure) async {
-          AppLogger.error('Failed to request notification permissions: ${failure.message}');
+          AppLogger.error(
+              'Failed to request notification permissions: ${failure.message}');
           emit(state.copyWith(
             status: NotificationStatus.permissionDenied,
             errorMessage: failure.message,
@@ -155,15 +166,19 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
         },
         (granted) async {
           emit(state.copyWith(
-            status: granted ? NotificationStatus.permissionGranted : NotificationStatus.permissionDenied,
+            status: granted
+                ? NotificationStatus.permissionGranted
+                : NotificationStatus.permissionDenied,
             hasPermissions: granted,
           ));
-          
-          AppLogger.info('Notification permissions ${granted ? 'granted' : 'denied'}');
+
+          AppLogger.info(
+              'Notification permissions ${granted ? 'granted' : 'denied'}');
         },
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Error requesting notification permissions', e, stackTrace);
+      AppLogger.error(
+          'Error requesting notification permissions', e, stackTrace);
       emit(state.copyWith(
         status: NotificationStatus.error,
         errorMessage: 'Failed to request notification permissions: $e',
@@ -193,7 +208,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
 
       await result.fold(
         (failure) async {
-          AppLogger.error('Failed to show test notification: ${failure.message}');
+          AppLogger.error(
+              'Failed to show test notification: ${failure.message}');
           emit(state.copyWith(
             status: NotificationStatus.error,
             errorMessage: failure.message,
@@ -221,7 +237,8 @@ class LocalNotificationsBloc extends Bloc<LocalNotificationsEvent, LocalNotifica
 
       await result.fold(
         (failure) async {
-          AppLogger.error('Failed to dismiss all notifications: ${failure.message}');
+          AppLogger.error(
+              'Failed to dismiss all notifications: ${failure.message}');
           emit(state.copyWith(
             status: NotificationStatus.error,
             errorMessage: failure.message,

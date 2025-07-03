@@ -5,7 +5,8 @@ import '../models/notification_config.dart';
 import '../services/local_notifications_service.dart';
 
 /// Use case for loading notification configuration from local storage
-class LoadNotificationConfigUseCase implements UseCase<NotificationConfig, NoParams> {
+class LoadNotificationConfigUseCase
+    implements UseCase<NotificationConfig, NoParams> {
   LoadNotificationConfigUseCase(this.notificationsService);
 
   final LocalNotificationsService notificationsService;

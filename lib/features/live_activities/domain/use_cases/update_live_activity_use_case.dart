@@ -19,7 +19,8 @@ class UpdateLiveActivityParams {
   final Map<String, String>? customData;
 }
 
-class UpdateLiveActivityUseCase implements UseCase<void, UpdateLiveActivityParams> {
+class UpdateLiveActivityUseCase
+    implements UseCase<void, UpdateLiveActivityParams> {
   UpdateLiveActivityUseCase({
     required this.liveActivitiesPlugin,
     required this.processImageUseCase,
@@ -36,32 +37,35 @@ class UpdateLiveActivityUseCase implements UseCase<void, UpdateLiveActivityParam
         'title': params.title.isEmpty ? 'Live Activity' : params.title,
         ...?params.customData,
       };
-      
+
       // Add optimized image data if available
       if (params.imagePath != null) {
         final imageResult = await processImageUseCase(
           ProcessImageForLiveActivityParams(imagePath: params.imagePath!),
         );
-        
+
         imageResult.fold(
           (failure) => debugPrint("Error processing image: ${failure.message}"),
           (optimizedImageData) {
             if (optimizedImageData != null) {
               activityData['image'] = optimizedImageData;
-              debugPrint("Optimized image data prepared for Live Activity update");
+              debugPrint(
+                  "Optimized image data prepared for Live Activity update");
             }
           },
         );
       }
-      
+
       // Update the activity with the data
-      await liveActivitiesPlugin.updateActivity(params.activityId, activityData);
+      await liveActivitiesPlugin.updateActivity(
+          params.activityId, activityData);
       debugPrint("Live Activity updated: ${params.activityId}");
-      
+
       return const Right(null);
     } catch (e) {
       debugPrint("Error updating Live Activity: $e");
-      return Left(LiveActivityUpdateFailure(message: 'Error updating Live Activity: $e'));
+      return Left(LiveActivityUpdateFailure(
+          message: 'Error updating Live Activity: $e'));
     }
   }
 }

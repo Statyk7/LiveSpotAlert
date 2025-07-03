@@ -24,11 +24,12 @@ class StopLiveActivityUseCase implements UseCase<void, StopLiveActivityParams> {
     try {
       await liveActivitiesPlugin.endActivity(params.activityId);
       debugPrint("Live Activity stopped: ${params.activityId}");
-      
+
       return const Right(null);
     } catch (e) {
       debugPrint("Error stopping Live Activity: $e");
-      return Left(LiveActivityStopFailure(message: 'Error stopping Live Activity: $e'));
+      return Left(
+          LiveActivityStopFailure(message: 'Error stopping Live Activity: $e'));
     }
   }
 }

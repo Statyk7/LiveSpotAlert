@@ -7,38 +7,44 @@ import '../models/location_event.dart';
 import '../models/geofence_status.dart';
 import '../services/geofencing_service.dart';
 
-class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, MonitorLocationParams> {
+class MonitorLocationUseCase
+    implements StreamUseCase<MonitorLocationResult, MonitorLocationParams> {
   const MonitorLocationUseCase(this._geofencingService);
-  
+
   final GeofencingService _geofencingService;
-  
+
   @override
-  Stream<Either<Failure, MonitorLocationResult>> call(MonitorLocationParams params) async* {
+  Stream<Either<Failure, MonitorLocationResult>> call(
+      MonitorLocationParams params) async* {
     // First, ensure we have the required permissions
     final permissionResult = await _geofencingService.hasRequiredPermissions();
     final hasPermissions = permissionResult.fold(
       (failure) => false,
       (hasPermissions) => hasPermissions,
     );
-    
+
     if (!hasPermissions) {
       // Try to request permissions
-      final requestResult = await _geofencingService.requestLocationPermissions();
+      final requestResult =
+          await _geofencingService.requestLocationPermissions();
       final granted = requestResult.fold(
         (failure) {
           return false;
         },
         (granted) => granted,
       );
-      
+
       if (!granted) {
-        yield Left(PermissionFailure(message: 'Location permissions are required for geofence monitoring'));
+        yield Left(PermissionFailure(
+            message:
+                'Location permissions are required for geofence monitoring'));
         return;
       }
     }
-    
+
     // Configure background geolocation if needed
-    final configResult = await _geofencingService.configureBackgroundGeolocation();
+    final configResult =
+        await _geofencingService.configureBackgroundGeolocation();
     if (configResult.isLeft()) {
       yield configResult.fold(
         (failure) => Left(failure),
@@ -46,7 +52,7 @@ class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, Mon
       );
       return;
     }
-    
+
     // Start monitoring if requested
     if (params.startMonitoring) {
       final startResult = await _geofencingService.startMonitoring();
@@ -58,11 +64,12 @@ class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, Mon
         return;
       }
     }
-    
+
     // Create a stream controller to merge both streams
-    final controller = StreamController<Either<Failure, MonitorLocationResult>>();
+    final controller =
+        StreamController<Either<Failure, MonitorLocationResult>>();
     final subscriptions = <StreamSubscription>[];
-    
+
     try {
       // Subscribe to location event stream if requested
       if (params.includeLocationEvents) {
@@ -70,7 +77,8 @@ class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, Mon
           (eventResult) {
             final result = eventResult.fold(
               (failure) => Left<Failure, MonitorLocationResult>(failure),
-              (event) => Right<Failure, MonitorLocationResult>(MonitorLocationResult(
+              (event) =>
+                  Right<Failure, MonitorLocationResult>(MonitorLocationResult(
                 locationEvent: event,
                 geofenceStatuses: null,
               )),
@@ -78,19 +86,21 @@ class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, Mon
             controller.add(result);
           },
           onError: (error) {
-            controller.add(Left(LocationFailure(message: 'Location event stream error: $error')));
+            controller.add(Left(LocationFailure(
+                message: 'Location event stream error: $error')));
           },
         );
         subscriptions.add(subscription);
       }
-      
+
       // Subscribe to geofence status stream if requested
       if (params.includeGeofenceStatuses) {
         final subscription = _geofencingService.geofenceStatusStream.listen(
           (statusResult) {
             final result = statusResult.fold(
               (failure) => Left<Failure, MonitorLocationResult>(failure),
-              (statuses) => Right<Failure, MonitorLocationResult>(MonitorLocationResult(
+              (statuses) =>
+                  Right<Failure, MonitorLocationResult>(MonitorLocationResult(
                 locationEvent: null,
                 geofenceStatuses: statuses,
               )),
@@ -98,12 +108,13 @@ class MonitorLocationUseCase implements StreamUseCase<MonitorLocationResult, Mon
             controller.add(result);
           },
           onError: (error) {
-            controller.add(Left(LocationFailure(message: 'Geofence status stream error: $error')));
+            controller.add(Left(LocationFailure(
+                message: 'Geofence status stream error: $error')));
           },
         );
         subscriptions.add(subscription);
       }
-      
+
       // Yield from the merged stream
       if (subscriptions.isNotEmpty) {
         yield* controller.stream;
@@ -124,11 +135,11 @@ class MonitorLocationParams extends Equatable {
     this.includeLocationEvents = true,
     this.includeGeofenceStatuses = true,
   });
-  
+
   final bool startMonitoring;
   final bool includeLocationEvents;
   final bool includeGeofenceStatuses;
-  
+
   @override
   List<Object?> get props => [
         startMonitoring,
@@ -142,10 +153,10 @@ class MonitorLocationResult extends Equatable {
     this.locationEvent,
     this.geofenceStatuses,
   });
-  
+
   final LocationEvent? locationEvent;
   final List<GeofenceStatus>? geofenceStatuses;
-  
+
   @override
   List<Object?> get props => [locationEvent, geofenceStatuses];
 }

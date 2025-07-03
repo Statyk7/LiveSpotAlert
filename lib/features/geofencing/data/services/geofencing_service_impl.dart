@@ -22,62 +22,71 @@ class GeofencingServiceImpl implements GeofencingService {
   }) {
     _initializeStreams();
   }
-  
+
   final GeofenceLocalDataSource localDataSource;
   final BackgroundGeolocationDataSource backgroundGeolocationDataSource;
   final GeofencingLiveActivityIntegration? liveActivityIntegration;
   final GeofencingNotificationIntegration? notificationIntegration;
-  
-  final StreamController<Either<Failure, LocationEvent>> _locationEventController = 
+
+  final StreamController<Either<Failure, LocationEvent>>
+      _locationEventController =
       StreamController<Either<Failure, LocationEvent>>.broadcast();
-  
-  final StreamController<Either<Failure, List<GeofenceStatus>>> _geofenceStatusController = 
+
+  final StreamController<Either<Failure, List<GeofenceStatus>>>
+      _geofenceStatusController =
       StreamController<Either<Failure, List<GeofenceStatus>>>.broadcast();
-  
+
   StreamSubscription? _backgroundLocationSubscription;
   List<Geofence> _cachedGeofences = [];
-  
+
   void _initializeStreams() {
     // Listen to background geolocation events
-    _backgroundLocationSubscription = backgroundGeolocationDataSource.geofenceEventStream.listen(
+    _backgroundLocationSubscription =
+        backgroundGeolocationDataSource.geofenceEventStream.listen(
       (LocationEventDto eventDto) async {
         try {
           // Save event to local storage
           await localDataSource.saveLocationEvent(eventDto);
-          
+
           // Find the geofence for this event
-          final geofence = _cachedGeofences.where((g) => g.id == eventDto.geofenceId).firstOrNull;
+          final geofence = _cachedGeofences
+              .where((g) => g.id == eventDto.geofenceId)
+              .firstOrNull;
           if (geofence == null) {
-            AppLogger.warning('Geofence not found for event: ${eventDto.geofenceId}');
+            AppLogger.warning(
+                'Geofence not found for event: ${eventDto.geofenceId}');
             return;
           }
-          
+
           // Convert to domain model and emit
           final locationEvent = LocationEventMapper.fromDto(eventDto, geofence);
           _locationEventController.add(Right(locationEvent));
-          
+
           // Trigger Live Activity if integration is available
           await _handleLiveActivityTrigger(locationEvent, geofence);
-          
+
           // Trigger notification if integration is available
           await _handleNotificationTrigger(locationEvent, geofence);
-          
+
           // Update geofence status
           await _updateGeofenceStatuses();
-          
-          AppLogger.info('Processed location event: ${locationEvent.eventType} for ${geofence.name}');
+
+          AppLogger.info(
+              'Processed location event: ${locationEvent.eventType} for ${geofence.name}');
         } catch (e, stackTrace) {
           AppLogger.error('Error processing location event', e, stackTrace);
-          _locationEventController.add(Left(LocationFailure(message: 'Error processing location event: $e')));
+          _locationEventController.add(Left(
+              LocationFailure(message: 'Error processing location event: $e')));
         }
       },
       onError: (error) {
         AppLogger.error('Error in geofence event stream', error);
-        _locationEventController.add(Left(LocationFailure(message: 'Geofence event stream error: $error')));
+        _locationEventController.add(Left(
+            LocationFailure(message: 'Geofence event stream error: $error')));
       },
     );
   }
-  
+
   Future<void> _updateGeofenceStatuses() async {
     try {
       final geofences = await getGeofences();
@@ -87,38 +96,41 @@ class GeofencingServiceImpl implements GeofencingService {
         },
         (geofenceList) async {
           final statuses = <GeofenceStatus>[];
-          
+
           for (final geofence in geofenceList) {
             final isInside = await isUserInsideGeofence(geofence.id);
             final distance = await calculateDistanceToGeofence(geofence.id);
-            
+
             final status = GeofenceStatus(
               geofence: geofence,
-              state: geofence.isActive ? GeofenceState.monitoring : GeofenceState.idle,
+              state: geofence.isActive
+                  ? GeofenceState.monitoring
+                  : GeofenceState.idle,
               isUserInside: isInside.getOrElse(() => false),
               lastUpdated: DateTime.now(),
               distanceToCenter: distance.fold((l) => null, (r) => r),
             );
-            
+
             statuses.add(status);
           }
-          
+
           _geofenceStatusController.add(Right(statuses));
         },
       );
     } catch (e, stackTrace) {
       AppLogger.error('Error updating geofence statuses', e, stackTrace);
-      _geofenceStatusController.add(Left(LocationFailure(message: 'Error updating statuses: $e')));
+      _geofenceStatusController
+          .add(Left(LocationFailure(message: 'Error updating statuses: $e')));
     }
   }
-  
+
   @override
   Future<Either<Failure, List<Geofence>>> getGeofences() async {
     try {
       final geofenceDtos = await localDataSource.getGeofences();
       final geofences = GeofenceMapper.fromDtoList(geofenceDtos);
       _cachedGeofences = geofences;
-      
+
       AppLogger.debug('Retrieved ${geofences.length} geofences');
       return Right(geofences);
     } catch (e, stackTrace) {
@@ -126,7 +138,7 @@ class GeofencingServiceImpl implements GeofencingService {
       return Left(CacheFailure(message: 'Failed to retrieve geofences: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, Geofence>> getGeofenceById(String id) async {
     try {
@@ -134,7 +146,7 @@ class GeofencingServiceImpl implements GeofencingService {
       if (geofenceDto == null) {
         return Left(CacheFailure(message: 'Geofence not found: $id'));
       }
-      
+
       final geofence = GeofenceMapper.fromDto(geofenceDto);
       return Right(geofence);
     } catch (e, stackTrace) {
@@ -142,82 +154,84 @@ class GeofencingServiceImpl implements GeofencingService {
       return Left(CacheFailure(message: 'Failed to retrieve geofence: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, Geofence>> createGeofence(Geofence geofence) async {
     try {
       final geofenceDto = GeofenceMapper.toDto(geofence.copyWith(
         createdAt: DateTime.now(),
       ));
-      
+
       // Save to local storage
       await localDataSource.saveGeofence(geofenceDto);
-      
+
       // Add to background geolocation if active
       if (geofence.isActive) {
         await backgroundGeolocationDataSource.addGeofence(geofenceDto);
       }
-      
+
       // Update cache
       _cachedGeofences.add(geofence);
-      
+
       // Trigger geofence status update
       await _updateGeofenceStatuses();
-      
+
       AppLogger.info('Created geofence: ${geofence.name}');
       return Right(geofence);
     } catch (e, stackTrace) {
-      AppLogger.error('Error creating geofence: ${geofence.name}', e, stackTrace);
+      AppLogger.error(
+          'Error creating geofence: ${geofence.name}', e, stackTrace);
       return Left(CacheFailure(message: 'Failed to create geofence: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, Geofence>> updateGeofence(Geofence geofence) async {
     try {
       final geofenceDto = GeofenceMapper.toDto(geofence);
-      
+
       // Update in local storage
       await localDataSource.saveGeofence(geofenceDto);
-      
+
       // Update in background geolocation
       await backgroundGeolocationDataSource.removeGeofence(geofence.id);
       if (geofence.isActive) {
         await backgroundGeolocationDataSource.addGeofence(geofenceDto);
       }
-      
+
       // Update cache
       final index = _cachedGeofences.indexWhere((g) => g.id == geofence.id);
       if (index >= 0) {
         _cachedGeofences[index] = geofence;
       }
-      
+
       // Trigger geofence status update
       await _updateGeofenceStatuses();
-      
+
       AppLogger.info('Updated geofence: ${geofence.name}');
       return Right(geofence);
     } catch (e, stackTrace) {
-      AppLogger.error('Error updating geofence: ${geofence.name}', e, stackTrace);
+      AppLogger.error(
+          'Error updating geofence: ${geofence.name}', e, stackTrace);
       return Left(CacheFailure(message: 'Failed to update geofence: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> deleteGeofence(String id) async {
     try {
       // Remove from background geolocation
       await backgroundGeolocationDataSource.removeGeofence(id);
-      
+
       // Remove from local storage
       await localDataSource.deleteGeofence(id);
-      
+
       // Update cache
       _cachedGeofences.removeWhere((g) => g.id == id);
-      
+
       // Trigger geofence status update
       await _updateGeofenceStatuses();
-      
+
       AppLogger.info('Deleted geofence: $id');
       return const Right(null);
     } catch (e, stackTrace) {
@@ -225,12 +239,12 @@ class GeofencingServiceImpl implements GeofencingService {
       return Left(CacheFailure(message: 'Failed to delete geofence: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> startMonitoring() async {
     try {
       await backgroundGeolocationDataSource.start();
-      
+
       // Add all active geofences to monitoring
       final geofences = await getGeofences();
       await geofences.fold(
@@ -242,10 +256,10 @@ class GeofencingServiceImpl implements GeofencingService {
           }
         },
       );
-      
+
       // Trigger geofence status update
       await _updateGeofenceStatuses();
-      
+
       AppLogger.info('Started geofence monitoring');
       return const Right(null);
     } catch (e, stackTrace) {
@@ -253,7 +267,7 @@ class GeofencingServiceImpl implements GeofencingService {
       return Left(LocationFailure(message: 'Failed to start monitoring: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> stopMonitoring() async {
     try {
@@ -265,7 +279,7 @@ class GeofencingServiceImpl implements GeofencingService {
       return Left(LocationFailure(message: 'Failed to stop monitoring: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, bool>> isMonitoring() async {
     try {
@@ -273,77 +287,91 @@ class GeofencingServiceImpl implements GeofencingService {
       return Right(isRunning);
     } catch (e, stackTrace) {
       AppLogger.error('Error checking monitoring status', e, stackTrace);
-      return Left(LocationFailure(message: 'Failed to check monitoring status: $e'));
+      return Left(
+          LocationFailure(message: 'Failed to check monitoring status: $e'));
     }
   }
-  
+
   @override
-  Stream<Either<Failure, LocationEvent>> get locationEventStream => _locationEventController.stream;
-  
+  Stream<Either<Failure, LocationEvent>> get locationEventStream =>
+      _locationEventController.stream;
+
   @override
-  Stream<Either<Failure, List<GeofenceStatus>>> get geofenceStatusStream => _geofenceStatusController.stream;
-  
+  Stream<Either<Failure, List<GeofenceStatus>>> get geofenceStatusStream =>
+      _geofenceStatusController.stream;
+
   @override
   Future<Either<Failure, bool>> requestLocationPermissions() async {
     try {
-      final granted = await backgroundGeolocationDataSource.requestPermissions();
+      final granted =
+          await backgroundGeolocationDataSource.requestPermissions();
       return Right(granted);
     } catch (e, stackTrace) {
       AppLogger.error('Error requesting permissions', e, stackTrace);
-      return Left(PermissionFailure(message: 'Failed to request permissions: $e'));
+      return Left(
+          PermissionFailure(message: 'Failed to request permissions: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, bool>> hasRequiredPermissions() async {
     try {
-      final hasPermissions = await backgroundGeolocationDataSource.hasRequiredPermissions();
+      final hasPermissions =
+          await backgroundGeolocationDataSource.hasRequiredPermissions();
       return Right(hasPermissions);
     } catch (e, stackTrace) {
       AppLogger.error('Error checking permissions', e, stackTrace);
-      return Left(PermissionFailure(message: 'Failed to check permissions: $e'));
+      return Left(
+          PermissionFailure(message: 'Failed to check permissions: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> configureBackgroundGeolocation() async {
     try {
       await backgroundGeolocationDataSource.configure();
       return const Right(null);
     } catch (e, stackTrace) {
-      AppLogger.error('Error configuring background geolocation', e, stackTrace);
-      return Left(LocationFailure(message: 'Failed to configure background geolocation: $e'));
+      AppLogger.error(
+          'Error configuring background geolocation', e, stackTrace);
+      return Left(LocationFailure(
+          message: 'Failed to configure background geolocation: $e'));
     }
   }
-  
+
   @override
-  Future<Either<Failure, double>> calculateDistanceToGeofence(String geofenceId) async {
+  Future<Either<Failure, double>> calculateDistanceToGeofence(
+      String geofenceId) async {
     try {
       final geofence = await getGeofenceById(geofenceId);
       return await geofence.fold(
         (failure) => Left(failure),
         (geofence) async {
-          final currentLocation = await backgroundGeolocationDataSource.getCurrentLocation();
+          final currentLocation =
+              await backgroundGeolocationDataSource.getCurrentLocation();
           if (currentLocation == null) {
-            return Left(LocationFailure(message: 'Unable to get current location'));
+            return Left(
+                LocationFailure(message: 'Unable to get current location'));
           }
-          
-          final distance = await backgroundGeolocationDataSource.calculateDistance(
+
+          final distance =
+              await backgroundGeolocationDataSource.calculateDistance(
             currentLocation.coords.latitude,
             currentLocation.coords.longitude,
             geofence.latitude,
             geofence.longitude,
           );
-          
+
           return Right(distance);
         },
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Error calculating distance to geofence: $geofenceId', e, stackTrace);
+      AppLogger.error(
+          'Error calculating distance to geofence: $geofenceId', e, stackTrace);
       return Left(LocationFailure(message: 'Failed to calculate distance: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, bool>> isUserInsideGeofence(String geofenceId) async {
     try {
@@ -359,11 +387,13 @@ class GeofencingServiceImpl implements GeofencingService {
         },
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Error checking if user is inside geofence: $geofenceId', e, stackTrace);
-      return Left(LocationFailure(message: 'Failed to check geofence status: $e'));
+      AppLogger.error('Error checking if user is inside geofence: $geofenceId',
+          e, stackTrace);
+      return Left(
+          LocationFailure(message: 'Failed to check geofence status: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, List<LocationEvent>>> getLocationEvents({
     String? geofenceId,
@@ -378,25 +408,28 @@ class GeofencingServiceImpl implements GeofencingService {
         endDate: endDate,
         limit: limit,
       );
-      
+
       final geofences = await getGeofences();
       return await geofences.fold(
         (failure) => Left(failure),
         (geofenceList) {
           try {
-            final events = LocationEventMapper.fromDtoList(eventDtos, geofenceList);
+            final events =
+                LocationEventMapper.fromDtoList(eventDtos, geofenceList);
             return Right(events);
           } catch (e) {
-            return Left(CacheFailure(message: 'Failed to map location events: $e'));
+            return Left(
+                CacheFailure(message: 'Failed to map location events: $e'));
           }
         },
       );
     } catch (e, stackTrace) {
       AppLogger.error('Error retrieving location events', e, stackTrace);
-      return Left(CacheFailure(message: 'Failed to retrieve location events: $e'));
+      return Left(
+          CacheFailure(message: 'Failed to retrieve location events: $e'));
     }
   }
-  
+
   /// Handle Live Activity triggers for location events
   Future<void> _handleLiveActivityTrigger(
     LocationEvent event,
@@ -406,7 +439,7 @@ class GeofencingServiceImpl implements GeofencingService {
       AppLogger.debug('Live Activity integration not available');
       return;
     }
-    
+
     try {
       switch (event.eventType) {
         case LocationEventType.enter:
@@ -423,7 +456,7 @@ class GeofencingServiceImpl implements GeofencingService {
       AppLogger.error('Error handling Live Activity trigger', e, stackTrace);
     }
   }
-  
+
   /// Handle notification triggers for location events
   Future<void> _handleNotificationTrigger(
     LocationEvent event,
@@ -433,7 +466,7 @@ class GeofencingServiceImpl implements GeofencingService {
       AppLogger.debug('Notification integration not available');
       return;
     }
-    
+
     try {
       switch (event.eventType) {
         case LocationEventType.enter:
@@ -450,17 +483,16 @@ class GeofencingServiceImpl implements GeofencingService {
       AppLogger.error('Error handling notification trigger', e, stackTrace);
     }
   }
-  
+
   void dispose() {
     _backgroundLocationSubscription?.cancel();
     _locationEventController.close();
     _geofenceStatusController.close();
-    
+
     // Clean up Live Activity integration
     liveActivityIntegration?.cleanup();
-    
+
     // Clean up notification integration
     notificationIntegration?.cleanup();
   }
 }
-

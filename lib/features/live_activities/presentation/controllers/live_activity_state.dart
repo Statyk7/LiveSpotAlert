@@ -44,7 +44,9 @@ class LiveActivityState extends Equatable {
   }) {
     return LiveActivityState(
       status: status ?? this.status,
-      currentActivityId: clearActivityId ? null : (currentActivityId ?? this.currentActivityId),
+      currentActivityId: clearActivityId
+          ? null
+          : (currentActivityId ?? this.currentActivityId),
       title: title ?? this.title,
       imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
       failure: clearFailure ? null : (failure ?? this.failure),

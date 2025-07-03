@@ -57,7 +57,7 @@ class ServiceLocator {
     getIt.registerLazySingleton<GeofenceLocalDataSource>(
       () => GeofenceLocalDataSourceImpl(getIt<SharedPreferences>()),
     );
-    
+
     getIt.registerLazySingleton<BackgroundGeolocationDataSource>(
       () => BackgroundGeolocationDataSourceImpl(),
     );
@@ -136,7 +136,8 @@ class ServiceLocator {
     getIt.registerLazySingleton<GeofencingService>(
       () => GeofencingServiceImpl(
         localDataSource: getIt<GeofenceLocalDataSource>(),
-        backgroundGeolocationDataSource: getIt<BackgroundGeolocationDataSource>(),
+        backgroundGeolocationDataSource:
+            getIt<BackgroundGeolocationDataSource>(),
         liveActivityIntegration: getIt<GeofencingLiveActivityIntegration>(),
         notificationIntegration: getIt<GeofencingNotificationIntegration>(),
       ),
@@ -146,27 +147,27 @@ class ServiceLocator {
     getIt.registerLazySingleton<GetGeofencesUseCase>(
       () => GetGeofencesUseCase(getIt<GeofencingService>()),
     );
-    
+
     getIt.registerLazySingleton<CreateGeofenceUseCase>(
       () => CreateGeofenceUseCase(getIt<GeofencingService>()),
     );
-    
+
     getIt.registerLazySingleton<UpdateGeofenceUseCase>(
       () => UpdateGeofenceUseCase(getIt<GeofencingService>()),
     );
-    
+
     getIt.registerLazySingleton<DeleteGeofenceUseCase>(
       () => DeleteGeofenceUseCase(getIt<GeofencingService>()),
     );
-    
+
     getIt.registerLazySingleton<MonitorLocationUseCase>(
       () => MonitorLocationUseCase(getIt<GeofencingService>()),
     );
-    
+
     getIt.registerLazySingleton<StopMonitoringUseCase>(
       () => StopMonitoringUseCase(getIt<GeofencingService>()),
     );
-    
+
     getIt.registerLazySingleton<GetLocationEventsUseCase>(
       () => GetLocationEventsUseCase(getIt<GeofencingService>()),
     );
@@ -175,20 +176,20 @@ class ServiceLocator {
     getIt.registerLazySingleton<ProcessImageForLiveActivityUseCase>(
       () => ProcessImageForLiveActivityUseCase(),
     );
-    
+
     getIt.registerLazySingleton<StartLiveActivityUseCase>(
       () => StartLiveActivityUseCase(
         liveActivitiesPlugin: getIt<LiveActivities>(),
         processImageUseCase: getIt<ProcessImageForLiveActivityUseCase>(),
       ),
     );
-    
+
     getIt.registerLazySingleton<StopLiveActivityUseCase>(
       () => StopLiveActivityUseCase(
         liveActivitiesPlugin: getIt<LiveActivities>(),
       ),
     );
-    
+
     getIt.registerLazySingleton<UpdateLiveActivityUseCase>(
       () => UpdateLiveActivityUseCase(
         liveActivitiesPlugin: getIt<LiveActivities>(),
@@ -200,13 +201,14 @@ class ServiceLocator {
     getIt.registerLazySingleton<LoadNotificationConfigUseCase>(
       () => LoadNotificationConfigUseCase(getIt<LocalNotificationsService>()),
     );
-    
+
     getIt.registerLazySingleton<SaveNotificationConfigUseCase>(
       () => SaveNotificationConfigUseCase(getIt<LocalNotificationsService>()),
     );
-    
+
     getIt.registerLazySingleton<RequestNotificationPermissionsUseCase>(
-      () => RequestNotificationPermissionsUseCase(getIt<LocalNotificationsService>()),
+      () => RequestNotificationPermissionsUseCase(
+          getIt<LocalNotificationsService>()),
     );
 
     _isInitialized = true;
@@ -242,7 +244,8 @@ class ServiceLocator {
     return LocalNotificationsBloc(
       loadNotificationConfigUseCase: getIt<LoadNotificationConfigUseCase>(),
       saveNotificationConfigUseCase: getIt<SaveNotificationConfigUseCase>(),
-      requestNotificationPermissionsUseCase: getIt<RequestNotificationPermissionsUseCase>(),
+      requestNotificationPermissionsUseCase:
+          getIt<RequestNotificationPermissionsUseCase>(),
       notificationsService: getIt<LocalNotificationsService>(),
     );
   }
@@ -254,7 +257,7 @@ class ServiceLocator {
       final service = getIt<GeofencingService>() as GeofencingServiceImpl;
       service.dispose();
     }
-    
+
     await getIt.reset();
     _isInitialized = false;
   }

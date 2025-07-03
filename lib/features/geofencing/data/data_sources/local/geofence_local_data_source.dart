@@ -12,7 +12,7 @@ abstract class GeofenceLocalDataSource {
   Future<void> saveGeofences(List<GeofenceDto> geofences);
   Future<void> deleteGeofence(String id);
   Future<void> clearAllGeofences();
-  
+
   Future<List<LocationEventDto>> getLocationEvents({
     String? geofenceId,
     DateTime? startDate,
@@ -25,12 +25,12 @@ abstract class GeofenceLocalDataSource {
 
 class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
   GeofenceLocalDataSourceImpl(this._prefs);
-  
+
   final SharedPreferences _prefs;
-  
+
   static const String _geofencesKey = '${AppConstants.geofencesKey}_list';
   static const String _eventsKey = 'location_events_list';
-  
+
   @override
   Future<List<GeofenceDto>> getGeofences() async {
     try {
@@ -39,20 +39,22 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
         AppLogger.debug('No geofences found in local storage');
         return [];
       }
-      
+
       final jsonList = json.decode(jsonString) as List<dynamic>;
       final geofences = jsonList
           .map((json) => GeofenceDto.fromJson(json as Map<String, dynamic>))
           .toList();
-      
-      AppLogger.debug('Retrieved ${geofences.length} geofences from local storage');
+
+      AppLogger.debug(
+          'Retrieved ${geofences.length} geofences from local storage');
       return geofences;
     } catch (e, stackTrace) {
-      AppLogger.error('Error retrieving geofences from local storage', e, stackTrace);
+      AppLogger.error(
+          'Error retrieving geofences from local storage', e, stackTrace);
       return [];
     }
   }
-  
+
   @override
   Future<GeofenceDto?> getGeofenceById(String id) async {
     try {
@@ -63,19 +65,19 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
       return null;
     }
   }
-  
+
   @override
   Future<void> saveGeofence(GeofenceDto geofence) async {
     try {
       final geofences = await getGeofences();
       final index = geofences.indexWhere((g) => g.id == geofence.id);
-      
+
       if (index >= 0) {
         geofences[index] = geofence;
       } else {
         geofences.add(geofence);
       }
-      
+
       await saveGeofences(geofences);
       AppLogger.debug('Saved geofence: ${geofence.name}');
     } catch (e, stackTrace) {
@@ -83,13 +85,13 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
       rethrow;
     }
   }
-  
+
   @override
   Future<void> saveGeofences(List<GeofenceDto> geofences) async {
     try {
       final jsonList = geofences.map((g) => g.toJson()).toList();
       final jsonString = json.encode(jsonList);
-      
+
       await _prefs.setString(_geofencesKey, jsonString);
       AppLogger.debug('Saved ${geofences.length} geofences to local storage');
     } catch (e, stackTrace) {
@@ -97,7 +99,7 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
       rethrow;
     }
   }
-  
+
   @override
   Future<void> deleteGeofence(String id) async {
     try {
@@ -110,7 +112,7 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
       rethrow;
     }
   }
-  
+
   @override
   Future<void> clearAllGeofences() async {
     try {
@@ -121,7 +123,7 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
       rethrow;
     }
   }
-  
+
   @override
   Future<List<LocationEventDto>> getLocationEvents({
     String? geofenceId,
@@ -132,33 +134,39 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
     try {
       final jsonString = _prefs.getString(_eventsKey);
       if (jsonString == null) return [];
-      
+
       final jsonList = json.decode(jsonString) as List<dynamic>;
       var events = jsonList
-          .map((json) => LocationEventDto.fromJson(json as Map<String, dynamic>))
+          .map(
+              (json) => LocationEventDto.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       // Apply filters
       if (geofenceId != null) {
         events = events.where((e) => e.geofenceId == geofenceId).toList();
       }
-      
+
       if (startDate != null) {
-        events = events.where((e) => DateTime.parse(e.timestamp).isAfter(startDate)).toList();
+        events = events
+            .where((e) => DateTime.parse(e.timestamp).isAfter(startDate))
+            .toList();
       }
-      
+
       if (endDate != null) {
-        events = events.where((e) => DateTime.parse(e.timestamp).isBefore(endDate)).toList();
+        events = events
+            .where((e) => DateTime.parse(e.timestamp).isBefore(endDate))
+            .toList();
       }
-      
+
       // Sort by timestamp (newest first)
-      events.sort((a, b) => DateTime.parse(b.timestamp).compareTo(DateTime.parse(a.timestamp)));
-      
+      events.sort((a, b) =>
+          DateTime.parse(b.timestamp).compareTo(DateTime.parse(a.timestamp)));
+
       // Apply limit
       if (limit != null && events.length > limit) {
         events = events.take(limit).toList();
       }
-      
+
       AppLogger.debug('Retrieved ${events.length} location events');
       return events;
     } catch (e, stackTrace) {
@@ -166,29 +174,30 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
       return [];
     }
   }
-  
+
   @override
   Future<void> saveLocationEvent(LocationEventDto event) async {
     try {
       final events = await getLocationEvents();
       events.insert(0, event); // Add to beginning (newest first)
-      
+
       // Keep only last 1000 events to prevent unlimited growth
       if (events.length > 1000) {
         events.removeRange(1000, events.length);
       }
-      
+
       final jsonList = events.map((e) => e.toJson()).toList();
       final jsonString = json.encode(jsonList);
-      
+
       await _prefs.setString(_eventsKey, jsonString);
-      AppLogger.debug('Saved location event: ${event.eventType} for geofence ${event.geofenceId}');
+      AppLogger.debug(
+          'Saved location event: ${event.eventType} for geofence ${event.geofenceId}');
     } catch (e, stackTrace) {
       AppLogger.error('Error saving location event', e, stackTrace);
       rethrow;
     }
   }
-  
+
   @override
   Future<void> clearLocationEvents() async {
     try {
@@ -200,4 +209,3 @@ class GeofenceLocalDataSourceImpl implements GeofenceLocalDataSource {
     }
   }
 }
-

@@ -11,25 +11,26 @@ abstract class GeofencingService {
   Future<Either<Failure, Geofence>> createGeofence(Geofence geofence);
   Future<Either<Failure, Geofence>> updateGeofence(Geofence geofence);
   Future<Either<Failure, void>> deleteGeofence(String id);
-  
+
   // Location Monitoring
   Future<Either<Failure, void>> startMonitoring();
   Future<Either<Failure, void>> stopMonitoring();
   Future<Either<Failure, bool>> isMonitoring();
-  
+
   // Real-time Streams
   Stream<Either<Failure, LocationEvent>> get locationEventStream;
   Stream<Either<Failure, List<GeofenceStatus>>> get geofenceStatusStream;
-  
+
   // Permission and Setup
   Future<Either<Failure, bool>> requestLocationPermissions();
   Future<Either<Failure, bool>> hasRequiredPermissions();
   Future<Either<Failure, void>> configureBackgroundGeolocation();
-  
+
   // Utility Methods
-  Future<Either<Failure, double>> calculateDistanceToGeofence(String geofenceId);
+  Future<Either<Failure, double>> calculateDistanceToGeofence(
+      String geofenceId);
   Future<Either<Failure, bool>> isUserInsideGeofence(String geofenceId);
-  
+
   // Event History
   Future<Either<Failure, List<LocationEvent>>> getLocationEvents({
     String? geofenceId,

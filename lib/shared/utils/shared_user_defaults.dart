@@ -13,7 +13,7 @@ class SharedUserDefaults {
       debugPrint('SharedUserDefaults: Skipping on non-iOS platform');
       return true;
     }
-    
+
     try {
       final result = await _channel.invokeMethod('setString', {
         'appGroupId': _appGroupId,
@@ -34,7 +34,7 @@ class SharedUserDefaults {
       debugPrint('SharedUserDefaults: Skipping on non-iOS platform');
       return true;
     }
-    
+
     try {
       final result = await _channel.invokeMethod('remove', {
         'appGroupId': _appGroupId,
@@ -54,7 +54,7 @@ class SharedUserDefaults {
       debugPrint('SharedUserDefaults: Skipping on non-iOS platform');
       return null;
     }
-    
+
     try {
       final result = await _channel.invokeMethod('getString', {
         'appGroupId': _appGroupId,

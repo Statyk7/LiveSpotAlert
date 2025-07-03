@@ -22,10 +22,12 @@ class LiveActivityConfigurationWidget extends StatefulWidget {
   final VoidCallback? onCancel;
 
   @override
-  State<LiveActivityConfigurationWidget> createState() => _LiveActivityConfigurationWidgetState();
+  State<LiveActivityConfigurationWidget> createState() =>
+      _LiveActivityConfigurationWidgetState();
 }
 
-class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurationWidget> {
+class _LiveActivityConfigurationWidgetState
+    extends State<LiveActivityConfigurationWidget> {
   late final TextEditingController _titleController;
   File? _selectedImage;
   String? _selectedImagePath;
@@ -36,10 +38,10 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
   void initState() {
     super.initState();
     _titleController = TextEditingController();
-    
+
     // Load saved configuration first
     context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
-    
+
     // Initialize with current state
     final currentState = context.read<LiveActivityBloc>().state;
     _updateFromState(currentState);
@@ -78,13 +80,17 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
   bool _isBase64String(String str) {
     // Check common base64 indicators
     if (str.startsWith('data:')) return true;
-    if (str.startsWith('/9j/') || str.startsWith('iVBORw0KGgo')) return true; // Common image base64 starts
-    
+    if (str.startsWith('/9j/') || str.startsWith('iVBORw0KGgo'))
+      return true; // Common image base64 starts
+
     // Check if it's likely a file path
-    if (str.contains('/') || str.contains('\\') || str.startsWith('/') || str.contains('.')) {
+    if (str.contains('/') ||
+        str.contains('\\') ||
+        str.startsWith('/') ||
+        str.contains('.')) {
       return false;
     }
-    
+
     // For base64, check length and valid characters
     if (str.length > 100) {
       // Base64 only contains these characters
@@ -101,7 +107,7 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
         }
       }
     }
-    
+
     return false;
   }
 
@@ -120,123 +126,126 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
       },
       child: BlocBuilder<LiveActivityBloc, LiveActivityState>(
         builder: (context, state) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: Text(
-              'Configure Live Activity',
-              style: AppTextStyles.h3.copyWith(color: Colors.white),
-            ),
-            backgroundColor: AppColors.primary,
-            elevation: 0,
-            leading: IconButton(
-              onPressed: widget.onCancel,
-              icon: const Icon(Icons.close),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => _onSave(context),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              title: Text(
+                'Configure Live Activity',
+                style: AppTextStyles.h3.copyWith(color: Colors.white),
               ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title Field
-                Text(
-                  'Notification Title',
-                  style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    hintText: 'e.g., You\'ve arrived!',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: AppColors.surface,
-                  ),
-                  onChanged: (value) {
-                    setState(() {});
-                    _debouncedSave();
-                  },
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Image Section
-                Text(
-                  'Notification Image',
-                  style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 2,
-                  color: AppColors.surface,
-                  child: InkWell(
-                    onTap: _pickImage,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      height: 120,
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      child: _selectedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                _selectedImage!,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : _base64ImageData != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: _buildBase64Image(_base64ImageData!),
-                                )
-                              : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_photo_alternate,
-                                  size: 48,
-                                  color: AppColors.textSecondary,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Tap to add image',
-                                  style: AppTextStyles.bodyMedium.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              leading: IconButton(
+                onPressed: widget.onCancel,
+                icon: const Icon(Icons.close),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => _onSave(context),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Preview Section
-                LiveActivityPreview(
-                  title: _titleController.text,
-                  imageFile: _selectedImage,
-                  imageData: _base64ImageData,
                 ),
               ],
             ),
-          ),
-        );
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title Field
+                  Text(
+                    'Notification Title',
+                    style: AppTextStyles.bodyLarge
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      hintText: 'e.g., You\'ve arrived!',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                      _debouncedSave();
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Image Section
+                  Text(
+                    'Notification Image',
+                    style: AppTextStyles.bodyLarge
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 2,
+                    color: AppColors.surface,
+                    child: InkWell(
+                      onTap: _pickImage,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        height: 120,
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        child: _selectedImage != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : _base64ImageData != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: _buildBase64Image(_base64ImageData!),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_photo_alternate,
+                                        size: 48,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Tap to add image',
+                                        style:
+                                            AppTextStyles.bodyMedium.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Preview Section
+                  LiveActivityPreview(
+                    title: _titleController.text,
+                    imageFile: _selectedImage,
+                    imageData: _base64ImageData,
+                  ),
+                ],
+              ),
+            ),
+          );
         },
       ),
     );
@@ -245,7 +254,7 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
@@ -263,12 +272,12 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
       if (base64Data.contains(',')) {
         cleanBase64 = base64Data.split(',').last;
       }
-      
+
       // Validate base64 format
       if (cleanBase64.isEmpty) {
         return _buildImagePlaceholder();
       }
-      
+
       final bytes = base64Decode(cleanBase64);
       return Image.memory(
         bytes,
@@ -309,11 +318,11 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
     _saveTimer = Timer(const Duration(milliseconds: 500), () {
       if (_titleController.text.isNotEmpty) {
         context.read<LiveActivityBloc>().add(
-          SaveConfigurationImmediately(
-            title: _titleController.text,
-            imagePath: _selectedImagePath,
-          ),
-        );
+              SaveConfigurationImmediately(
+                title: _titleController.text,
+                imagePath: _selectedImagePath,
+              ),
+            );
       }
     });
   }
@@ -321,12 +330,12 @@ class _LiveActivityConfigurationWidgetState extends State<LiveActivityConfigurat
   void _onSave(BuildContext context) {
     // Configure the Live Activity with new settings
     context.read<LiveActivityBloc>().add(
-      ConfigureLiveActivity(
-        title: _titleController.text,
-        imagePath: _selectedImagePath,
-      ),
-    );
-    
+          ConfigureLiveActivity(
+            title: _titleController.text,
+            imagePath: _selectedImagePath,
+          ),
+        );
+
     widget.onSave?.call();
   }
 }

@@ -7,7 +7,7 @@ import '../../../../../shared/utils/logger.dart';
 abstract class LocalNotificationsDataSource {
   /// Initialize the notification plugin
   Future<Either<Failure, void>> initialize();
-  
+
   /// Show a notification
   Future<Either<Failure, void>> showNotification({
     required int id,
@@ -15,23 +15,23 @@ abstract class LocalNotificationsDataSource {
     required String body,
     String? payload,
   });
-  
+
   /// Cancel a specific notification
   Future<Either<Failure, void>> cancelNotification(int id);
-  
+
   /// Cancel all notifications
   Future<Either<Failure, void>> cancelAllNotifications();
-  
+
   /// Check if notifications are enabled
   Future<Either<Failure, bool>> areNotificationsEnabled();
-  
+
   /// Request notification permissions (iOS)
   Future<Either<Failure, bool>> requestPermissions();
 }
 
 class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
   LocalNotificationsDataSourceImpl();
-  
+
   late final FlutterLocalNotificationsPlugin _notificationsPlugin;
   bool _isInitialized = false;
 
@@ -45,7 +45,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
       // iOS/macOS initialization settings
-      const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+      const DarwinInitializationSettings iosSettings =
+          DarwinInitializationSettings(
         requestSoundPermission: true,
         requestBadgePermission: true,
         requestAlertPermission: true,
@@ -54,9 +55,11 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       );
 
       // Android initialization settings (for future use)
-      const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const AndroidInitializationSettings androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
 
-      const InitializationSettings initializationSettings = InitializationSettings(
+      const InitializationSettings initializationSettings =
+          InitializationSettings(
         iOS: iosSettings,
         macOS: iosSettings,
         android: androidSettings,
@@ -72,11 +75,13 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
         AppLogger.info('Local notifications initialized successfully');
         return const Right(null);
       } else {
-        return Left(NotificationFailure(message: 'Failed to initialize local notifications'));
+        return Left(NotificationFailure(
+            message: 'Failed to initialize local notifications'));
       }
     } catch (e, stackTrace) {
       AppLogger.error('Error initializing local notifications', e, stackTrace);
-      return Left(NotificationFailure(message: 'Error initializing notifications: $e'));
+      return Left(
+          NotificationFailure(message: 'Error initializing notifications: $e'));
     }
   }
 
@@ -104,7 +109,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       );
 
       // Android notification details (for future use)
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
         'geofence_notifications',
         'Geofence Notifications',
         channelDescription: 'Notifications triggered by geofence events',
@@ -130,7 +136,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       return const Right(null);
     } catch (e, stackTrace) {
       AppLogger.error('Error showing notification', e, stackTrace);
-      return Left(NotificationFailure(message: 'Error showing notification: $e'));
+      return Left(
+          NotificationFailure(message: 'Error showing notification: $e'));
     }
   }
 
@@ -138,7 +145,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
   Future<Either<Failure, void>> cancelNotification(int id) async {
     try {
       if (!_isInitialized) {
-        return Left(NotificationFailure(message: 'Notifications not initialized'));
+        return Left(
+            NotificationFailure(message: 'Notifications not initialized'));
       }
 
       await _notificationsPlugin.cancel(id);
@@ -146,7 +154,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       return const Right(null);
     } catch (e, stackTrace) {
       AppLogger.error('Error cancelling notification', e, stackTrace);
-      return Left(NotificationFailure(message: 'Error cancelling notification: $e'));
+      return Left(
+          NotificationFailure(message: 'Error cancelling notification: $e'));
     }
   }
 
@@ -154,7 +163,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
   Future<Either<Failure, void>> cancelAllNotifications() async {
     try {
       if (!_isInitialized) {
-        return Left(NotificationFailure(message: 'Notifications not initialized'));
+        return Left(
+            NotificationFailure(message: 'Notifications not initialized'));
       }
 
       await _notificationsPlugin.cancelAll();
@@ -162,7 +172,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       return const Right(null);
     } catch (e, stackTrace) {
       AppLogger.error('Error cancelling all notifications', e, stackTrace);
-      return Left(NotificationFailure(message: 'Error cancelling all notifications: $e'));
+      return Left(NotificationFailure(
+          message: 'Error cancelling all notifications: $e'));
     }
   }
 
@@ -172,13 +183,15 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       if (!_isInitialized) {
         final initResult = await initialize();
         if (initResult.isLeft()) {
-          return Left(NotificationFailure(message: 'Failed to initialize notifications'));
+          return Left(NotificationFailure(
+              message: 'Failed to initialize notifications'));
         }
       }
 
       // For iOS, check if notifications are enabled
       final bool? enabled = await _notificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
             alert: true,
             badge: true,
@@ -188,7 +201,8 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       return Right(enabled ?? false);
     } catch (e, stackTrace) {
       AppLogger.error('Error checking notification permissions', e, stackTrace);
-      return Left(NotificationFailure(message: 'Error checking permissions: $e'));
+      return Left(
+          NotificationFailure(message: 'Error checking permissions: $e'));
     }
   }
 
@@ -198,13 +212,15 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       if (!_isInitialized) {
         final initResult = await initialize();
         if (initResult.isLeft()) {
-          return Left(NotificationFailure(message: 'Failed to initialize notifications'));
+          return Left(NotificationFailure(
+              message: 'Failed to initialize notifications'));
         }
       }
 
       // Request permissions on iOS
       final bool? granted = await _notificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
             alert: true,
             badge: true,
@@ -214,8 +230,10 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       AppLogger.info('Notification permissions requested, granted: $granted');
       return Right(granted ?? false);
     } catch (e, stackTrace) {
-      AppLogger.error('Error requesting notification permissions', e, stackTrace);
-      return Left(NotificationFailure(message: 'Error requesting permissions: $e'));
+      AppLogger.error(
+          'Error requesting notification permissions', e, stackTrace);
+      return Left(
+          NotificationFailure(message: 'Error requesting permissions: $e'));
     }
   }
 

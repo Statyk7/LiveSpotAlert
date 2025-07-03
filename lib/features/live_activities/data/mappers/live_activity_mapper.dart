@@ -9,7 +9,8 @@ class LiveActivityMapper {
       'subtitle': liveActivity.subtitle,
       if (liveActivity.imageUrl != null) 'imageUrl': liveActivity.imageUrl!,
       if (liveActivity.imageData != null) 'imageData': liveActivity.imageData!,
-      if (liveActivity.locationName != null) 'locationName': liveActivity.locationName!,
+      if (liveActivity.locationName != null)
+        'locationName': liveActivity.locationName!,
       'status': liveActivity.status.name,
       'contentType': liveActivity.contentType.name,
       ...?liveActivity.customData,
@@ -24,7 +25,8 @@ class LiveActivityMapper {
       'subtitle': liveActivity.subtitle,
       if (liveActivity.imageUrl != null) 'imageUrl': liveActivity.imageUrl!,
       if (liveActivity.imageData != null) 'imageData': liveActivity.imageData!,
-      if (liveActivity.locationName != null) 'locationName': liveActivity.locationName!,
+      if (liveActivity.locationName != null)
+        'locationName': liveActivity.locationName!,
       'status': liveActivity.status.name,
       'contentType': liveActivity.contentType.name,
       'createdAt': liveActivity.createdAt.toIso8601String(),
@@ -103,7 +105,8 @@ class LiveActivityMapper {
         orElse: () => LiveActivityContentType.geofenceEntry,
       ),
       createdAt: DateTime.parse(dto.createdAt),
-      updatedAt: DateTime.now(), // ActivityDto doesn't have updatedAt, use current time
+      updatedAt: DateTime
+          .now(), // ActivityDto doesn't have updatedAt, use current time
       imageUrl: dto.imageUrl,
       imageData: dto.imageData,
       geofenceId: dto.geofenceId,

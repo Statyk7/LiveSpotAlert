@@ -12,7 +12,7 @@ class MediaItem {
     this.filePath,
     this.base64Data,
   });
-  
+
   final String id;
   final String? filePath;
   final String? base64Data;

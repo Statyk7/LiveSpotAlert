@@ -38,7 +38,9 @@ class LiveActivityInfoCard extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.notifications_active,
-                      color: state.isActive ? AppColors.geofenceActive : AppColors.primary,
+                      color: state.isActive
+                          ? AppColors.geofenceActive
+                          : AppColors.primary,
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -53,7 +55,9 @@ class LiveActivityInfoCard extends StatelessWidget {
                           Text(
                             _getStatusDescription(state),
                             style: AppTextStyles.caption.copyWith(
-                              color: state.isActive ? AppColors.geofenceActive : AppColors.textSecondary,
+                              color: state.isActive
+                                  ? AppColors.geofenceActive
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -89,7 +93,8 @@ class LiveActivityInfoCard extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.title, color: AppColors.info, size: 18),
+                                Icon(Icons.title,
+                                    color: AppColors.info, size: 18),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -103,7 +108,8 @@ class LiveActivityInfoCard extends StatelessWidget {
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  Icon(Icons.image, color: AppColors.info, size: 18),
+                                  Icon(Icons.image,
+                                      color: AppColors.info, size: 18),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Custom image configured',
@@ -125,7 +131,6 @@ class LiveActivityInfoCard extends StatelessWidget {
                     title: 'Test Live Activity',
                     onConfigurePressed: () => onConfigurePressed!(),
                   ),
-
                 ] else ...[
                   Row(
                     children: [
@@ -149,9 +154,11 @@ class LiveActivityInfoCard extends StatelessWidget {
   }
 
   Widget _buildImage(String imagePath) {
-    debugPrint('LiveActivityInfoCard: Building image for path: ${imagePath.substring(0, imagePath.length > 100 ? 100 : imagePath.length)}...');
-    debugPrint('LiveActivityInfoCard: Is base64? ${_isBase64String(imagePath)}');
-    
+    debugPrint(
+        'LiveActivityInfoCard: Building image for path: ${imagePath.substring(0, imagePath.length > 100 ? 100 : imagePath.length)}...');
+    debugPrint(
+        'LiveActivityInfoCard: Is base64? ${_isBase64String(imagePath)}');
+
     // Check if it's base64 data or file path
     if (_isBase64String(imagePath)) {
       debugPrint('LiveActivityInfoCard: Rendering as base64 image');
@@ -166,12 +173,15 @@ class LiveActivityInfoCard extends StatelessWidget {
     // Check common base64 indicators
     if (str.startsWith('data:')) return true;
     if (str.startsWith('/9j/') || str.startsWith('iVBORw0KGgo')) return true;
-    
+
     // Check if it's likely a file path
-    if (str.contains('/') || str.contains('\\') || str.startsWith('/') || str.contains('.')) {
+    if (str.contains('/') ||
+        str.contains('\\') ||
+        str.startsWith('/') ||
+        str.contains('.')) {
       return false;
     }
-    
+
     // For base64, check length and valid characters
     if (str.length > 100) {
       final base64Regex = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
@@ -186,28 +196,31 @@ class LiveActivityInfoCard extends StatelessWidget {
         }
       }
     }
-    
+
     return false;
   }
 
   Widget _buildBase64Image(String base64Data) {
     try {
-      debugPrint('LiveActivityInfoCard: Attempting to decode base64 image (length: ${base64Data.length})');
-      
+      debugPrint(
+          'LiveActivityInfoCard: Attempting to decode base64 image (length: ${base64Data.length})');
+
       String cleanBase64 = base64Data;
       if (base64Data.contains(',')) {
         cleanBase64 = base64Data.split(',').last;
-        debugPrint('LiveActivityInfoCard: Cleaned base64 from data URL (new length: ${cleanBase64.length})');
+        debugPrint(
+            'LiveActivityInfoCard: Cleaned base64 from data URL (new length: ${cleanBase64.length})');
       }
-      
+
       if (cleanBase64.isEmpty) {
         debugPrint('LiveActivityInfoCard: Base64 is empty after cleaning');
         return _buildImagePlaceholder();
       }
-      
+
       final bytes = base64Decode(cleanBase64);
-      debugPrint('LiveActivityInfoCard: Successfully decoded base64 to ${bytes.length} bytes');
-      
+      debugPrint(
+          'LiveActivityInfoCard: Successfully decoded base64 to ${bytes.length} bytes');
+
       return Image.memory(
         bytes,
         width: 48,

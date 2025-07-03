@@ -17,13 +17,16 @@ class DismissGeofenceNotificationParams extends Equatable {
 }
 
 /// Use case for dismissing a geofence notification
-class DismissGeofenceNotificationUseCase implements UseCase<void, DismissGeofenceNotificationParams> {
+class DismissGeofenceNotificationUseCase
+    implements UseCase<void, DismissGeofenceNotificationParams> {
   DismissGeofenceNotificationUseCase(this.notificationsService);
 
   final LocalNotificationsService notificationsService;
 
   @override
-  Future<Either<Failure, void>> call(DismissGeofenceNotificationParams params) async {
-    return await notificationsService.dismissGeofenceNotification(params.geofenceId);
+  Future<Either<Failure, void>> call(
+      DismissGeofenceNotificationParams params) async {
+    return await notificationsService
+        .dismissGeofenceNotification(params.geofenceId);
   }
 }

@@ -23,14 +23,15 @@ class LiveActivityServiceImpl implements LiveActivityService {
   final LiveActivities liveActivitiesPlugin;
   final LiveActivityLocalDataSource localDataSource;
   final MediaService? mediaService;
-  final StreamController<Either<Failure, LiveActivity>> _activityUpdatesController = 
+  final StreamController<Either<Failure, LiveActivity>>
+      _activityUpdatesController =
       StreamController<Either<Failure, LiveActivity>>.broadcast();
 
   // Cache for active activities
   List<LiveActivity>? _cachedActivities;
 
   @override
-  Stream<Either<Failure, LiveActivity>> get liveActivityUpdates => 
+  Stream<Either<Failure, LiveActivity>> get liveActivityUpdates =>
       _activityUpdatesController.stream;
 
   @override
@@ -40,7 +41,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return Right(isSupported);
     } catch (e) {
       debugPrint("Error checking Live Activities support: $e");
-      return Left(LiveActivityFailure(message: 'Failed to check Live Activities support: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to check Live Activities support: $e'));
     }
   }
 
@@ -51,7 +53,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return Right(isEnabled);
     } catch (e) {
       debugPrint("Error checking Live Activities enabled: $e");
-      return Left(LiveActivityFailure(message: 'Failed to check if Live Activities are enabled: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to check if Live Activities are enabled: $e'));
     }
   }
 
@@ -63,76 +66,84 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return const Right(null);
     } catch (e) {
       debugPrint("Error requesting Live Activities permission: $e");
-      return Left(LiveActivityFailure(message: 'Failed to request Live Activities permission: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to request Live Activities permission: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, LiveActivity>> startLiveActivity(LiveActivity activity) async {
+  Future<Either<Failure, LiveActivity>> startLiveActivity(
+      LiveActivity activity) async {
     try {
       final createData = LiveActivityMapper.toCreateData(activity);
-      
+
       final createdActivityId = await liveActivitiesPlugin.createActivity(
         activity.id,
         createData,
         removeWhenAppIsKilled: false,
       );
-      
+
       if (createdActivityId != null) {
         final startedActivity = activity.copyWith(
           id: createdActivityId,
           status: LiveActivityStatus.active,
           updatedAt: DateTime.now(),
         );
-        
+
         // Store title and image in shared UserDefaults AFTER getting the actual activity ID
         await _storeDataForIOSWidget(startedActivity);
-        
+
         // Save to local storage
         final activityDto = LiveActivityMapper.toDto(startedActivity);
         await localDataSource.saveLiveActivity(activityDto);
-        
+
         // Update cache
         _cachedActivities = null;
-        
+
         _activityUpdatesController.add(Right(startedActivity));
-        AppLogger.debug("Started Live Activity: $createdActivityId, stored title: '${activity.title}', hasImage: ${activity.imageData != null}");
-        debugPrint("LIVE_ACTIVITY_DEBUG: Created activity with ID '$createdActivityId', stored keys: '${createdActivityId}_title' and '${createdActivityId}_image'");
+        AppLogger.debug(
+            "Started Live Activity: $createdActivityId, stored title: '${activity.title}', hasImage: ${activity.imageData != null}");
+        debugPrint(
+            "LIVE_ACTIVITY_DEBUG: Created activity with ID '$createdActivityId', stored keys: '${createdActivityId}_title' and '${createdActivityId}_image'");
         return Right(startedActivity);
       } else {
-        return Left(LiveActivityFailure(message: 'Failed to start Live Activity'));
+        return Left(
+            LiveActivityFailure(message: 'Failed to start Live Activity'));
       }
     } catch (e) {
       AppLogger.error('Error starting Live Activity', e);
-      return Left(LiveActivityFailure(message: 'Failed to start Live Activity: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to start Live Activity: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, LiveActivity>> updateLiveActivity(LiveActivity activity) async {
+  Future<Either<Failure, LiveActivity>> updateLiveActivity(
+      LiveActivity activity) async {
     try {
       final updateData = LiveActivityMapper.toUpdateData(activity);
-      
+
       // Update shared data for iOS widget
       await _storeDataForIOSWidget(activity);
-      
+
       await liveActivitiesPlugin.updateActivity(activity.id, updateData);
-      
+
       final updatedActivity = activity.copyWith(updatedAt: DateTime.now());
-      
+
       // Update in local storage
       final activityDto = LiveActivityMapper.toDto(updatedActivity);
       await localDataSource.saveLiveActivity(activityDto);
-      
+
       // Update cache
       _cachedActivities = null;
-      
+
       _activityUpdatesController.add(Right(updatedActivity));
       AppLogger.debug("Updated Live Activity: ${activity.id}");
       return Right(updatedActivity);
     } catch (e) {
       AppLogger.error('Error updating Live Activity', e);
-      return Left(LiveActivityFailure(message: 'Failed to update Live Activity: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to update Live Activity: $e'));
     }
   }
 
@@ -140,10 +151,10 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, void>> endLiveActivity(String activityId) async {
     try {
       await liveActivitiesPlugin.endActivity(activityId);
-      
+
       // Clean up shared data for iOS widget
       await _cleanupDataForIOSWidget(activityId);
-      
+
       // Update status in local storage
       final activityDto = await localDataSource.getLiveActivityById(activityId);
       if (activityDto != null) {
@@ -152,15 +163,16 @@ class LiveActivityServiceImpl implements LiveActivityService {
         );
         await localDataSource.saveLiveActivity(updatedDto);
       }
-      
+
       // Update cache
       _cachedActivities = null;
-      
+
       AppLogger.debug("Ended Live Activity: $activityId");
       return const Right(null);
     } catch (e) {
       AppLogger.error('Error ending Live Activity', e);
-      return Left(LiveActivityFailure(message: 'Failed to end Live Activity: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to end Live Activity: $e'));
     }
   }
 
@@ -168,7 +180,7 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, void>> endAllLiveActivities() async {
     try {
       await liveActivitiesPlugin.endAllActivities();
-      
+
       // Update all activities to ended status in local storage
       final activities = await localDataSource.getLiveActivities();
       for (final activity in activities) {
@@ -179,15 +191,16 @@ class LiveActivityServiceImpl implements LiveActivityService {
           await localDataSource.saveLiveActivity(updatedActivity);
         }
       }
-      
+
       // Clear cache
       _cachedActivities = null;
-      
+
       AppLogger.debug("Ended all Live Activities");
       return const Right(null);
     } catch (e) {
       AppLogger.error('Error ending all Live Activities', e);
-      return Left(LiveActivityFailure(message: 'Failed to end all Live Activities: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to end all Live Activities: $e'));
     }
   }
 
@@ -197,19 +210,20 @@ class LiveActivityServiceImpl implements LiveActivityService {
       if (_cachedActivities != null) {
         return Right(_cachedActivities!);
       }
-      
+
       final activityDtos = await localDataSource.getLiveActivities();
       final activities = activityDtos
           .where((dto) => dto.status != LiveActivityStatus.ended.name)
           .map((dto) => LiveActivityMapper.fromDto(dto))
           .toList();
-      
+
       _cachedActivities = activities;
       AppLogger.debug('Retrieved ${activities.length} active live activities');
       return Right(activities);
     } catch (e) {
       AppLogger.error('Error getting active Live Activities', e);
-      return Left(LiveActivityFailure(message: 'Failed to get active Live Activities: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to get active Live Activities: $e'));
     }
   }
 
@@ -220,13 +234,14 @@ class LiveActivityServiceImpl implements LiveActivityService {
       if (activityDto == null) {
         return const Right(null);
       }
-      
+
       final activity = LiveActivityMapper.fromDto(activityDto);
       AppLogger.debug('Retrieved live activity by ID: $id');
       return Right(activity);
     } catch (e) {
       AppLogger.error('Error getting Live Activity by ID', e);
-      return Left(LiveActivityFailure(message: 'Failed to get Live Activity: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to get Live Activity: $e'));
     }
   }
 
@@ -242,16 +257,17 @@ class LiveActivityServiceImpl implements LiveActivityService {
         endDate: endDate,
         limit: limit,
       );
-      
-      final activities = activityDtos
-          .map((dto) => LiveActivityMapper.fromDto(dto))
-          .toList();
-      
-      AppLogger.debug('Retrieved ${activities.length} live activity history items');
+
+      final activities =
+          activityDtos.map((dto) => LiveActivityMapper.fromDto(dto)).toList();
+
+      AppLogger.debug(
+          'Retrieved ${activities.length} live activity history items');
       return Right(activities);
     } catch (e) {
       AppLogger.error('Error getting Live Activity history', e);
-      return Left(LiveActivityFailure(message: 'Failed to get Live Activity history: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to get Live Activity history: $e'));
     }
   }
 
@@ -262,32 +278,34 @@ class LiveActivityServiceImpl implements LiveActivityService {
     String? mediaItemId,
     Map<String, dynamic>? customData,
   }) async {
-
     return Left(LiveActivityFailure(message: 'Live Activities Disabled'));
 
     try {
       final activityId = 'geofence-${geofence.id}';
-      
+
       // Load saved Live Activity configuration first
       String title = '';
       String subtitle = '';
       String? imageData;
       String? imageUrl;
-      
+
       final configResult = await getActiveConfiguration();
       await configResult.fold(
         (failure) async {
-          debugPrint('No saved Live Activity configuration, using default titles');
+          debugPrint(
+              'No saved Live Activity configuration, using default titles');
           // Fallback to generated titles if no configuration
           title = _createNotificationTitle(event, geofence);
           subtitle = _createNotificationSubtitle(event, geofence);
-          
+
           // Try to load media item if available
           final targetMediaItemId = mediaItemId ?? geofence.mediaItemId;
           if (targetMediaItemId != null && mediaService != null) {
-            final mediaResult = await mediaService!.getMediaItemById(targetMediaItemId);
+            final mediaResult =
+                await mediaService!.getMediaItemById(targetMediaItemId);
             mediaResult.fold(
-              (failure) => debugPrint('Failed to load media for Live Activity: ${failure.message}'),
+              (failure) => debugPrint(
+                  'Failed to load media for Live Activity: ${failure.message}'),
               (mediaItem) {
                 imageData = mediaItem.base64Data;
                 imageUrl = mediaItem.filePath;
@@ -297,26 +315,31 @@ class LiveActivityServiceImpl implements LiveActivityService {
         },
         (config) async {
           if (config != null) {
-            debugPrint('Using saved Live Activity configuration for geofence event');
+            debugPrint(
+                'Using saved Live Activity configuration for geofence event');
             // Use configured title and image
             title = config.title;
-            subtitle = _createGeofenceSubtitle(event, geofence); // Create geofence-specific subtitle
+            subtitle = _createGeofenceSubtitle(
+                event, geofence); // Create geofence-specific subtitle
             imageData = config.imageData;
             imageUrl = config.imageUrl;
-            
-            debugPrint('Live Activity for geofence - title: "$title", subtitle: "$subtitle", hasImage: ${imageData != null || imageUrl != null}');
+
+            debugPrint(
+                'Live Activity for geofence - title: "$title", subtitle: "$subtitle", hasImage: ${imageData != null || imageUrl != null}');
           } else {
             debugPrint('No active configuration found, using default titles');
             // Fallback to generated titles if no configuration
             title = _createNotificationTitle(event, geofence);
             subtitle = _createNotificationSubtitle(event, geofence);
-            
+
             // Try to load media item if available
             final targetMediaItemId = mediaItemId ?? geofence.mediaItemId;
             if (targetMediaItemId != null && mediaService != null) {
-              final mediaResult = await mediaService!.getMediaItemById(targetMediaItemId);
+              final mediaResult =
+                  await mediaService!.getMediaItemById(targetMediaItemId);
               mediaResult.fold(
-                (failure) => debugPrint('Failed to load media for Live Activity: ${failure.message}'),
+                (failure) => debugPrint(
+                    'Failed to load media for Live Activity: ${failure.message}'),
                 (mediaItem) {
                   imageData = mediaItem.base64Data;
                   imageUrl = mediaItem.filePath;
@@ -326,7 +349,7 @@ class LiveActivityServiceImpl implements LiveActivityService {
           }
         },
       );
-      
+
       final liveActivity = LiveActivity(
         id: activityId,
         activityType: 'geofence',
@@ -346,7 +369,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return await startLiveActivity(liveActivity);
     } catch (e) {
       debugPrint("Error creating activity for location event: $e");
-      return Left(LiveActivityFailure(message: 'Failed to create activity for location event: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to create activity for location event: $e'));
     }
   }
 
@@ -359,10 +383,10 @@ class LiveActivityServiceImpl implements LiveActivityService {
           return geofence.description!;
         }
         return "You've arrived at ${geofence.name}!";
-      
+
       case LocationEventType.exit:
         return "You've left ${geofence.name}";
-      
+
       case LocationEventType.dwell:
         return "Still at ${geofence.name}";
     }
@@ -372,15 +396,16 @@ class LiveActivityServiceImpl implements LiveActivityService {
   String _createNotificationSubtitle(LocationEvent event, Geofence geofence) {
     final accuracy = event.accuracy?.toStringAsFixed(0) ?? "Unknown";
     final timestamp = event.timestamp;
-    final timeString = "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
-    
+    final timeString =
+        "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
+
     switch (event.eventType) {
       case LocationEventType.enter:
         return "Entered at $timeString • ${accuracy}m accuracy";
-      
+
       case LocationEventType.exit:
         return "Left at $timeString • ${accuracy}m accuracy";
-      
+
       case LocationEventType.dwell:
         return "Dwelling since $timeString • ${accuracy}m accuracy";
     }
@@ -389,15 +414,16 @@ class LiveActivityServiceImpl implements LiveActivityService {
   /// Create a geofence-specific subtitle for Live Activity when using configured settings
   String _createGeofenceSubtitle(LocationEvent event, Geofence geofence) {
     final timestamp = event.timestamp;
-    final timeString = "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
-    
+    final timeString =
+        "${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}";
+
     switch (event.eventType) {
       case LocationEventType.enter:
         return "Entered ${geofence.name} at $timeString";
-      
+
       case LocationEventType.exit:
         return "Left ${geofence.name} at $timeString";
-      
+
       case LocationEventType.dwell:
         return "Dwelling at ${geofence.name} since $timeString";
     }
@@ -415,14 +441,15 @@ class LiveActivityServiceImpl implements LiveActivityService {
         geofence,
         mediaItemId: mediaItemId,
       );
-      
+
       return createResult.fold(
         (failure) => Left(failure),
         (_) => const Right(null),
       );
     } catch (e) {
       debugPrint("Error handling geofence entry: $e");
-      return Left(LiveActivityFailure(message: 'Failed to handle geofence entry: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to handle geofence entry: $e'));
     }
   }
 
@@ -438,7 +465,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return const Right(null);
     } catch (e) {
       debugPrint("Error handling geofence exit: $e");
-      return Left(LiveActivityFailure(message: 'Failed to handle geofence exit: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to handle geofence exit: $e'));
     }
   }
 
@@ -451,10 +479,12 @@ class LiveActivityServiceImpl implements LiveActivityService {
       // This would require integration with media management feature
       // For now, return a placeholder implementation
       debugPrint("Attaching media to activity is not yet implemented");
-      return Left(LiveActivityFailure(message: 'Media attachment not yet implemented'));
+      return Left(
+          LiveActivityFailure(message: 'Media attachment not yet implemented'));
     } catch (e) {
       debugPrint("Error attaching media to activity: $e");
-      return Left(LiveActivityFailure(message: 'Failed to attach media to activity: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to attach media to activity: $e'));
     }
   }
 
@@ -469,7 +499,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return const Right(null);
     } catch (e) {
       AppLogger.error('Error cleaning up old activities', e);
-      return Left(LiveActivityFailure(message: 'Failed to cleanup old activities: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to cleanup old activities: $e'));
     }
   }
 
@@ -482,19 +513,24 @@ class LiveActivityServiceImpl implements LiveActivityService {
         debugPrint('ServiceImpl: No active configuration found');
         return const Right(null);
       }
-      
-      debugPrint('ServiceImpl: Found config DTO - title: "${configDto.title}", hasImageData: ${configDto.imageData != null}');
+
+      debugPrint(
+          'ServiceImpl: Found config DTO - title: "${configDto.title}", hasImageData: ${configDto.imageData != null}');
       if (configDto.imageData != null) {
-        debugPrint('ServiceImpl: ImageData length: ${configDto.imageData!.length}');
+        debugPrint(
+            'ServiceImpl: ImageData length: ${configDto.imageData!.length}');
       }
-      
+
       final config = LiveActivityMapper.fromDto(configDto);
-      debugPrint('ServiceImpl: Mapped to domain - title: "${config.title}", hasImageData: ${config.imageData != null}');
-      AppLogger.debug('Retrieved active Live Activity configuration: ${config.title}');
+      debugPrint(
+          'ServiceImpl: Mapped to domain - title: "${config.title}", hasImageData: ${config.imageData != null}');
+      AppLogger.debug(
+          'Retrieved active Live Activity configuration: ${config.title}');
       return Right(config);
     } catch (e) {
       AppLogger.error('Error getting active Live Activity configuration', e);
-      return Left(LiveActivityFailure(message: 'Failed to get active configuration: $e'));
+      return Left(LiveActivityFailure(
+          message: 'Failed to get active configuration: $e'));
     }
   }
 
@@ -510,13 +546,15 @@ class LiveActivityServiceImpl implements LiveActivityService {
   }) async {
     try {
       final configId = 'config_${DateTime.now().millisecondsSinceEpoch}';
-      
-      debugPrint('ServiceImpl: Saving config - title: "$title", hasImageData: ${imageData != null}');
+
+      debugPrint(
+          'ServiceImpl: Saving config - title: "$title", hasImageData: ${imageData != null}');
       if (imageData != null) {
         debugPrint('ServiceImpl: ImageData length: ${imageData.length}');
-        debugPrint('ServiceImpl: ImageData preview: ${imageData.substring(0, imageData.length > 100 ? 100 : imageData.length)}...');
+        debugPrint(
+            'ServiceImpl: ImageData preview: ${imageData.substring(0, imageData.length > 100 ? 100 : imageData.length)}...');
       }
-      
+
       final config = LiveActivity(
         id: configId,
         activityType: activityType ?? 'LocationAlert',
@@ -530,19 +568,22 @@ class LiveActivityServiceImpl implements LiveActivityService {
         imageData: imageData,
         customData: customData,
       );
-      
-      debugPrint('ServiceImpl: Created domain object - hasImageData: ${config.imageData != null}');
-      
+
+      debugPrint(
+          'ServiceImpl: Created domain object - hasImageData: ${config.imageData != null}');
+
       final configDto = LiveActivityMapper.toDto(config);
-      debugPrint('ServiceImpl: Mapped to DTO - hasImageData: ${configDto.imageData != null}');
-      
+      debugPrint(
+          'ServiceImpl: Mapped to DTO - hasImageData: ${configDto.imageData != null}');
+
       await localDataSource.saveActiveConfiguration(configDto);
-      
+
       AppLogger.debug('Saved Live Activity configuration: $title');
       return const Right(null);
     } catch (e) {
       AppLogger.error('Error saving Live Activity configuration', e);
-      return Left(LiveActivityFailure(message: 'Failed to save configuration: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to save configuration: $e'));
     }
   }
 
@@ -555,7 +596,8 @@ class LiveActivityServiceImpl implements LiveActivityService {
       return const Right(null);
     } catch (e) {
       AppLogger.error('Error clearing Live Activity configuration', e);
-      return Left(LiveActivityFailure(message: 'Failed to clear configuration: $e'));
+      return Left(
+          LiveActivityFailure(message: 'Failed to clear configuration: $e'));
     }
   }
 
@@ -582,27 +624,30 @@ class LiveActivityServiceImpl implements LiveActivityService {
       // Store with activity-specific keys
       final titleKey = '${activity.id}_title';
       final imageKey = '${activity.id}_image';
-      
+
       await SharedUserDefaults.setString(titleKey, activity.title);
-      debugPrint('Stored title for iOS widget: $titleKey = "${activity.title}"');
-      
+      debugPrint(
+          'Stored title for iOS widget: $titleKey = "${activity.title}"');
+
       // Also store as "current" for fallback
       await SharedUserDefaults.setString('current_title', activity.title);
       debugPrint('Stored current title fallback: "${activity.title}"');
-      
+
       // Store image data if available
       if (activity.imageData != null && activity.imageData!.isNotEmpty) {
         String imageData = activity.imageData!;
-        
+
         // Clean base64 data if it contains data URL prefix
         if (imageData.contains(',')) {
           imageData = imageData.split(',').last;
         }
-        
+
         await SharedUserDefaults.setString(imageKey, imageData);
         await SharedUserDefaults.setString('current_image', imageData);
-        debugPrint('Stored image data for iOS widget: $imageKey (length: ${imageData.length})');
-        debugPrint('Stored current image fallback (length: ${imageData.length})');
+        debugPrint(
+            'Stored image data for iOS widget: $imageKey (length: ${imageData.length})');
+        debugPrint(
+            'Stored current image fallback (length: ${imageData.length})');
       } else {
         debugPrint('No image data to store for iOS widget');
       }
@@ -617,10 +662,10 @@ class LiveActivityServiceImpl implements LiveActivityService {
     try {
       final titleKey = '${activityId}_title';
       final imageKey = '${activityId}_image';
-      
+
       await SharedUserDefaults.remove(titleKey);
       await SharedUserDefaults.remove(imageKey);
-      
+
       debugPrint('Cleaned up iOS widget data for activity: $activityId');
     } catch (e) {
       debugPrint('Error cleaning up iOS widget data: $e');

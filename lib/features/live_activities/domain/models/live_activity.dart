@@ -92,15 +92,15 @@ class LiveActivity extends Equatable {
   bool get isDismissed => status == LiveActivityStatus.dismissed;
   bool get isEnded => status == LiveActivityStatus.ended;
   bool get isStale => status == LiveActivityStatus.stale;
-  
+
   Duration get duration {
     final endTime = endedAt ?? dismissedAt ?? DateTime.now();
     return endTime.difference(createdAt);
   }
-  
+
   bool get hasImage => imageUrl != null || imageData != null;
   bool get hasCustomData => customData != null && customData!.isNotEmpty;
-  
+
   @override
   List<Object?> get props => [
         id,

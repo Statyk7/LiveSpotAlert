@@ -5,9 +5,9 @@ import '../services/geofencing_service.dart';
 
 class StopMonitoringUseCase implements UseCase<void, NoParams> {
   const StopMonitoringUseCase(this._geofencingService);
-  
+
   final GeofencingService _geofencingService;
-  
+
   @override
   Future<Either<Failure, void>> call(NoParams params) async {
     return await _geofencingService.stopMonitoring();

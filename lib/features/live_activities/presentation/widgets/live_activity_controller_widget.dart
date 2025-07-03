@@ -56,8 +56,10 @@ class LiveActivityControllerWidget extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: state.isLoading ? null : () => _onTogglePressed(context, state),
-                icon: state.isLoading 
+                onPressed: state.isLoading
+                    ? null
+                    : () => _onTogglePressed(context, state),
+                icon: state.isLoading
                     ? const SizedBox(
                         width: 16,
                         height: 16,
@@ -69,7 +71,8 @@ class LiveActivityControllerWidget extends StatelessWidget {
                   side: BorderSide(
                     color: state.isActive ? Colors.red : AppColors.primary,
                   ),
-                  foregroundColor: state.isActive ? Colors.red : AppColors.primary,
+                  foregroundColor:
+                      state.isActive ? Colors.red : AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -83,16 +86,16 @@ class LiveActivityControllerWidget extends StatelessWidget {
   void _onTogglePressed(BuildContext context, LiveActivityState state) {
     if (state.isActive && state.currentActivityId != null) {
       context.read<LiveActivityBloc>().add(
-        StopLiveActivity(activityId: state.currentActivityId!),
-      );
+            StopLiveActivity(activityId: state.currentActivityId!),
+          );
     } else {
       context.read<LiveActivityBloc>().add(
-        StartLiveActivity(
-          title: state.title.isEmpty ? title : state.title,
-          imagePath: state.imagePath ?? imagePath,
-          activityId: activityId,
-        ),
-      );
+            StartLiveActivity(
+              title: state.title.isEmpty ? title : state.title,
+              imagePath: state.imagePath ?? imagePath,
+              activityId: activityId,
+            ),
+          );
     }
   }
 

@@ -141,19 +141,23 @@ class LiveActivityBloc extends Bloc<LiveActivityEvent, LiveActivityState> {
     Emitter<LiveActivityState> emit,
   ) async {
     try {
-      debugPrint('SaveConfigurationImmediately: title="${event.title}", imagePath="${event.imagePath}"');
-      
+      debugPrint(
+          'SaveConfigurationImmediately: title="${event.title}", imagePath="${event.imagePath}"');
+
       // Convert image file to base64 if provided
       String? imageData;
       if (event.imagePath != null) {
-        debugPrint('SaveConfigurationImmediately: Processing image file: ${event.imagePath}');
+        debugPrint(
+            'SaveConfigurationImmediately: Processing image file: ${event.imagePath}');
         final imageFile = File(event.imagePath!);
         if (await imageFile.exists()) {
           final bytes = await imageFile.readAsBytes();
           imageData = base64Encode(bytes);
-          debugPrint('SaveConfigurationImmediately: Converted ${bytes.length} bytes to base64 (length: ${imageData.length})');
+          debugPrint(
+              'SaveConfigurationImmediately: Converted ${bytes.length} bytes to base64 (length: ${imageData.length})');
         } else {
-          debugPrint('SaveConfigurationImmediately: Image file does not exist: ${event.imagePath}');
+          debugPrint(
+              'SaveConfigurationImmediately: Image file does not exist: ${event.imagePath}');
         }
       } else {
         debugPrint('SaveConfigurationImmediately: No image path provided');
@@ -167,7 +171,8 @@ class LiveActivityBloc extends Bloc<LiveActivityEvent, LiveActivityState> {
 
       result.fold(
         (failure) {
-          debugPrint('Failed to save Live Activity configuration: ${failure.message}');
+          debugPrint(
+              'Failed to save Live Activity configuration: ${failure.message}');
           // Still update the local state even if persistence fails
           emit(state.copyWith(
             status: LiveActivityStatus.configured,
@@ -201,47 +206,55 @@ class LiveActivityBloc extends Bloc<LiveActivityEvent, LiveActivityState> {
   ) async {
     try {
       final result = await liveActivityService.getActiveConfiguration();
-      
+
       result.fold(
         (failure) {
-          debugPrint('Failed to load saved Live Activity configuration: ${failure.message}');
+          debugPrint(
+              'Failed to load saved Live Activity configuration: ${failure.message}');
           // Don't emit error state, just keep current state
         },
         (config) {
           if (config != null) {
-            debugPrint('LoadSavedConfiguration: Found config - title: "${config.title}", hasImageData: ${config.imageData != null}');
-            
+            debugPrint(
+                'LoadSavedConfiguration: Found config - title: "${config.title}", hasImageData: ${config.imageData != null}');
+
             // Convert base64 image data back to file if needed
             String? imagePath;
             if (config.imageData != null && config.imageData!.isNotEmpty) {
               try {
                 // Validate the base64 data before using it
                 final testData = config.imageData!;
-                debugPrint('LoadSavedConfiguration: Image data length: ${testData.length}');
-                debugPrint('LoadSavedConfiguration: Image data preview: ${testData.substring(0, testData.length > 100 ? 100 : testData.length)}...');
-                
+                debugPrint(
+                    'LoadSavedConfiguration: Image data length: ${testData.length}');
+                debugPrint(
+                    'LoadSavedConfiguration: Image data preview: ${testData.substring(0, testData.length > 100 ? 100 : testData.length)}...');
+
                 String cleanBase64 = testData;
                 if (testData.contains(',')) {
                   cleanBase64 = testData.split(',').last;
-                  debugPrint('LoadSavedConfiguration: Cleaned base64 length: ${cleanBase64.length}');
+                  debugPrint(
+                      'LoadSavedConfiguration: Cleaned base64 length: ${cleanBase64.length}');
                 }
-                
+
                 // Try to decode a small portion to validate
                 if (cleanBase64.length > 50) {
                   base64Decode(cleanBase64.substring(0, 48));
-                  debugPrint('LoadSavedConfiguration: Base64 validation successful');
+                  debugPrint(
+                      'LoadSavedConfiguration: Base64 validation successful');
                 }
-                
+
                 imagePath = config.imageData;
-                debugPrint('LoadSavedConfiguration: Setting imagePath to imageData');
+                debugPrint(
+                    'LoadSavedConfiguration: Setting imagePath to imageData');
               } catch (e) {
-                debugPrint('Invalid base64 image data in saved configuration: $e');
+                debugPrint(
+                    'Invalid base64 image data in saved configuration: $e');
                 imagePath = null;
               }
             } else {
               debugPrint('LoadSavedConfiguration: No image data in config');
             }
-            
+
             emit(state.copyWith(
               status: LiveActivityStatus.configured,
               title: config.title,
@@ -264,7 +277,8 @@ class LiveActivityBloc extends Bloc<LiveActivityEvent, LiveActivityState> {
       await stopLiveActivityUseCase(
         StopLiveActivityParams(activityId: state.currentActivityId!),
       );
-      debugPrint("Live Activity cleaned up during BLoC disposal: ${state.currentActivityId}");
+      debugPrint(
+          "Live Activity cleaned up during BLoC disposal: ${state.currentActivityId}");
     }
     return super.close();
   }

@@ -23,7 +23,7 @@ class NotificationConfigCard extends StatelessWidget {
     return BlocBuilder<LocalNotificationsBloc, LocalNotificationsState>(
       builder: (context, state) {
         final config = state.effectiveConfig;
-        
+
         return Card(
           elevation: 4,
           color: AppColors.surface,
@@ -66,7 +66,8 @@ class NotificationConfigCard extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: onConfigurePressed ?? () => _showConfiguration(context),
+                      onPressed: onConfigurePressed ??
+                          () => _showConfiguration(context),
                       icon: const Icon(Icons.edit),
                       tooltip: 'Configure Notification',
                       style: IconButton.styleFrom(
@@ -89,7 +90,8 @@ class NotificationConfigCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 26),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.error.withValues(alpha: 77)),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 77)),
                     ),
                     child: Row(
                       children: [
@@ -116,7 +118,8 @@ class NotificationConfigCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.warning.withValues(alpha: 26),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.warning.withValues(alpha: 77)),
+                      border: Border.all(
+                          color: AppColors.warning.withValues(alpha: 77)),
                     ),
                     child: Row(
                       children: [
@@ -153,7 +156,8 @@ class NotificationConfigCard extends StatelessWidget {
     );
   }
 
-  Widget _buildConfigDetails(BuildContext context, LocalNotificationsState state, config) {
+  Widget _buildConfigDetails(
+      BuildContext context, LocalNotificationsState state, config) {
     return Column(
       children: [
         // Title configuration
@@ -186,7 +190,8 @@ class NotificationConfigCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, LocalNotificationsState state) {
+  Widget _buildActionButtons(
+      BuildContext context, LocalNotificationsState state) {
     return Row(
       children: [
         // Test notification button
@@ -236,7 +241,9 @@ class NotificationConfigCard extends StatelessWidget {
   }
 
   void _requestPermissions(BuildContext context) {
-    context.read<LocalNotificationsBloc>().add(const RequestNotificationPermissions());
+    context
+        .read<LocalNotificationsBloc>()
+        .add(const RequestNotificationPermissions());
   }
 
   void _showTestNotification(BuildContext context) {

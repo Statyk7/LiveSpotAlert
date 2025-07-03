@@ -2,10 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'geofence.dart';
 
 enum GeofenceState {
-  idle,        // Not monitoring
-  monitoring,  // Actively monitoring
-  triggered,   // Recently triggered
-  error,       // Error in monitoring
+  idle, // Not monitoring
+  monitoring, // Actively monitoring
+  triggered, // Recently triggered
+  error, // Error in monitoring
 }
 
 class GeofenceStatus extends Equatable {
@@ -23,7 +23,8 @@ class GeofenceStatus extends Equatable {
   final bool isUserInside;
   final DateTime lastUpdated;
   final String? errorMessage;
-  final double? distanceToCenter; // Distance from user to geofence center in meters
+  final double?
+      distanceToCenter; // Distance from user to geofence center in meters
 
   GeofenceStatus copyWith({
     Geofence? geofence,

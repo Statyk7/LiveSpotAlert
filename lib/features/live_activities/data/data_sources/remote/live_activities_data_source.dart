@@ -7,12 +7,12 @@ abstract class LiveActivitiesDataSource {
   Future<bool> isSupported();
   Future<bool> isEnabled();
   Future<void> requestPermission();
-  
+
   Future<String> createActivity(ActivityDto activity);
   Future<void> updateActivity(String activityId, ActivityDto activity);
   Future<void> endActivity(String activityId);
   Future<void> endAllActivities();
-  
+
   Future<List<String>> getActiveActivityIds();
   Stream<ActivityUpdateDto> get activityUpdates;
 }
@@ -22,17 +22,17 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
     _initializeLiveActivities();
     _initializeStreams();
   }
-  
-  final StreamController<ActivityUpdateDto> _activityUpdateController = 
+
+  final StreamController<ActivityUpdateDto> _activityUpdateController =
       StreamController<ActivityUpdateDto>.broadcast();
-  
+
   final LiveActivities _liveActivities = LiveActivities();
-  
+
   void _initializeLiveActivities() {
     // Initialize the LiveActivities plugin with the group ID
     _liveActivities.init(appGroupId: "group.livespotalert.liveactivities");
   }
-  
+
   void _initializeStreams() {
     // Listen to activity state changes
     _liveActivities.activityUpdateStream.listen(
@@ -44,11 +44,13 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
             timestamp: DateTime.now(),
             data: {'activityId': update.activityId},
           );
-          
+
           _activityUpdateController.add(activityUpdate);
-          AppLogger.info('Live Activity update: ${activityUpdate.activityId} -> ${activityUpdate.status}');
+          AppLogger.info(
+              'Live Activity update: ${activityUpdate.activityId} -> ${activityUpdate.status}');
         } catch (e, stackTrace) {
-          AppLogger.error('Error processing Live Activity update', e, stackTrace);
+          AppLogger.error(
+              'Error processing Live Activity update', e, stackTrace);
         }
       },
       onError: (error) {
@@ -56,7 +58,7 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       },
     );
   }
-  
+
   String _mapActivityStatus(String status) {
     switch (status.toLowerCase()) {
       case 'active':
@@ -71,7 +73,7 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
         return 'unknown';
     }
   }
-  
+
   @override
   Future<bool> isSupported() async {
     try {
@@ -84,7 +86,7 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       return false;
     }
   }
-  
+
   @override
   Future<bool> isEnabled() async {
     try {
@@ -92,58 +94,64 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       AppLogger.debug('Live Activities enabled: $isEnabled');
       return isEnabled;
     } catch (e, stackTrace) {
-      AppLogger.error('Error checking Live Activities enabled status', e, stackTrace);
+      AppLogger.error(
+          'Error checking Live Activities enabled status', e, stackTrace);
       return false;
     }
   }
-  
+
   @override
   Future<void> requestPermission() async {
     try {
       // Note: Live Activities don't require explicit permission request
       // They are automatically available if the device supports them
-      AppLogger.info('Live Activities permission requested (automatic on supported devices)');
+      AppLogger.info(
+          'Live Activities permission requested (automatic on supported devices)');
     } catch (e, stackTrace) {
-      AppLogger.error('Error requesting Live Activities permission', e, stackTrace);
+      AppLogger.error(
+          'Error requesting Live Activities permission', e, stackTrace);
       rethrow;
     }
   }
-  
+
   @override
   Future<String> createActivity(ActivityDto activity) async {
     try {
       final activityData = activity.toLiveActivitiesData();
-      
+
       final activityId = await _liveActivities.createActivity(
         activity.id, // First parameter: activity ID
         activityData, // Second parameter: complete data map
       );
-      
-      AppLogger.info('Created Live Activity: $activityId for ${activity.title}');
+
+      AppLogger.info(
+          'Created Live Activity: $activityId for ${activity.title}');
       return activityId ?? '';
     } catch (e, stackTrace) {
-      AppLogger.error('Error creating Live Activity: ${activity.title}', e, stackTrace);
+      AppLogger.error(
+          'Error creating Live Activity: ${activity.title}', e, stackTrace);
       rethrow;
     }
   }
-  
+
   @override
   Future<void> updateActivity(String activityId, ActivityDto activity) async {
     try {
       final activityData = activity.toLiveActivitiesData();
-      
+
       await _liveActivities.updateActivity(
         activityId,
         activityData['contentState'] as Map<String, dynamic>,
       );
-      
+
       AppLogger.info('Updated Live Activity: $activityId');
     } catch (e, stackTrace) {
-      AppLogger.error('Error updating Live Activity: $activityId', e, stackTrace);
+      AppLogger.error(
+          'Error updating Live Activity: $activityId', e, stackTrace);
       rethrow;
     }
   }
-  
+
   @override
   Future<void> endActivity(String activityId) async {
     try {
@@ -154,7 +162,7 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       rethrow;
     }
   }
-  
+
   @override
   Future<void> endAllActivities() async {
     try {
@@ -165,7 +173,7 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       rethrow;
     }
   }
-  
+
   @override
   Future<List<String>> getActiveActivityIds() async {
     try {
@@ -177,10 +185,11 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
       return [];
     }
   }
-  
+
   @override
-  Stream<ActivityUpdateDto> get activityUpdates => _activityUpdateController.stream;
-  
+  Stream<ActivityUpdateDto> get activityUpdates =>
+      _activityUpdateController.stream;
+
   void dispose() {
     _activityUpdateController.close();
   }
@@ -193,7 +202,7 @@ class ActivityUpdateDto {
     required this.timestamp,
     this.data,
   });
-  
+
   final String activityId;
   final String status;
   final DateTime timestamp;

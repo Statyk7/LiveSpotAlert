@@ -49,41 +49,43 @@ class GeofencingState extends Equatable {
       geofences: geofences ?? this.geofences,
       geofenceStatuses: geofenceStatuses ?? this.geofenceStatuses,
       locationEvents: locationEvents ?? this.locationEvents,
-      selectedGeofence: clearSelectedGeofence == true 
-          ? null 
+      selectedGeofence: clearSelectedGeofence == true
+          ? null
           : selectedGeofence ?? this.selectedGeofence,
       isMonitoring: isMonitoring ?? this.isMonitoring,
-      hasLocationPermissions: hasLocationPermissions ?? this.hasLocationPermissions,
-      errorMessage: clearError == true 
-          ? null 
-          : errorMessage ?? this.errorMessage,
+      hasLocationPermissions:
+          hasLocationPermissions ?? this.hasLocationPermissions,
+      errorMessage:
+          clearError == true ? null : errorMessage ?? this.errorMessage,
     );
   }
 
   // Convenience getters
   bool get hasError => errorMessage != null;
   bool get isLoading => status == GeofencingStatus.loading;
-  bool get isLoaded => status == GeofencingStatus.loaded || status == GeofencingStatus.monitoring;
+  bool get isLoaded =>
+      status == GeofencingStatus.loaded ||
+      status == GeofencingStatus.monitoring;
   bool get isEmpty => geofences.isEmpty;
   int get activeGeofenceCount => geofences.where((g) => g.isActive).length;
   int get totalGeofenceCount => geofences.length;
-  
+
   // MVP Single Geofence getters
   bool get hasSingleGeofence => geofences.length == 1;
   Geofence? get singleGeofence => geofences.isNotEmpty ? geofences.first : null;
-  GeofenceStatus? get singleGeofenceStatus => singleGeofence != null 
-      ? getGeofenceStatus(singleGeofence!.id) 
-      : null;
+  GeofenceStatus? get singleGeofenceStatus =>
+      singleGeofence != null ? getGeofenceStatus(singleGeofence!.id) : null;
   bool get isSingleGeofenceActive => singleGeofence?.isActive ?? false;
-  bool get isUserInsideSingleGeofence => singleGeofenceStatus?.isUserInside ?? false;
-  
+  bool get isUserInsideSingleGeofence =>
+      singleGeofenceStatus?.isUserInside ?? false;
+
   // Get recent location events (last 10)
   List<LocationEvent> get recentLocationEvents {
     final sortedEvents = List<LocationEvent>.from(locationEvents)
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return sortedEvents.take(10).toList();
   }
-  
+
   // Get geofence by ID
   Geofence? getGeofenceById(String id) {
     try {
@@ -92,7 +94,7 @@ class GeofencingState extends Equatable {
       return null;
     }
   }
-  
+
   // Get status for a specific geofence
   GeofenceStatus? getGeofenceStatus(String geofenceId) {
     try {
@@ -101,18 +103,18 @@ class GeofencingState extends Equatable {
       return null;
     }
   }
-  
+
   // Get events for a specific geofence
   List<LocationEvent> getEventsForGeofence(String geofenceId) {
     return locationEvents.where((e) => e.geofence.id == geofenceId).toList()
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
-  
+
   // Check if user is currently inside any geofence
   bool get isUserInsideAnyGeofence {
     return geofenceStatuses.any((status) => status.isUserInside);
   }
-  
+
   // Get currently triggered geofences
   List<GeofenceStatus> get triggeredGeofences {
     return geofenceStatuses

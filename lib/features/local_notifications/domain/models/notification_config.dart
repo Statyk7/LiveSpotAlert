@@ -10,10 +10,10 @@ class NotificationConfig extends Equatable {
 
   /// Custom title for notifications (e.g., "Arrived at location")
   final String title;
-  
+
   /// Whether notifications are enabled
   final bool isEnabled;
-  
+
   /// Whether to show notifications even when app is in foreground
   final bool showInForeground;
 

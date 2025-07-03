@@ -18,13 +18,15 @@ class SaveNotificationConfigParams extends Equatable {
 }
 
 /// Use case for saving notification configuration to local storage
-class SaveNotificationConfigUseCase implements UseCase<void, SaveNotificationConfigParams> {
+class SaveNotificationConfigUseCase
+    implements UseCase<void, SaveNotificationConfigParams> {
   SaveNotificationConfigUseCase(this.notificationsService);
 
   final LocalNotificationsService notificationsService;
 
   @override
-  Future<Either<Failure, void>> call(SaveNotificationConfigParams params) async {
+  Future<Either<Failure, void>> call(
+      SaveNotificationConfigParams params) async {
     return await notificationsService.saveNotificationConfig(params.config);
   }
 }

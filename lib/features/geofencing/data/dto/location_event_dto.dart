@@ -30,7 +30,9 @@ class LocationEventDto extends Equatable {
       timestamp: json['timestamp'] as String,
       userLatitude: (json['userLatitude'] as num).toDouble(),
       userLongitude: (json['userLongitude'] as num).toDouble(),
-      accuracy: json['accuracy'] != null ? (json['accuracy'] as num).toDouble() : null,
+      accuracy: json['accuracy'] != null
+          ? (json['accuracy'] as num).toDouble()
+          : null,
       dwellTime: json['dwellTime'] as int?,
     );
   }
@@ -50,9 +52,10 @@ class LocationEventDto extends Equatable {
   }
 
   // From flutter_background_geolocation event
-  factory LocationEventDto.fromBackgroundGeolocationEvent(Map<String, dynamic> event) {
+  factory LocationEventDto.fromBackgroundGeolocationEvent(
+      Map<String, dynamic> event) {
     final location = event['location'] as Map<String, dynamic>;
-    
+
     return LocationEventDto(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       geofenceId: event['identifier'] as String,
@@ -60,8 +63,8 @@ class LocationEventDto extends Equatable {
       timestamp: DateTime.now().toIso8601String(),
       userLatitude: (location['coords']['latitude'] as num).toDouble(),
       userLongitude: (location['coords']['longitude'] as num).toDouble(),
-      accuracy: location['coords']['accuracy'] != null 
-          ? (location['coords']['accuracy'] as num).toDouble() 
+      accuracy: location['coords']['accuracy'] != null
+          ? (location['coords']['accuracy'] as num).toDouble()
           : null,
     );
   }

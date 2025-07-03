@@ -97,10 +97,10 @@ class ActivityDto extends Equatable {
   }) {
     final now = DateTime.now();
     final id = '${geofenceId}_${eventType}_${now.millisecondsSinceEpoch}';
-    
+
     String title;
     String subtitle;
-    
+
     switch (eventType) {
       case 'enter':
         title = 'Arrived at $geofenceName';
@@ -118,7 +118,7 @@ class ActivityDto extends Equatable {
         title = 'Location Update';
         subtitle = 'Activity at $geofenceName';
     }
-    
+
     return ActivityDto(
       id: id,
       activityType: 'LocationAlert',

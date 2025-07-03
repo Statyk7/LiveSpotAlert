@@ -19,10 +19,12 @@ class NotificationConfigurationWidget extends StatefulWidget {
   final VoidCallback onCancel;
 
   @override
-  State<NotificationConfigurationWidget> createState() => _NotificationConfigurationWidgetState();
+  State<NotificationConfigurationWidget> createState() =>
+      _NotificationConfigurationWidgetState();
 }
 
-class _NotificationConfigurationWidgetState extends State<NotificationConfigurationWidget> {
+class _NotificationConfigurationWidgetState
+    extends State<NotificationConfigurationWidget> {
   late final TextEditingController _titleController;
   // bool _isEnabled = true;
   // bool _showInForeground = true;
@@ -32,15 +34,15 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
   void initState() {
     super.initState();
     _titleController = TextEditingController();
-    
+
     // Initialize with current configuration
     final state = context.read<LocalNotificationsBloc>().state;
     final config = state.effectiveConfig;
-    
+
     _titleController.text = config.title;
     // _isEnabled = config.isEnabled;
     // _showInForeground = config.showInForeground;
-    
+
     _titleController.addListener(_onTextChanged);
   }
 
@@ -70,7 +72,7 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
           // Configuration was saved successfully
           widget.onSave();
         }
-        
+
         if (state.hasError && state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -96,11 +98,14 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
             BlocBuilder<LocalNotificationsBloc, LocalNotificationsState>(
               builder: (context, state) {
                 return TextButton(
-                  onPressed: _hasUnsavedChanges && !state.isLoading ? _onSave : null,
+                  onPressed:
+                      _hasUnsavedChanges && !state.isLoading ? _onSave : null,
                   child: Text(
                     state.isLoading ? 'Saving...' : 'Save',
                     style: TextStyle(
-                      color: _hasUnsavedChanges && !state.isLoading ? Colors.white : Colors.white54,
+                      color: _hasUnsavedChanges && !state.isLoading
+                          ? Colors.white
+                          : Colors.white54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -153,13 +158,15 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
                           children: [
                             Text(
                               'Custom Title',
-                              style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                              style: AppTextStyles.bodyLarge
+                                  .copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _titleController,
                               decoration: InputDecoration(
-                                hintText: 'e.g., Arrived at location, Location alert',
+                                hintText:
+                                    'e.g., Arrived at location, Location alert',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -304,7 +311,9 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
             children: [
               Icon(
                 state.hasPermissions ? Icons.check_circle : Icons.warning,
-                color: state.hasPermissions ? AppColors.success : AppColors.warning,
+                color: state.hasPermissions
+                    ? AppColors.success
+                    : AppColors.warning,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -331,9 +340,11 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
   void _onSave() {
     final bloc = context.read<LocalNotificationsBloc>();
     final currentConfig = bloc.state.effectiveConfig;
-    
+
     final newConfig = currentConfig.copyWith(
-      title: _titleController.text.trim().isEmpty ? 'Location Alert' : _titleController.text.trim(),
+      title: _titleController.text.trim().isEmpty
+          ? 'Location Alert'
+          : _titleController.text.trim(),
       //isEnabled: _isEnabled,
       // showInForeground: _showInForeground,
     );
@@ -348,7 +359,8 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Unsaved Changes'),
-          content: const Text('You have unsaved changes. Are you sure you want to cancel?'),
+          content: const Text(
+              'You have unsaved changes. Are you sure you want to cancel?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -370,7 +382,9 @@ class _NotificationConfigurationWidgetState extends State<NotificationConfigurat
   }
 
   void _requestPermissions(BuildContext context) {
-    context.read<LocalNotificationsBloc>().add(const RequestNotificationPermissions());
+    context
+        .read<LocalNotificationsBloc>()
+        .add(const RequestNotificationPermissions());
   }
 
   void _showTestNotification(BuildContext context) {

@@ -15,7 +15,9 @@ class GeofenceMapper {
       description: dto.description,
       mediaItemId: dto.mediaItemId,
       createdAt: dto.createdAt != null ? DateTime.parse(dto.createdAt!) : null,
-      lastTriggeredAt: dto.lastTriggeredAt != null ? DateTime.parse(dto.lastTriggeredAt!) : null,
+      lastTriggeredAt: dto.lastTriggeredAt != null
+          ? DateTime.parse(dto.lastTriggeredAt!)
+          : null,
     );
   }
 
@@ -53,7 +55,8 @@ class LocationEventMapper {
       userLatitude: dto.userLatitude,
       userLongitude: dto.userLongitude,
       accuracy: dto.accuracy,
-      dwellTime: dto.dwellTime != null ? Duration(seconds: dto.dwellTime!) : null,
+      dwellTime:
+          dto.dwellTime != null ? Duration(seconds: dto.dwellTime!) : null,
     );
   }
 
@@ -94,11 +97,13 @@ class LocationEventMapper {
     }
   }
 
-  static List<LocationEvent> fromDtoList(List<LocationEventDto> dtos, List<Geofence> geofences) {
+  static List<LocationEvent> fromDtoList(
+      List<LocationEventDto> dtos, List<Geofence> geofences) {
     return dtos.map((dto) {
       final geofence = geofences.firstWhere(
         (g) => g.id == dto.geofenceId,
-        orElse: () => throw Exception('Geofence not found for event: ${dto.id}'),
+        orElse: () =>
+            throw Exception('Geofence not found for event: ${dto.id}'),
       );
       return fromDto(dto, geofence);
     }).toList();

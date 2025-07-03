@@ -8,9 +8,9 @@ import '../services/geofencing_service.dart';
 
 class CreateGeofenceUseCase implements UseCase<Geofence, CreateGeofenceParams> {
   const CreateGeofenceUseCase(this._geofencingService);
-  
+
   final GeofencingService _geofencingService;
-  
+
   @override
   Future<Either<Failure, Geofence>> call(CreateGeofenceParams params) async {
     // Validate input parameters
@@ -18,7 +18,7 @@ class CreateGeofenceUseCase implements UseCase<Geofence, CreateGeofenceParams> {
     if (validationResult != null) {
       return Left(validationResult);
     }
-    
+
     // Check if we've reached the maximum number of geofences
     final existingGeofences = await _geofencingService.getGeofences();
     return await existingGeofences.fold(
@@ -26,16 +26,17 @@ class CreateGeofenceUseCase implements UseCase<Geofence, CreateGeofenceParams> {
       (geofences) async {
         if (geofences.length >= AppConstants.maxGeofences) {
           return Left(LocationFailure(
-            message: 'Maximum number of geofences (${AppConstants.maxGeofences}) reached',
+            message:
+                'Maximum number of geofences (${AppConstants.maxGeofences}) reached',
           ));
         }
         return await _createGeofenceInternal(params);
       },
     );
   }
-  
-  Future<Either<Failure, Geofence>> _createGeofenceInternal(CreateGeofenceParams params) async {
-    
+
+  Future<Either<Failure, Geofence>> _createGeofenceInternal(
+      CreateGeofenceParams params) async {
     // Create the geofence
     final geofence = Geofence(
       id: params.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -48,47 +49,55 @@ class CreateGeofenceUseCase implements UseCase<Geofence, CreateGeofenceParams> {
       mediaItemId: params.mediaItemId,
       createdAt: DateTime.now(),
     );
-    
+
     return await _geofencingService.createGeofence(geofence);
   }
-  
+
   Failure? _validateParams(CreateGeofenceParams params) {
     // Validate name
     if (params.name.trim().isEmpty) {
       return const LocationFailure(message: 'Geofence name cannot be empty');
     }
-    
+
     if (params.name.length > 100) {
-      return const LocationFailure(message: 'Geofence name cannot exceed 100 characters');
+      return const LocationFailure(
+          message: 'Geofence name cannot exceed 100 characters');
     }
-    
+
     // Validate coordinates
     if (params.latitude < -90 || params.latitude > 90) {
-      return const LocationFailure(message: 'Invalid latitude. Must be between -90 and 90');
+      return const LocationFailure(
+          message: 'Invalid latitude. Must be between -90 and 90');
     }
-    
+
     if (params.longitude < -180 || params.longitude > 180) {
-      return const LocationFailure(message: 'Invalid longitude. Must be between -180 and 180');
+      return const LocationFailure(
+          message: 'Invalid longitude. Must be between -180 and 180');
     }
-    
+
     // Validate radius
     if (params.radius <= 0) {
       return const LocationFailure(message: 'Radius must be greater than 0');
     }
-    
-    if (params.radius > 10000) { // 10km max
-      return const LocationFailure(message: 'Radius cannot exceed 10,000 meters');
+
+    if (params.radius > 10000) {
+      // 10km max
+      return const LocationFailure(
+          message: 'Radius cannot exceed 10,000 meters');
     }
-    
-    if (params.radius < 10) { // 10m minimum for reliability
-      return const LocationFailure(message: 'Radius must be at least 10 meters for reliable detection');
+
+    if (params.radius < 10) {
+      // 10m minimum for reliability
+      return const LocationFailure(
+          message: 'Radius must be at least 10 meters for reliable detection');
     }
-    
+
     // Validate description length
     if (params.description != null && params.description!.length > 500) {
-      return const LocationFailure(message: 'Description cannot exceed 500 characters');
+      return const LocationFailure(
+          message: 'Description cannot exceed 500 characters');
     }
-    
+
     return null;
   }
 }
@@ -104,7 +113,7 @@ class CreateGeofenceParams extends Equatable {
     this.description,
     this.mediaItemId,
   });
-  
+
   final String? id;
   final String name;
   final double latitude;
@@ -113,7 +122,7 @@ class CreateGeofenceParams extends Equatable {
   final bool isActive;
   final String? description;
   final String? mediaItemId;
-  
+
   @override
   List<Object?> get props => [
         id,

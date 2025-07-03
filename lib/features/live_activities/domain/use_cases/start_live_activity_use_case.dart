@@ -19,7 +19,8 @@ class StartLiveActivityParams {
   final bool removeWhenAppIsKilled;
 }
 
-class StartLiveActivityUseCase implements UseCase<String?, StartLiveActivityParams> {
+class StartLiveActivityUseCase
+    implements UseCase<String?, StartLiveActivityParams> {
   const StartLiveActivityUseCase({
     required this.liveActivitiesPlugin,
     required this.processImageUseCase,
@@ -55,21 +56,22 @@ class StartLiveActivityUseCase implements UseCase<String?, StartLiveActivityPara
       );
 
       debugPrint("ActivityID: $activityId");
-      
+
       if (activityId != null) {
         // Prepare activity data for Swift
         final activityData = <String, String>{
           'title': params.title.isEmpty ? 'Live Activity' : params.title,
         };
-        
+
         // Add optimized image data if available
         if (params.imagePath != null) {
           final imageResult = await processImageUseCase(
             ProcessImageForLiveActivityParams(imagePath: params.imagePath!),
           );
-          
+
           imageResult.fold(
-            (failure) => debugPrint("Error processing image: ${failure.message}"),
+            (failure) =>
+                debugPrint("Error processing image: ${failure.message}"),
             (optimizedImageData) {
               if (optimizedImageData != null) {
                 activityData['image'] = optimizedImageData;
@@ -78,24 +80,27 @@ class StartLiveActivityUseCase implements UseCase<String?, StartLiveActivityPara
             },
           );
         }
-        
+
         // Update the activity with the actual data
         await liveActivitiesPlugin.updateActivity(activityId, activityData);
         debugPrint("Live Activity updated with title: ${params.title}");
-        
+
         return Right(activityId);
       } else {
-        return Left(LiveActivityCreationFailure(message: 'Failed to create Live Activity'));
+        return Left(LiveActivityCreationFailure(
+            message: 'Failed to create Live Activity'));
       }
     } catch (e) {
       debugPrint("Error starting Live Activity: $e");
-      return Left(LiveActivityCreationFailure(message: 'Error starting Live Activity: $e'));
+      return Left(LiveActivityCreationFailure(
+          message: 'Error starting Live Activity: $e'));
     }
   }
 }
 
 class LiveActivityNotEnabledFailure extends Failure {
-  const LiveActivityNotEnabledFailure() : super(message: 'Live Activities are not enabled on this device');
+  const LiveActivityNotEnabledFailure()
+      : super(message: 'Live Activities are not enabled on this device');
 }
 
 class LiveActivityCreationFailure extends Failure {

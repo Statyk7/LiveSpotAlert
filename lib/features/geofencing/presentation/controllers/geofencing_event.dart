@@ -24,27 +24,27 @@ class LoadGeofences extends GeofencingEvent {
 
 class CreateGeofence extends GeofencingEvent {
   const CreateGeofence(this.params);
-  
+
   final CreateGeofenceParams params;
-  
+
   @override
   List<Object?> get props => [params];
 }
 
 class UpdateGeofence extends GeofencingEvent {
   const UpdateGeofence(this.params);
-  
+
   final UpdateGeofenceParams params;
-  
+
   @override
   List<Object?> get props => [params];
 }
 
 class DeleteGeofence extends GeofencingEvent {
   const DeleteGeofence(this.params);
-  
+
   final DeleteGeofenceParams params;
-  
+
   @override
   List<Object?> get props => [params];
 }
@@ -55,10 +55,10 @@ class StartMonitoring extends GeofencingEvent {
     this.includeLocationEvents = true,
     this.includeGeofenceStatuses = true,
   });
-  
+
   final bool includeLocationEvents;
   final bool includeGeofenceStatuses;
-  
+
   @override
   List<Object?> get props => [includeLocationEvents, includeGeofenceStatuses];
 }
@@ -69,9 +69,9 @@ class StopMonitoring extends GeofencingEvent {
 
 class ToggleGeofenceActive extends GeofencingEvent {
   const ToggleGeofenceActive(this.geofenceId);
-  
+
   final String geofenceId;
-  
+
   @override
   List<Object?> get props => [geofenceId];
 }
@@ -79,9 +79,9 @@ class ToggleGeofenceActive extends GeofencingEvent {
 // Location events
 class LoadLocationEvents extends GeofencingEvent {
   const LoadLocationEvents(this.params);
-  
+
   final GetLocationEventsParams params;
-  
+
   @override
   List<Object?> get props => [params];
 }
@@ -108,9 +108,9 @@ class RefreshGeofences extends GeofencingEvent {
 
 class SelectGeofence extends GeofencingEvent {
   const SelectGeofence(this.geofence);
-  
+
   final Geofence? geofence;
-  
+
   @override
   List<Object?> get props => [geofence];
 }

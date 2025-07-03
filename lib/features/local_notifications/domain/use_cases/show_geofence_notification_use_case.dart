@@ -23,13 +23,15 @@ class ShowGeofenceNotificationParams extends Equatable {
 }
 
 /// Use case for showing a geofence-triggered notification
-class ShowGeofenceNotificationUseCase implements UseCase<void, ShowGeofenceNotificationParams> {
+class ShowGeofenceNotificationUseCase
+    implements UseCase<void, ShowGeofenceNotificationParams> {
   ShowGeofenceNotificationUseCase(this.notificationsService);
 
   final LocalNotificationsService notificationsService;
 
   @override
-  Future<Either<Failure, void>> call(ShowGeofenceNotificationParams params) async {
+  Future<Either<Failure, void>> call(
+      ShowGeofenceNotificationParams params) async {
     return await notificationsService.showGeofenceNotification(
       geofenceId: params.geofenceId,
       geofenceName: params.geofenceName,
