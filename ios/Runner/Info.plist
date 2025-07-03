@@ -11,7 +11,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Live Spot Alert</string>
+	<string>LiveSpotAlert</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -43,6 +43,8 @@
 		<key>GeofenceSetup</key>
 		<string>LiveSpotAlert needs your current location to help you set up geofences around your current area.</string>
 	</dict>
+	<key>NSMotionUsageDescription</key>
+	<string>LiveSpotAlert needs motion usage to create location-based alerts and monitor your proximity to saved locations.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>LiveSpotAlert needs location access to create location-based alerts and monitor your proximity to saved locations.</string>
 	<key>NSSupportsLiveActivities</key>
