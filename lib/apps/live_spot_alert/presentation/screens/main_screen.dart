@@ -10,6 +10,7 @@ import '../../../../features/geofencing/presentation/controllers/geofencing_even
 import '../../../../features/geofencing/presentation/widgets/location_picker.dart';
 import '../../../../features/geofencing/domain/models/geofence.dart';
 import '../../../../features/geofencing/domain/use_cases/create_geofence_use_case.dart';
+import '../../../../features/geofencing/domain/use_cases/update_geofence_use_case.dart';
 // import '../../../../features/live_activities/presentation/widgets/live_activity_controller_widget.dart';
 // import '../../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
 // import '../../../../features/live_activities/presentation/widgets/live_activity_info_card.dart';
@@ -39,6 +40,7 @@ class _MainScreenState extends State<MainScreen> {
   // Form data
   double? _selectedLatitude;
   double? _selectedLongitude;
+  String? _editingGeofenceId; // Track which geofence is being edited
 
   @override
   void initState() {
@@ -403,9 +405,12 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _currentMode = ViewMode.creating;
       if (editingGeofence != null) {
+        _editingGeofenceId = editingGeofence.id;
         _nameController.text = editingGeofence.name;
         _selectedLatitude = editingGeofence.latitude;
         _selectedLongitude = editingGeofence.longitude;
+      } else {
+        _editingGeofenceId = null;
       }
     });
   }
@@ -428,15 +433,32 @@ class _MainScreenState extends State<MainScreen> {
   void _saveGeofence() {
     if (!_canSaveGeofence()) return;
     
-    final params = CreateGeofenceParams(
-      name: _nameController.text,
-      latitude: _selectedLatitude!,
-      longitude: _selectedLongitude!,
-      radius: 100.0, // Default radius
-      description: '',
-    );
-
-    context.read<GeofencingBloc>().add(CreateGeofence(params));
+    if (_editingGeofenceId != null) {
+      // Update existing geofence
+      final existingGeofence = context.read<GeofencingBloc>().state.geofences
+          .firstWhere((g) => g.id == _editingGeofenceId);
+      
+      final updatedGeofence = existingGeofence.copyWith(
+        name: _nameController.text,
+        latitude: _selectedLatitude!,
+        longitude: _selectedLongitude!,
+        radius: 100.0, // Keep existing radius or use default
+        description: '', // Keep existing description or use default
+      );
+      
+      final params = UpdateGeofenceParams(geofence: updatedGeofence);
+      context.read<GeofencingBloc>().add(UpdateGeofence(params));
+    } else {
+      // Create new geofence
+      final params = CreateGeofenceParams(
+        name: _nameController.text,
+        latitude: _selectedLatitude!,
+        longitude: _selectedLongitude!,
+        radius: 100.0, // Default radius
+        description: '',
+      );
+      context.read<GeofencingBloc>().add(CreateGeofence(params));
+    }
   }
 
 
@@ -444,6 +466,7 @@ class _MainScreenState extends State<MainScreen> {
     _nameController.clear();
     _selectedLatitude = null;
     _selectedLongitude = null;
+    _editingGeofenceId = null;
   }
 
   // Monitoring control methods
@@ -616,6 +639,5 @@ class _MainScreenState extends State<MainScreen> {
   //   );
   // }
 
-  bool get _isEditing => _currentMode == ViewMode.creating && 
-                       _nameController.text.isNotEmpty;
+  bool get _isEditing => _editingGeofenceId != null;
 }

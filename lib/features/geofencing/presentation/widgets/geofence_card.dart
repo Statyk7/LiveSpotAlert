@@ -14,7 +14,7 @@ class GeofenceCard extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
     this.onToggleActive,
-    this.onDelete,
+    // onDelete removed - single geofence MVP doesn't need delete
   });
 
   final Geofence geofence;
@@ -23,7 +23,7 @@ class GeofenceCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final VoidCallback? onToggleActive;
-  final VoidCallback? onDelete;
+  // onDelete removed - single geofence MVP doesn't need delete
 
   @override
   Widget build(BuildContext context) {
@@ -89,21 +89,7 @@ class GeofenceCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      
-                      // Delete Button
-                      InkWell(
-                        onTap: onDelete,
-                        borderRadius: BorderRadius.circular(20),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4),
-                          child: Icon(
-                            Icons.delete_outline,
-                            size: 20,
-                            color: AppColors.error,
-                          ),
-                        ),
-                      ),
+                      // Delete button removed - single geofence MVP doesn't need delete
                     ],
                   ),
                 ],
