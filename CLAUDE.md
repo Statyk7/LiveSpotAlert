@@ -207,3 +207,7 @@ The app includes proper entitlements for:
 - `lib/apps/live_spot_alert/router/app_router.dart` - Navigation setup
 - `lib/features/geofencing/` - Complete feature implementation example
 - `pubspec.yaml` - Dependencies and project configuration
+
+## Development Memories
+
+- Always use a concise description when doing a commit

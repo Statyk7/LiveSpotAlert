@@ -145,9 +145,7 @@ class GeofenceConfigCard extends StatelessWidget {
                   ),
                 ],
 
-                // Action buttons
-                const SizedBox(height: 16),
-                _buildActionButtons(context, state, geofence),
+                // Action buttons removed - using only edit button in header
               ],
             ),
           ),
@@ -244,49 +242,7 @@ class GeofenceConfigCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(
-      BuildContext context, GeofencingState state, Geofence? geofence) {
-    return Row(
-      children: [
-        // Toggle active/inactive
-        if (geofence != null)
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => _toggleGeofenceActive(context, geofence),
-              icon: Icon(
-                geofence.isActive
-                    ? Icons.notifications_off
-                    : Icons.notifications_active,
-              ),
-              label: Text(geofence.isActive ? 'Deactivate' : 'Activate'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor:
-                    geofence.isActive ? AppColors.warning : AppColors.success,
-                side: BorderSide(
-                    color: geofence.isActive
-                        ? AppColors.warning
-                        : AppColors.success),
-              ),
-            ),
-          ),
-
-        if (geofence != null) const SizedBox(width: 12),
-
-        // Configure button
-        // Expanded(
-        //   child: ElevatedButton.icon(
-        //     onPressed: onConfigurePressed ?? () => _showConfiguration(context),
-        //     icon: const Icon(Icons.settings),
-        //     label: const Text('Configure'),
-        //     style: ElevatedButton.styleFrom(
-        //       backgroundColor: AppColors.primary,
-        //       foregroundColor: Colors.white,
-        //     ),
-        //   ),
-        // ),
-      ],
-    );
-  }
+  // Action buttons removed - using only edit button in header for simpler UI
 
   IconData _getStatusIcon(GeofencingState state, Geofence? geofence) {
     if (geofence == null) return Icons.location_disabled;
@@ -301,8 +257,9 @@ class GeofenceConfigCard extends StatelessWidget {
   }
 
   Color _getStatusColor(GeofencingState state, Geofence? geofence) {
-    if (state.status == GeofencingStatus.loading)
+    if (state.status == GeofencingStatus.loading) {
       return AppColors.textSecondary;
+    }
     if (state.status == GeofencingStatus.error) return AppColors.error;
     if (geofence == null) return AppColors.textSecondary;
     if (!geofence.isActive) return AppColors.textSecondary;
@@ -349,7 +306,5 @@ class GeofenceConfigCard extends StatelessWidget {
     context.read<GeofencingBloc>().add(const RequestLocationPermissions());
   }
 
-  void _toggleGeofenceActive(BuildContext context, Geofence geofence) {
-    context.read<GeofencingBloc>().add(ToggleGeofenceActive(geofence.id));
-  }
+  // Toggle geofence active method removed - functionality moved to configuration widget
 }

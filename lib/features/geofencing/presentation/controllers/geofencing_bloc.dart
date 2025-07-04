@@ -151,8 +151,8 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
     try {
       final result = await getGeofencesUseCase(const NoParams());
 
-      result.fold(
-        (failure) {
+      await result.fold(
+        (failure) async {
           AppLogger.error('Failed to load geofences: ${failure.message}');
           emit(state.copyWith(
             status: GeofencingStatus.error,
@@ -179,27 +179,33 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
               (failure) {
                 AppLogger.error(
                     'Failed to create default geofence: ${failure.message}');
-                emit(state.copyWith(
-                  status: GeofencingStatus.loaded,
-                  geofences: geofences,
-                  clearError: true,
-                ));
+                if (!emit.isDone) {
+                  emit(state.copyWith(
+                    status: GeofencingStatus.loaded,
+                    geofences: geofences,
+                    clearError: true,
+                  ));
+                }
               },
               (newGeofence) {
                 AppLogger.info('Created default geofence: ${newGeofence.name}');
-                emit(state.copyWith(
-                  status: GeofencingStatus.loaded,
-                  geofences: [newGeofence],
-                  clearError: true,
-                ));
+                if (!emit.isDone) {
+                  emit(state.copyWith(
+                    status: GeofencingStatus.loaded,
+                    geofences: [newGeofence],
+                    clearError: true,
+                  ));
+                }
               },
             );
           } else {
-            emit(state.copyWith(
-              status: GeofencingStatus.loaded,
-              geofences: geofences,
-              clearError: true,
-            ));
+            if (!emit.isDone) {
+              emit(state.copyWith(
+                status: GeofencingStatus.loaded,
+                geofences: geofences,
+                clearError: true,
+              ));
+            }
           }
         },
       );
@@ -243,10 +249,7 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
             clearError: true,
           ));
 
-          // If monitoring is active and geofence is active, restart monitoring
-          if (state.isMonitoring && geofence.isActive) {
-            add(const StartMonitoring());
-          }
+          // Note: Monitoring restart removed for better UX - let user manually restart if needed
         },
       );
     } catch (e, stackTrace) {
@@ -290,10 +293,8 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
             clearError: true,
           ));
 
-          // Restart monitoring to pick up changes
-          if (state.isMonitoring) {
-            add(const StartMonitoring());
-          }
+          // Only restart monitoring if geofence location/radius changed significantly
+          // Simple property updates (name, description, active status) don't require restart
         },
       );
     } catch (e, stackTrace) {
