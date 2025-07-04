@@ -65,6 +65,9 @@ dependencies:
   equatable: ^2.0.5
   dartz: ^0.10.1
 
+  # Util for App Icons
+  flutter_launcher_icons: ^0.14.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

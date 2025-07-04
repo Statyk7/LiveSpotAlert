@@ -9,6 +9,7 @@ import '../../../../features/geofencing/presentation/controllers/geofencing_stat
 import '../../../../features/geofencing/presentation/controllers/geofencing_event.dart';
 import '../../../../features/geofencing/presentation/widgets/geofence_config_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_config_card.dart';
+import '../../../../features/local_notifications/presentation/widgets/notification_preview_card.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -63,6 +64,11 @@ class _MainScreenState extends State<MainScreen> {
               const NotificationConfigCard(
                 title: 'Notification',
               ),
+
+              const SizedBox(height: 24),
+
+              // Notification Preview Section
+              const NotificationPreviewCard(),
             ]),
           ),
         ),

@@ -10,7 +10,7 @@ import UserNotifications
   ) -> Bool {
     
     // Set up local notifications delegate
-    UNUserNotificationCenter.current().delegate = self
+      UNUserNotificationCenter.current().delegate = self
     
     // Set up method channel for shared UserDefaults
     let controller = window?.rootViewController as! FlutterViewController
@@ -78,7 +78,7 @@ import UserNotifications
   override func userNotificationCenter(_ center: UNUserNotificationCenter,
                                        didReceive response: UNNotificationResponse,
                                        withCompletionHandler completionHandler: @escaping () -> Void) {
-    // Let flutter_local_notifications plugin handle the response
-    completionHandler()
+    // Pass the response to the parent (FlutterAppDelegate) so flutter_local_notifications plugin can handle it
+    super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
   }
 }

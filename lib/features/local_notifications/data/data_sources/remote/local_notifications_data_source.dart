@@ -5,6 +5,7 @@ import 'package:flutter_app_group_directory/flutter_app_group_directory.dart';
 import 'package:path/path.dart' as path;
 import '../../../../../shared/base_domain/failures/failure.dart';
 import '../../../../../shared/utils/logger.dart';
+import '../../../../../apps/live_spot_alert/router/app_router.dart';
 
 /// Data source for managing local notifications using flutter_local_notifications
 abstract class LocalNotificationsDataSource {
@@ -77,6 +78,10 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
       if (initialized == true) {
         _isInitialized = true;
         AppLogger.info('Local notifications initialized successfully');
+        
+        // Check if app was launched from a notification
+        await _checkForLaunchFromNotification();
+        
         return const Right(null);
       } else {
         return Left(NotificationFailure(
@@ -304,7 +309,63 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
 
   void _onNotificationTap(NotificationResponse response) {
     AppLogger.info('Notification tapped: ${response.payload}');
-    // Handle notification tap if needed
+    
+    // Navigate to notification display screen if payload is valid
+    if (response.payload != null && response.payload!.isNotEmpty) {
+      try {
+        AppLogger.info('Attempting to navigate to notification display with payload: ${response.payload}');
+        
+        // Use the router directly instead of context
+        AppRouter.router.go('/notification-display?payload=${Uri.encodeComponent(response.payload!)}');
+        
+        AppLogger.info('Navigation command sent successfully');
+      } catch (e) {
+        AppLogger.error('Failed to navigate to notification display: $e');
+        
+        // Fallback: try to navigate to main and log the payload for manual handling
+        try {
+          AppRouter.router.go('/main');
+          AppLogger.info('Fallback navigation to main successful. Payload was: ${response.payload}');
+        } catch (fallbackError) {
+          AppLogger.error('Fallback navigation also failed: $fallbackError');
+        }
+      }
+    } else {
+      AppLogger.warning('Notification tapped but no payload provided');
+    }
+  }
+
+  /// Check if the app was launched from a notification and handle accordingly
+  Future<void> _checkForLaunchFromNotification() async {
+    try {
+      final NotificationAppLaunchDetails? launchDetails =
+          await _notificationsPlugin.getNotificationAppLaunchDetails();
+      
+      if (launchDetails?.didNotificationLaunchApp == true) {
+        AppLogger.info('App was launched from a notification');
+        
+        final NotificationResponse? response = launchDetails!.notificationResponse;
+        if (response?.payload != null && response!.payload!.isNotEmpty) {
+          AppLogger.info('Launch notification payload: ${response.payload}');
+          
+          // Delay navigation slightly to ensure the app is fully initialized
+          Future.delayed(const Duration(milliseconds: 500), () {
+            try {
+              AppRouter.router.go('/notification-display?payload=${Uri.encodeComponent(response.payload!)}');
+              AppLogger.info('Navigation from launch successful');
+            } catch (e) {
+              AppLogger.error('Failed to navigate from launch: $e');
+            }
+          });
+        } else {
+          AppLogger.warning('App launched from notification but no payload available');
+        }
+      } else {
+        AppLogger.info('App was not launched from a notification');
+      }
+    } catch (e) {
+      AppLogger.error('Error checking notification launch details: $e');
+    }
   }
 
   /// Helper method to verify image file exists and find alternative paths if needed
