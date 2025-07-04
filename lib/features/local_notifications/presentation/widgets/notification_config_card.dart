@@ -198,10 +198,39 @@ class NotificationConfigCard extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(3),
-                            child: Image.file(
-                              File(config.imagePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
+                            child: FutureBuilder<String?>(
+                              future: _getImagePath(context, config.imagePath!),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Container(
+                                    color: AppColors.surface,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(strokeWidth: 1),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                
+                                if (snapshot.hasData && snapshot.data != null) {
+                                  return Image.file(
+                                    File(snapshot.data!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: AppColors.surface,
+                                        child: Icon(
+                                          Icons.broken_image,
+                                          color: AppColors.textSecondary,
+                                          size: 16,
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }
+                                
                                 return Container(
                                   color: AppColors.surface,
                                   child: Icon(
@@ -307,5 +336,16 @@ class NotificationConfigCard extends StatelessWidget {
 
   void _showTestNotification(BuildContext context) {
     context.read<LocalNotificationsBloc>().add(const ShowTestNotification());
+  }
+
+  Future<String?> _getImagePath(BuildContext context, String fileName) async {
+    final bloc = context.read<LocalNotificationsBloc>();
+    final imageService = bloc.imageService;
+    
+    final result = await imageService.getImagePath(fileName);
+    return result.fold(
+      (failure) => null,
+      (path) => path,
+    );
   }
 }

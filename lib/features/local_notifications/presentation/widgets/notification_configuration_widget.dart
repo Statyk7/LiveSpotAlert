@@ -158,7 +158,7 @@ class _NotificationConfigurationWidgetState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Custom Title',
+                              'Title',
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -211,12 +211,13 @@ class _NotificationConfigurationWidgetState
                             
                             // Image Selection Section
                             Text(
-                              'Custom Image',
+                              'Image',
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             _buildImageSection(state),
+                            const SizedBox(height: 16),
                           ],
                         ),
                       ),
@@ -349,8 +350,8 @@ class _NotificationConfigurationWidgetState
   }
 
   Widget _buildImageSection(LocalNotificationsState state) {
-    final imagePath = state.effectiveConfig.imagePath;
-    final hasImage = imagePath != null;
+    final imageFileName = state.effectiveConfig.imagePath;
+    final hasImage = imageFileName != null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -362,7 +363,7 @@ class _NotificationConfigurationWidgetState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hasImage) ...[
-            // Display current image
+            // Display current image using FutureBuilder to get full path
             Container(
               height: 120,
               width: double.infinity,
@@ -372,10 +373,47 @@ class _NotificationConfigurationWidgetState
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(7),
-                child: Image.file(
-                  File(imagePath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
+                child: FutureBuilder<String?>(
+                  future: _getImagePath(imageFileName),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
+                        color: AppColors.surface,
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    
+                    if (snapshot.hasData && snapshot.data != null) {
+                      return Image.file(
+                        File(snapshot.data!),
+                        fit: BoxFit.scaleDown,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppColors.surface,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  color: AppColors.textSecondary,
+                                  size: 32,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Image not found',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    
                     return Container(
                       color: AppColors.surface,
                       child: Column(
@@ -582,5 +620,16 @@ class _NotificationConfigurationWidgetState
 
   void _showTestNotification(BuildContext context) {
     context.read<LocalNotificationsBloc>().add(const ShowTestNotification());
+  }
+
+  Future<String?> _getImagePath(String fileName) async {
+    final bloc = context.read<LocalNotificationsBloc>();
+    final imageService = bloc.imageService;
+    
+    final result = await imageService.getImagePath(fileName);
+    return result.fold(
+      (failure) => null,
+      (path) => path,
+    );
   }
 }

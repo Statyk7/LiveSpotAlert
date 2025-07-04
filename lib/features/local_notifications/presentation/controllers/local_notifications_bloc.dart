@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart' as path;
 import '../../../../shared/base_domain/use_case.dart';
 import '../../../../shared/utils/logger.dart';
 import '../../domain/use_cases/load_notification_config_use_case.dart';
@@ -305,14 +306,27 @@ class LocalNotificationsBloc
               AppLogger.info('Image saved to: $savedPath');
 
               // Delete old image if it exists
-              final currentImagePath = state.effectiveConfig.imagePath;
-              if (currentImagePath != null) {
-                await imageService.deleteImage(currentImagePath);
+              final currentImageFileName = state.effectiveConfig.imagePath;
+              if (currentImageFileName != null) {
+                final currentImagePathResult = await imageService.getImagePath(currentImageFileName);
+                await currentImagePathResult.fold(
+                  (failure) async {
+                    AppLogger.warning('Could not find old image to delete: ${failure.message}');
+                  },
+                  (currentImagePath) async {
+                    await imageService.deleteImage(currentImagePath);
+                  },
+                );
               }
 
-              // Update configuration with new image path
+              // Extract filename from saved path to store in config
+              final fileName = path.basename(savedPath);
+              AppLogger.info('Extracted filename from saved path: $fileName');
+              AppLogger.info('Full saved path was: $savedPath');
+              
+              // Update configuration with filename only (not full path)
               final updatedConfig = state.effectiveConfig.copyWith(
-                imagePath: savedPath,
+                imagePath: fileName,
               );
 
               add(SaveNotificationConfiguration(updatedConfig));
@@ -334,15 +348,22 @@ class LocalNotificationsBloc
     Emitter<LocalNotificationsState> emit,
   ) async {
     try {
-      final currentImagePath = state.effectiveConfig.imagePath;
+      final currentImageFileName = state.effectiveConfig.imagePath;
       
-      if (currentImagePath != null) {
-        // Delete the image file
-        final deleteResult = await imageService.deleteImage(currentImagePath);
-        
-        deleteResult.fold(
-          (failure) => AppLogger.warning('Failed to delete image file: ${failure.message}'),
-          (_) => AppLogger.info('Image file deleted successfully'),
+      if (currentImageFileName != null) {
+        // Get full path from filename and delete the image file
+        final currentImagePathResult = await imageService.getImagePath(currentImageFileName);
+        await currentImagePathResult.fold(
+          (failure) async {
+            AppLogger.warning('Could not find image to delete: ${failure.message}');
+          },
+          (currentImagePath) async {
+            final deleteResult = await imageService.deleteImage(currentImagePath);
+            deleteResult.fold(
+              (failure) => AppLogger.warning('Failed to delete image file: ${failure.message}'),
+              (_) => AppLogger.info('Image file deleted successfully'),
+            );
+          },
         );
       }
 

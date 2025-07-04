@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_app_group_directory/flutter_app_group_directory.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../../../../shared/base_domain/failures/failure.dart';
 import '../../../../shared/utils/logger.dart';
@@ -75,23 +76,27 @@ class NotificationImageServiceImpl implements NotificationImageService {
     try {
       AppLogger.info('Saving image to persistent storage: $sourcePath');
       
-      // Get the app group directory (shared with notification service)
+      // Try app group directory first (for notifications)
+      Directory? primaryDir;
+      String primaryDirType = 'app_group';
+      
       final Directory? appGroupDir = await FlutterAppGroupDirectory.getAppGroupDirectory(_appGroupId);
-      if (appGroupDir == null) {
-        AppLogger.error('Failed to get app group directory for: $_appGroupId');
-        return const Left(MediaFailure(message: 'Failed to access app group directory'));
+      if (appGroupDir != null) {
+        primaryDir = Directory(path.join(appGroupDir.path, _notificationImagesDir));
+        AppLogger.info('Using app group directory: ${primaryDir.path}');
+      } else {
+        AppLogger.warning('App group directory not available, using documents directory');
+        // Fallback to documents directory
+        final Directory documentsDir = await getApplicationDocumentsDirectory();
+        primaryDir = Directory(path.join(documentsDir.path, _notificationImagesDir));
+        primaryDirType = 'documents';
+        AppLogger.info('Using documents directory: ${primaryDir.path}');
       }
       
-      AppLogger.info('App group directory found: ${appGroupDir.path}');
-      
-      final Directory notificationImagesDir = Directory(
-        path.join(appGroupDir.path, _notificationImagesDir),
-      );
-      
       // Create directory if it doesn't exist
-      if (!await notificationImagesDir.exists()) {
-        await notificationImagesDir.create(recursive: true);
-        AppLogger.info('Created notification images directory');
+      if (!await primaryDir.exists()) {
+        await primaryDir.create(recursive: true);
+        AppLogger.info('Created notification images directory in $primaryDirType');
       }
       
       // Generate persistent filename (using hash for consistency)
@@ -99,7 +104,10 @@ class NotificationImageServiceImpl implements NotificationImageService {
       final String baseFileName = path.basenameWithoutExtension(sourcePath);
       // Use source file hash to ensure same file gets same name
       final String fileName = 'notification_persistent_${baseFileName.hashCode.abs()}$extension';
-      final String destinationPath = path.join(notificationImagesDir.path, fileName);
+      final String destinationPath = path.join(primaryDir.path, fileName);
+      
+      AppLogger.info('Generated filename: $fileName');
+      AppLogger.info('Full destination path: $destinationPath');
       
       // Copy the file (check if it already exists first)
       final File sourceFile = File(sourcePath);
@@ -127,6 +135,27 @@ class NotificationImageServiceImpl implements NotificationImageService {
       if (!await File(backupPath2).exists()) {
         await sourceFile.copy(backupPath2);
         AppLogger.info('Created backup copy 2: $backupPath2');
+      }
+      
+      // Also save to documents directory as fallback (if we used app group as primary)
+      if (primaryDirType == 'app_group') {
+        try {
+          final Directory documentsDir = await getApplicationDocumentsDirectory();
+          final Directory fallbackDir = Directory(path.join(documentsDir.path, _notificationImagesDir));
+          
+          if (!await fallbackDir.exists()) {
+            await fallbackDir.create(recursive: true);
+          }
+          
+          final String fallbackPath = path.join(fallbackDir.path, fileName);
+          if (!await File(fallbackPath).exists()) {
+            await sourceFile.copy(fallbackPath);
+            AppLogger.info('Created fallback copy in documents: $fallbackPath');
+          }
+        } catch (e) {
+          AppLogger.warning('Failed to create fallback copy: $e');
+          // Continue anyway, this is just a backup
+        }
       }
       
       // Verify the primary file was saved
@@ -190,6 +219,25 @@ class NotificationImageServiceImpl implements NotificationImageService {
       
       AppLogger.info('App group directory for retrieval: ${appGroupDir.path}');
       
+      // Debug: List all files in the notification images directory
+      final Directory notificationImagesDir = Directory(
+        path.join(appGroupDir.path, _notificationImagesDir),
+      );
+      
+      if (await notificationImagesDir.exists()) {
+        try {
+          final List<FileSystemEntity> files = notificationImagesDir.listSync();
+          AppLogger.info('Files in notification images directory:');
+          for (final file in files) {
+            AppLogger.info('  - ${path.basename(file.path)}');
+          }
+        } catch (e) {
+          AppLogger.warning('Failed to list directory contents: $e');
+        }
+      } else {
+        AppLogger.warning('Notification images directory does not exist');
+      }
+      
       final String imagePath = path.join(appGroupDir.path, _notificationImagesDir, fileName);
       AppLogger.info('Constructed image path: $imagePath');
       
@@ -199,7 +247,28 @@ class NotificationImageServiceImpl implements NotificationImageService {
       if (exists) {
         return Right(imagePath);
       } else {
-        return const Left(MediaFailure(message: 'Image file not found'));
+        AppLogger.warning('Image not found in app group directory, checking fallback locations');
+        
+        // Fallback: Try documents directory
+        try {
+          final Directory documentsDir = await getApplicationDocumentsDirectory();
+          final String fallbackImagePath = path.join(documentsDir.path, _notificationImagesDir, fileName);
+          AppLogger.info('Checking fallback path: $fallbackImagePath');
+          
+          final bool fallbackExists = await imageExists(fallbackImagePath);
+          AppLogger.info('Fallback image exists: $fallbackExists');
+          
+          if (fallbackExists) {
+            AppLogger.info('Image found in documents directory fallback');
+            return Right(fallbackImagePath);
+          }
+          
+          AppLogger.error('Image not found in any location');
+          return const Left(MediaFailure(message: 'Image file not found in app group or documents directory'));
+        } catch (e) {
+          AppLogger.error('Fallback check failed: $e');
+          return const Left(MediaFailure(message: 'Image file not found'));
+        }
       }
     } catch (e, stackTrace) {
       AppLogger.error('Failed to get image path', e, stackTrace);
