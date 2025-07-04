@@ -239,7 +239,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_app_group_directory:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_app_group_directory
       sha256: "680ef9b2dee84c237cd7bb7fc78bc45867b32556a8a5f0de61278078b9fefd05"
@@ -569,7 +569,7 @@ packages:
     source: hosted
     version: "2.2.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"

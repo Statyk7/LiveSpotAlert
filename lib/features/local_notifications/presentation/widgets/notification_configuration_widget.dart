@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/ui_kit/colors.dart';
@@ -206,6 +207,16 @@ class _NotificationConfigurationWidgetState
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 24),
+                            
+                            // Image Selection Section
+                            Text(
+                              'Custom Image',
+                              style: AppTextStyles.bodyLarge
+                                  .copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildImageSection(state),
                           ],
                         ),
                       ),
@@ -334,6 +345,188 @@ class _NotificationConfigurationWidgetState
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildImageSection(LocalNotificationsState state) {
+    final imagePath = state.effectiveConfig.imagePath;
+    final hasImage = imagePath != null;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.textHint),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasImage) ...[
+            // Display current image
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.textHint),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Image.file(
+                  File(imagePath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppColors.surface,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            color: AppColors.textSecondary,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Image not found',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Image action buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: state.isLoading ? null : () {
+                      context.read<LocalNotificationsBloc>()
+                          .add(const SelectNotificationImage());
+                      _onSettingChanged();
+                    },
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Change Image'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: state.isLoading ? null : () {
+                      context.read<LocalNotificationsBloc>()
+                          .add(const RemoveNotificationImage());
+                      _onSettingChanged();
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Remove'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: BorderSide(color: AppColors.error),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // No image selected state
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 128),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.textHint,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.image_outlined,
+                    color: AppColors.textSecondary,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No image selected',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Select image button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: state.isLoading ? null : () {
+                  context.read<LocalNotificationsBloc>()
+                      .add(const SelectNotificationImage());
+                  _onSettingChanged();
+                },
+                icon: state.isLoading 
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.photo_library),
+                label: Text(state.isLoading ? 'Selecting...' : 'Select from Gallery'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+          
+          const SizedBox(height: 12),
+          
+          // Image info text
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: 26),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: AppColors.info,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Images will be displayed in notifications. Supported formats: JPG, PNG. Max size: 5MB.',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.info,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

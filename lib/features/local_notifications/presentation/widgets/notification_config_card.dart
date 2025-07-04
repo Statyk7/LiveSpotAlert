@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/ui_kit/colors.dart';
@@ -175,7 +176,65 @@ class NotificationConfigCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // Enabled status
+        // Image configuration
+        Row(
+          children: [
+            Icon(Icons.image, color: AppColors.info, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: config.imagePath != null
+                  ? Row(
+                      children: [
+                        Text(
+                          'Custom image: ',
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.textHint),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: Image.file(
+                              File(config.imagePath!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: AppColors.surface,
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: AppColors.textSecondary,
+                                    size: 16,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Selected',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.success,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      'Image: Not selected',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+            ),
+          ],
+        ),
+
+        // Enabled status (commented out)
         // Row(
         //   children: [
         //     Icon(Icons.toggle_on, color: AppColors.info, size: 18),

@@ -5,6 +5,8 @@ import '../../domain/use_cases/load_notification_config_use_case.dart';
 import '../../domain/use_cases/save_notification_config_use_case.dart';
 import '../../domain/use_cases/request_notification_permissions_use_case.dart';
 import '../../domain/services/local_notifications_service.dart';
+import '../../domain/services/notification_image_service.dart';
+import '../../data/services/notification_image_service_impl.dart';
 import 'local_notifications_event.dart';
 import 'local_notifications_state.dart';
 
@@ -15,6 +17,7 @@ class LocalNotificationsBloc
     required this.saveNotificationConfigUseCase,
     required this.requestNotificationPermissionsUseCase,
     required this.notificationsService,
+    required this.imageService,
   }) : super(const LocalNotificationsState()) {
     on<LoadNotificationConfiguration>(_onLoadNotificationConfiguration);
     on<SaveNotificationConfiguration>(_onSaveNotificationConfiguration);
@@ -24,6 +27,8 @@ class LocalNotificationsBloc
     on<RequestNotificationPermissions>(_onRequestNotificationPermissions);
     on<ShowTestNotification>(_onShowTestNotification);
     on<DismissAllNotifications>(_onDismissAllNotifications);
+    on<SelectNotificationImage>(_onSelectNotificationImage);
+    on<RemoveNotificationImage>(_onRemoveNotificationImage);
   }
 
   final LoadNotificationConfigUseCase loadNotificationConfigUseCase;
@@ -31,6 +36,7 @@ class LocalNotificationsBloc
   final RequestNotificationPermissionsUseCase
       requestNotificationPermissionsUseCase;
   final LocalNotificationsService notificationsService;
+  final NotificationImageService imageService;
 
   Future<void> _onLoadNotificationConfiguration(
     LoadNotificationConfiguration event,
@@ -253,6 +259,104 @@ class LocalNotificationsBloc
       emit(state.copyWith(
         status: NotificationStatus.error,
         errorMessage: 'Failed to dismiss all notifications: $e',
+      ));
+    }
+  }
+
+  Future<void> _onSelectNotificationImage(
+    SelectNotificationImage event,
+    Emitter<LocalNotificationsState> emit,
+  ) async {
+    try {
+      emit(state.copyWith(status: NotificationStatus.loading));
+
+      // Pick image from gallery
+      final pickResult = await imageService.pickImageFromGallery();
+
+      await pickResult.fold(
+        (failure) async {
+          if (failure is UserCancelledFailure) {
+            // User cancelled, go back to previous state
+            emit(state.copyWith(status: NotificationStatus.loaded));
+            AppLogger.info('User cancelled image selection');
+          } else {
+            AppLogger.error('Failed to pick image: ${failure.message}');
+            emit(state.copyWith(
+              status: NotificationStatus.error,
+              errorMessage: failure.message,
+            ));
+          }
+        },
+        (imagePath) async {
+          AppLogger.info('Image picked: $imagePath');
+
+          // Save to persistent storage
+          final saveResult = await imageService.saveImageToPersistentStorage(imagePath);
+
+          await saveResult.fold(
+            (failure) async {
+              AppLogger.error('Failed to save image: ${failure.message}');
+              emit(state.copyWith(
+                status: NotificationStatus.error,
+                errorMessage: failure.message,
+              ));
+            },
+            (savedPath) async {
+              AppLogger.info('Image saved to: $savedPath');
+
+              // Delete old image if it exists
+              final currentImagePath = state.effectiveConfig.imagePath;
+              if (currentImagePath != null) {
+                await imageService.deleteImage(currentImagePath);
+              }
+
+              // Update configuration with new image path
+              final updatedConfig = state.effectiveConfig.copyWith(
+                imagePath: savedPath,
+              );
+
+              add(SaveNotificationConfiguration(updatedConfig));
+            },
+          );
+        },
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error('Error selecting notification image', e, stackTrace);
+      emit(state.copyWith(
+        status: NotificationStatus.error,
+        errorMessage: 'Failed to select image: $e',
+      ));
+    }
+  }
+
+  Future<void> _onRemoveNotificationImage(
+    RemoveNotificationImage event,
+    Emitter<LocalNotificationsState> emit,
+  ) async {
+    try {
+      final currentImagePath = state.effectiveConfig.imagePath;
+      
+      if (currentImagePath != null) {
+        // Delete the image file
+        final deleteResult = await imageService.deleteImage(currentImagePath);
+        
+        deleteResult.fold(
+          (failure) => AppLogger.warning('Failed to delete image file: ${failure.message}'),
+          (_) => AppLogger.info('Image file deleted successfully'),
+        );
+      }
+
+      // Update configuration to remove image path
+      final updatedConfig = state.effectiveConfig.copyWith(
+        clearImagePath: true,
+      );
+
+      add(SaveNotificationConfiguration(updatedConfig));
+    } catch (e, stackTrace) {
+      AppLogger.error('Error removing notification image', e, stackTrace);
+      emit(state.copyWith(
+        status: NotificationStatus.error,
+        errorMessage: 'Failed to remove image: $e',
       ));
     }
   }

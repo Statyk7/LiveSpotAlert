@@ -72,6 +72,7 @@ class LocalNotificationsServiceImpl implements LocalNotificationsService {
     required String geofenceName,
     required String customTitle,
     bool isEntry = true,
+    String? imagePath,
   }) async {
     try {
       // Load current configuration
@@ -117,12 +118,22 @@ class LocalNotificationsServiceImpl implements LocalNotificationsService {
           ? '${config.title.isNotEmpty ? '${config.title} @' : 'Arrived at'} $geofenceName'
           : 'Left $geofenceName';
 
+      // Use provided imagePath or fall back to config imagePath
+      final notificationImagePath = imagePath ?? config.imagePath;
+      
+      if (notificationImagePath != null) {
+        AppLogger.info('Using notification image path: $notificationImagePath');
+      } else {
+        AppLogger.info('No image path configured for notification');
+      }
+
       // Show the notification
       final showResult = await notificationsDataSource.showNotification(
         id: notificationId,
         title: title,
         body: body,
         payload: 'geofence_${isEntry ? 'entry' : 'exit'}_$geofenceId',
+        imagePath: notificationImagePath,
       );
 
       if (showResult.isRight()) {

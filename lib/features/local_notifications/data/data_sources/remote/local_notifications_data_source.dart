@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dartz/dartz.dart';
+import 'package:flutter_app_group_directory/flutter_app_group_directory.dart';
+import 'package:path/path.dart' as path;
 import '../../../../../shared/base_domain/failures/failure.dart';
 import '../../../../../shared/utils/logger.dart';
 
@@ -14,6 +17,7 @@ abstract class LocalNotificationsDataSource {
     required String title,
     required String body,
     String? payload,
+    String? imagePath,
   });
 
   /// Cancel a specific notification
@@ -91,6 +95,7 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
     required String title,
     required String body,
     String? payload,
+    String? imagePath,
   }) async {
     try {
       if (!_isInitialized) {
@@ -100,13 +105,73 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
         }
       }
 
-      // iOS notification details
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      // iOS notification details with optional image attachment
+      DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
         interruptionLevel: InterruptionLevel.active,
       );
+
+      // Add image attachment if provided and file exists
+      if (imagePath != null && imagePath.isNotEmpty) {
+        AppLogger.info('Attempting to attach image: $imagePath');
+        
+        // Use helper method to find valid image path
+        final String? validImagePath = await _findValidImagePath(imagePath);
+        
+        if (validImagePath != null) {
+          try {
+            final File imageFile = File(validImagePath);
+            final int fileSize = await imageFile.length();
+            
+            // Validate file size (iOS has limits)
+            if (fileSize > 10 * 1024 * 1024) { // 10MB limit for iOS notifications
+              AppLogger.error('Image file too large for notification: ${fileSize}bytes');
+              // Continue with notification without image (don't return, just skip attachment)
+            } else {
+            
+            // Validate file extension
+            final String extension = path.extension(validImagePath).toLowerCase();
+            if (!_isValidImageExtension(extension)) {
+              AppLogger.error('Invalid image extension for notification: $extension');
+              // Skip attachment but continue with notification
+            } else {
+            
+            AppLogger.info('Using valid image path: $validImagePath (${fileSize}bytes, ext: $extension)');
+            
+            // Create attachment with proper file extension for type recognition
+            final String uti = _getUTIForImagePath(validImagePath);
+            AppLogger.info('Using UTI for image attachment: $uti');
+            
+            // Create attachment with proper file extension for type recognition
+            final List<DarwinNotificationAttachment> attachments = [
+              DarwinNotificationAttachment(
+                validImagePath,
+                identifier: 'image-${DateTime.now().millisecondsSinceEpoch}',
+              ),
+            ];
+            AppLogger.info('Created attachment with identifier for: $validImagePath');
+            
+            iosDetails = DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+              interruptionLevel: InterruptionLevel.active,
+              attachments: attachments,
+            );
+            
+            AppLogger.info('Successfully added image attachment to notification: $validImagePath');
+            } // Close extension validation
+            } // Close file size validation
+          } catch (e, stackTrace) {
+            AppLogger.error('Failed to add image attachment', e, stackTrace);
+            // Continue with notification without image
+          }
+        } else {
+          AppLogger.warning('No valid image path found for: $imagePath');
+        }
+      }
 
       // Android notification details (for future use)
       const AndroidNotificationDetails androidDetails =
@@ -118,7 +183,7 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
         priority: Priority.high,
       );
 
-      const NotificationDetails notificationDetails = NotificationDetails(
+      final NotificationDetails notificationDetails = NotificationDetails(
         iOS: iosDetails,
         macOS: iosDetails,
         android: androidDetails,
@@ -240,5 +305,114 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
   void _onNotificationTap(NotificationResponse response) {
     AppLogger.info('Notification tapped: ${response.payload}');
     // Handle notification tap if needed
+  }
+
+  /// Helper method to verify image file exists and find alternative paths if needed
+  Future<String?> _findValidImagePath(String originalPath) async {
+    try {
+      // First, check the original path
+      final File originalFile = File(originalPath);
+      if (await originalFile.exists()) {
+        AppLogger.info('Image found at original path: $originalPath');
+        return originalPath;
+      }
+
+      AppLogger.warning('Image not found at original path: $originalPath');
+
+      // If not found, try to find it in app group directory
+      // This handles migration from old storage location
+      final Directory? appGroupDir = await FlutterAppGroupDirectory.getAppGroupDirectory('group.livespotalert.liveactivities');
+      if (appGroupDir != null) {
+        final String fileName = path.basename(originalPath);
+        final String appGroupImagePath = path.join(appGroupDir.path, 'notification_images', fileName);
+        
+        final File appGroupFile = File(appGroupImagePath);
+        if (await appGroupFile.exists()) {
+          AppLogger.info('Image found in app group directory: $appGroupImagePath');
+          return appGroupImagePath;
+        }
+        
+        // Try backup copies if primary is missing (with proper extensions)
+        final String fileNameWithoutExt = path.basenameWithoutExtension(appGroupImagePath);
+        final String directory = path.dirname(appGroupImagePath);
+        final String extension = path.extension(appGroupImagePath);
+        final String backupPath1 = path.join(directory, '${fileNameWithoutExt}_backup1$extension');
+        final String backupPath2 = path.join(directory, '${fileNameWithoutExt}_backup2$extension');
+        
+        if (await File(backupPath1).exists()) {
+          AppLogger.info('Image found at backup1: $backupPath1');
+          return backupPath1;
+        }
+        
+        if (await File(backupPath2).exists()) {
+          AppLogger.info('Image found at backup2: $backupPath2');
+          return backupPath2;
+        }
+      }
+
+      // Last resort: check if it's just a filename and try to construct full path
+      if (!originalPath.contains('/')) {
+        if (appGroupDir != null) {
+          final String constructedPath = path.join(appGroupDir.path, 'notification_images', originalPath);
+          final File constructedFile = File(constructedPath);
+          if (await constructedFile.exists()) {
+            AppLogger.info('Image found with constructed path: $constructedPath');
+            return constructedPath;
+          }
+          
+          // Try backup files for constructed path too
+          final String constructedFileNameWithoutExt = path.basenameWithoutExtension(constructedPath);
+          final String constructedDirectory = path.dirname(constructedPath);
+          final String constructedExtension = path.extension(constructedPath);
+          
+          final String constructedBackup1 = path.join(constructedDirectory, '${constructedFileNameWithoutExt}_backup1$constructedExtension');
+          final String constructedBackup2 = path.join(constructedDirectory, '${constructedFileNameWithoutExt}_backup2$constructedExtension');
+          
+          if (await File(constructedBackup1).exists()) {
+            AppLogger.info('Image found at constructed backup1: $constructedBackup1');
+            return constructedBackup1;
+          }
+          
+          if (await File(constructedBackup2).exists()) {
+            AppLogger.info('Image found at constructed backup2: $constructedBackup2');
+            return constructedBackup2;
+          }
+        }
+      }
+
+      AppLogger.error('Image file not found in any location for: $originalPath');
+      return null;
+    } catch (e) {
+      AppLogger.error('Error searching for image file: $e');
+      return null;
+    }
+  }
+
+  /// Check if the file extension is valid for iOS notifications
+  bool _isValidImageExtension(String extension) {
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif'];
+    return validExtensions.contains(extension.toLowerCase());
+  }
+
+  /// Get the appropriate UTI (Uniform Type Identifier) for image files
+  String _getUTIForImagePath(String imagePath) {
+    final String extension = path.extension(imagePath).toLowerCase();
+    
+    switch (extension) {
+      case '.jpg':
+      case '.jpeg':
+        return 'public.jpeg';
+      case '.png':
+        return 'public.png';
+      case '.gif':
+        return 'com.compuserve.gif';
+      case '.heic':
+        return 'public.heic';
+      case '.heif':
+        return 'public.heif';
+      default:
+        AppLogger.warning('Unknown image extension: $extension, defaulting to JPEG UTI');
+        return 'public.jpeg'; // Default fallback
+    }
   }
 }

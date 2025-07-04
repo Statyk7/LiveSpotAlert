@@ -36,7 +36,10 @@ import '../../features/local_notifications/domain/use_cases/load_notification_co
 import '../../features/local_notifications/domain/use_cases/save_notification_config_use_case.dart';
 import '../../features/local_notifications/domain/use_cases/request_notification_permissions_use_case.dart';
 import '../../features/local_notifications/presentation/controllers/local_notifications_bloc.dart';
+import '../../features/local_notifications/domain/services/notification_image_service.dart';
+import '../../features/local_notifications/data/services/notification_image_service_impl.dart';
 import '../../features/geofencing/data/services/geofencing_notification_integration.dart';
+import 'package:image_picker/image_picker.dart';
 
 // Global GetIt instance
 final GetIt getIt = GetIt.instance;
@@ -115,6 +118,14 @@ class ServiceLocator {
 
     getIt.registerLazySingleton<LocalNotificationsDataSource>(
       () => LocalNotificationsDataSourceImpl(),
+    );
+
+    // Register ImagePicker
+    getIt.registerLazySingleton<ImagePicker>(() => ImagePicker());
+
+    // Register Notification Image service
+    getIt.registerLazySingleton<NotificationImageService>(
+      () => NotificationImageServiceImpl(getIt<ImagePicker>()),
     );
 
     // Register Local Notifications service
@@ -247,6 +258,7 @@ class ServiceLocator {
       requestNotificationPermissionsUseCase:
           getIt<RequestNotificationPermissionsUseCase>(),
       notificationsService: getIt<LocalNotificationsService>(),
+      imageService: getIt<NotificationImageService>(),
     );
   }
 

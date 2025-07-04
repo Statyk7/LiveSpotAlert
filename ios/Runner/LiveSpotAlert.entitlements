@@ -29,5 +29,11 @@
 	<!-- Background App Refresh -->
 	<key>com.apple.developer.background-execution</key>
 	<true/>
+	
+	<!-- App Groups (for shared data with extensions) -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.livespotalert.liveactivities</string>
+	</array>
 </dict>
 </plist>

@@ -68,3 +68,13 @@ class ShowTestNotification extends LocalNotificationsEvent {
 class DismissAllNotifications extends LocalNotificationsEvent {
   const DismissAllNotifications();
 }
+
+/// Event to select image from gallery
+class SelectNotificationImage extends LocalNotificationsEvent {
+  const SelectNotificationImage();
+}
+
+/// Event to remove selected image
+class RemoveNotificationImage extends LocalNotificationsEvent {
+  const RemoveNotificationImage();
+}

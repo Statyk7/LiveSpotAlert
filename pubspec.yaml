@@ -50,6 +50,8 @@ dependencies:
   # Storage and preferences
   shared_preferences: ^2.2.0
   path_provider: ^2.1.0
+  path: ^1.8.3
+  flutter_app_group_directory: ^1.1.0
   
   # State management and navigation
   flutter_bloc: ^9.1.1

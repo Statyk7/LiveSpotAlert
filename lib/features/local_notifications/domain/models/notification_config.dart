@@ -6,6 +6,7 @@ class NotificationConfig extends Equatable {
     required this.title,
     required this.isEnabled,
     required this.showInForeground,
+    this.imagePath,
   });
 
   /// Custom title for notifications (e.g., "Arrived at location")
@@ -17,12 +18,16 @@ class NotificationConfig extends Equatable {
   /// Whether to show notifications even when app is in foreground
   final bool showInForeground;
 
+  /// Path to custom image for notifications
+  final String? imagePath;
+
   /// Create default configuration
   factory NotificationConfig.defaultConfig() {
     return const NotificationConfig(
       title: 'Location Alert',
       isEnabled: true,
       showInForeground: true,
+      imagePath: null,
     );
   }
 
@@ -32,6 +37,7 @@ class NotificationConfig extends Equatable {
       title: json['title'] as String? ?? 'Location Alert',
       isEnabled: json['isEnabled'] as bool? ?? true,
       showInForeground: json['showInForeground'] as bool? ?? true,
+      imagePath: json['imagePath'] as String?,
     );
   }
 
@@ -41,6 +47,7 @@ class NotificationConfig extends Equatable {
       'title': title,
       'isEnabled': isEnabled,
       'showInForeground': showInForeground,
+      'imagePath': imagePath,
     };
   }
 
@@ -49,19 +56,22 @@ class NotificationConfig extends Equatable {
     String? title,
     bool? isEnabled,
     bool? showInForeground,
+    String? imagePath,
+    bool? clearImagePath,
   }) {
     return NotificationConfig(
       title: title ?? this.title,
       isEnabled: isEnabled ?? this.isEnabled,
       showInForeground: showInForeground ?? this.showInForeground,
+      imagePath: clearImagePath == true ? null : imagePath ?? this.imagePath,
     );
   }
 
   @override
-  List<Object?> get props => [title, isEnabled, showInForeground];
+  List<Object?> get props => [title, isEnabled, showInForeground, imagePath];
 
   @override
   String toString() {
-    return 'NotificationConfig(title: $title, isEnabled: $isEnabled, showInForeground: $showInForeground)';
+    return 'NotificationConfig(title: $title, isEnabled: $isEnabled, showInForeground: $showInForeground, imagePath: $imagePath)';
   }
 }
