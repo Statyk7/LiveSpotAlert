@@ -18,6 +18,7 @@ import '../../features/geofencing/domain/use_cases/stop_monitoring_use_case.dart
 import '../../features/geofencing/domain/use_cases/update_geofence_use_case.dart';
 import '../../features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../features/media_management/domain/services/media_service.dart';
+import '../services/analytics_service.dart';
 import '../services/user_preferences_service.dart';
 import '../../features/live_activities/data/data_sources/remote/live_activities_data_source.dart';
 import '../../features/live_activities/data/data_sources/local/live_activity_local_data_source.dart';
@@ -92,6 +93,11 @@ class ServiceLocator {
     // Register user preferences service
     getIt.registerLazySingleton<UserPreferencesService>(
       () => UserPreferencesServiceImpl(getIt<SharedPreferences>()),
+    );
+
+    // Register analytics service
+    getIt.registerLazySingleton<AnalyticsService>(
+      () => AnalyticsServicePosthog(),
     );
 
     // Register Live Activities services

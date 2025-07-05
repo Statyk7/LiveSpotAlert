@@ -1,5 +1,8 @@
 import 'dart:developer' as developer;
 
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+
 class AppLogger {
   static const String _name = 'LiveSpotAlert';
 
@@ -11,6 +14,11 @@ class AppLogger {
       error: error,
       stackTrace: stackTrace,
     );
+
+    Sentry.logger.trace(
+      message,
+      attributes: _getSentryAttributes(error)
+    );
   }
 
   static void info(String message, [Object? error, StackTrace? stackTrace]) {
@@ -20,6 +28,11 @@ class AppLogger {
       level: 800,
       error: error,
       stackTrace: stackTrace,
+    );
+
+    Sentry.logger.info(
+        message,
+        attributes: _getSentryAttributes(error)
     );
   }
 
@@ -31,6 +44,11 @@ class AppLogger {
       error: error,
       stackTrace: stackTrace,
     );
+
+    Sentry.logger.warn(
+        message,
+        attributes: _getSentryAttributes(error)
+    );
   }
 
   static void error(String message, [Object? error, StackTrace? stackTrace]) {
@@ -41,5 +59,15 @@ class AppLogger {
       error: error,
       stackTrace: stackTrace,
     );
+
+    Sentry.logger.error(
+        message,
+        attributes: _getSentryAttributes(error)
+    );
+  }
+
+  static Map<String, SentryLogAttribute>? _getSentryAttributes(Object? error) {
+    if (error == null) return null;
+    return { "error": SentryLogAttribute.string(error.toString()) };
   }
 }

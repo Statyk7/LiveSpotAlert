@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../shared/di/service_locator.dart';
+import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../../../../shared/utils/constants.dart';
@@ -19,6 +21,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final AnalyticsService _analyticsService = getIt<AnalyticsService>();
+
   @override
   void initState() {
     super.initState();
@@ -200,10 +204,12 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _startMonitoring() {
+    _analyticsService.event(eventName: "start_monitoring");
     context.read<GeofencingBloc>().add(const StartMonitoring());
   }
 
   void _stopMonitoring() {
+    _analyticsService.event(eventName: "stop_monitoring");
     context.read<GeofencingBloc>().add(const StopMonitoring());
   }
 

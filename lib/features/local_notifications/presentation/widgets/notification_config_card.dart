@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../shared/di/get_it_extensions.dart';
+import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../controllers/local_notifications_bloc.dart';
@@ -318,6 +320,8 @@ class NotificationConfigCard extends StatelessWidget {
   }
 
   void _showConfiguration(BuildContext context) {
+    getIt<AnalyticsService>().screen(screenName: "notification-configuration");
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => NotificationConfigurationWidget(
@@ -335,6 +339,7 @@ class NotificationConfigCard extends StatelessWidget {
   }
 
   void _showTestNotification(BuildContext context) {
+    getIt<AnalyticsService>().event(eventName: "test_notification_1");
     context.read<LocalNotificationsBloc>().add(const ShowTestNotification());
   }
 

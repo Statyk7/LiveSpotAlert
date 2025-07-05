@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../shared/di/get_it_extensions.dart';
+import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../controllers/geofencing_bloc.dart';
@@ -287,6 +289,8 @@ class GeofenceConfigCard extends StatelessWidget {
   }
 
   void _showConfiguration(BuildContext context) {
+    getIt<AnalyticsService>().screen(screenName: "geofence-configuration");
+
     final geofence = context.read<GeofencingBloc>().state.geofences.isNotEmpty
         ? context.read<GeofencingBloc>().state.geofences.first
         : null;

@@ -54,7 +54,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
-		<string>background-processing</string>
 		<string>fetch</string>
 		<string>remote-notification</string>
 		<string>processing</string>
@@ -78,6 +77,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Posthog Configuration -->
+    <key>com.posthog.posthog.API_KEY</key>
+    <string>phc_CUYvJxHeEOiLkNH9LfPYQhFnyyBFG7IdJJ6fvdObz2R</string>
+    <key>com.posthog.posthog.POSTHOG_HOST</key>
+    <string>https://us.i.posthog.com</string>
+    <key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
+    <true/>
+
 	<key>aps-environment</key>
 	<string>development</string>
 </dict>

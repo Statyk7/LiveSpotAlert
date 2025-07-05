@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../shared/base_domain/failures/failure.dart';
+import '../../../../shared/di/get_it_extensions.dart';
+import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/utils/logger.dart';
 import '../../../../shared/utils/constants.dart';
 import '../../domain/services/local_notifications_service.dart';
@@ -74,6 +76,13 @@ class LocalNotificationsServiceImpl implements LocalNotificationsService {
     bool isEntry = true,
     String? imagePath,
   }) async {
+    getIt<AnalyticsService>().event(
+        eventName: "show_notification",
+        properties: {
+          'geofence_name': geofenceName,
+          'notification_title': customTitle
+        });
+
     try {
       // Load current configuration
       final configResult = await getNotificationConfig();

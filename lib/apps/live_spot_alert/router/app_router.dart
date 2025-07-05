@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import '../presentation/screens/main_screen.dart';
 import '../presentation/screens/splash_screen.dart';
 import '../../../features/local_notifications/presentation/screens/notification_display_screen.dart';
 import '../../../features/local_notifications/domain/models/notification_payload.dart';
 
+
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
+    // Records screen views automatically with Posthog
+    observers: [PosthogObserver()],
     routes: [
       GoRoute(
         path: '/splash',

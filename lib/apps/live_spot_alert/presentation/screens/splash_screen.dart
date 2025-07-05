@@ -12,6 +12,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Location-based Live Activities',
+              'Location-based Live Notification',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: Colors.white.withValues(alpha: 204),
               ),
@@ -54,6 +55,15 @@ class _SplashScreenState extends State<SplashScreen> {
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
+
+            // Sentry Test
+            // const SizedBox(height: 48),
+            // TextButton(
+            //   onPressed: () => {
+            //     throw StateError('Test Exception')
+            //   },
+            //   child: Text('Exception'),
+            // ),
           ],
         ),
       ),
