@@ -64,6 +64,10 @@ class AppLogger {
         message,
         attributes: _getSentryAttributes(error)
     );
+
+    Sentry.captureMessage(
+      message,
+      level: SentryLevel.error);
   }
 
   static Map<String, SentryLogAttribute>? _getSentryAttributes(Object? error) {
