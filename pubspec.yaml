@@ -37,6 +37,10 @@ dependencies:
   # Geofencing and location
   flutter_background_geolocation: ^4.15.0
   
+  # Mapping
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  
   # Live Activities
   live_activities: ^2.4.0+2
   

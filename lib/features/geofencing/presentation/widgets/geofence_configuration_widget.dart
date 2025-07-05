@@ -33,10 +33,10 @@ class _GeofenceConfigurationWidgetState
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _radiusController = TextEditingController();
-  final _descriptionController = TextEditingController();
 
   double? _selectedLatitude;
   double? _selectedLongitude;
+  double _selectedRadius = 100.0; // Default radius
   bool _isActive = false;
   bool _isLoading = false;
 
@@ -50,7 +50,6 @@ class _GeofenceConfigurationWidgetState
   void dispose() {
     _nameController.dispose();
     _radiusController.dispose();
-    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -58,14 +57,15 @@ class _GeofenceConfigurationWidgetState
     if (widget.geofence != null) {
       final geofence = widget.geofence!;
       _nameController.text = geofence.name;
+      _selectedRadius = geofence.radius;
       _radiusController.text = geofence.radius.toInt().toString();
-      _descriptionController.text = geofence.description ?? '';
       _selectedLatitude = geofence.latitude;
       _selectedLongitude = geofence.longitude;
       _isActive = geofence.isActive;
     } else {
       // Default values for new geofence
       _nameController.text = 'My Location';
+      _selectedRadius = 100.0;
       _radiusController.text = '100';
       _isActive = false;
     }
@@ -181,125 +181,27 @@ class _GeofenceConfigurationWidgetState
                       ),
                       const SizedBox(height: 8),
                       SizedBox(
-                        height: 400,
+                        height: 600, // Optimized height for map-only interface
                         child: LocationPicker(
                           initialLatitude: _selectedLatitude,
                           initialLongitude: _selectedLongitude,
+                          initialRadius: _selectedRadius,
                           onLocationSelected: (lat, lng) {
                             setState(() {
                               _selectedLatitude = lat;
                               _selectedLongitude = lng;
                             });
                           },
+                          onRadiusChanged: (radius) {
+                            setState(() {
+                              _selectedRadius = radius;
+                              _radiusController.text = radius.toInt().toString();
+                            });
+                          },
                           onCancel: () {
                             // Handle cancel if needed
                           },
                         ),
-                      ),
-                      if (_selectedLatitude != null &&
-                          _selectedLongitude != null) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.info.withValues(alpha: 26),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Location: ${_selectedLatitude!.toStringAsFixed(4)}, ${_selectedLongitude!.toStringAsFixed(4)}',
-                            style: AppTextStyles.caption,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Radius section
-              Card(
-                elevation: 2,
-                color: AppColors.surface,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Detection Radius',
-                        style: AppTextStyles.bodyLarge
-                            .copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _radiusController,
-                        decoration: const InputDecoration(
-                          hintText: '100',
-                          suffixText: 'meters',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a radius';
-                          }
-                          final radius = double.tryParse(value);
-                          if (radius == null || radius <= 0) {
-                            return 'Please enter a valid radius';
-                          }
-                          if (radius < 10) {
-                            return 'Radius must be at least 10 meters';
-                          }
-                          if (radius > 10000) {
-                            return 'Radius cannot exceed 10,000 meters';
-                          }
-                          return null;
-                        },
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Recommended: 50-200 meters for reliable detection',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Description section
-              Card(
-                elevation: 2,
-                color: AppColors.surface,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Description (Optional)',
-                        style: AppTextStyles.bodyLarge
-                            .copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          hintText: 'Additional notes about this location',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                        validator: (value) {
-                          if (value != null && value.length > 500) {
-                            return 'Description cannot exceed 500 characters';
-                          }
-                          return null;
-                        },
                       ),
                     ],
                   ),
@@ -361,7 +263,6 @@ class _GeofenceConfigurationWidgetState
     return _nameController.text.isNotEmpty &&
         _selectedLatitude != null &&
         _selectedLongitude != null &&
-        _radiusController.text.isNotEmpty &&
         !_isLoading;
   }
 
@@ -370,8 +271,7 @@ class _GeofenceConfigurationWidgetState
 
     setState(() => _isLoading = true);
 
-    final radius = double.parse(_radiusController.text);
-    final description = _descriptionController.text.trim();
+    final radius = _selectedRadius;
 
     if (widget.geofence != null) {
       // Update existing geofence
@@ -380,7 +280,6 @@ class _GeofenceConfigurationWidgetState
         latitude: _selectedLatitude!,
         longitude: _selectedLongitude!,
         radius: radius,
-        description: description.isEmpty ? null : description,
         isActive: _isActive,
       );
 
@@ -395,7 +294,6 @@ class _GeofenceConfigurationWidgetState
               latitude: _selectedLatitude!,
               longitude: _selectedLongitude!,
               radius: radius,
-              description: description.isEmpty ? null : description,
             )),
           );
     }
