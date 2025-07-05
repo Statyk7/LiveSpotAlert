@@ -29,10 +29,11 @@ class GeofenceConfigCard extends StatelessWidget {
             state.geofences.isNotEmpty ? state.geofences.first : null;
 
         return Card(
-          elevation: 4,
+          elevation: 2,
           color: AppColors.surface,
+          shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
             padding: const EdgeInsets.all(20),

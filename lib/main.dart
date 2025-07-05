@@ -12,8 +12,6 @@ import 'features/live_activities/presentation/controllers/live_activity_bloc.dar
 import 'features/local_notifications/presentation/controllers/local_notifications_bloc.dart';
 import 'features/local_notifications/presentation/controllers/local_notifications_event.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,7 +77,9 @@ class LiveSpotAlertApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.light,
+        surface: AppColors.surface,
       ),
+      scaffoldBackgroundColor: AppColors.background,
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -87,17 +87,20 @@ class LiveSpotAlertApp extends StatelessWidget {
       ),
       cardTheme: const CardThemeData(
         color: AppColors.surface,
-        elevation: 4,
+        elevation: 2, // Reduced elevation for minimalist look
+        shadowColor: Colors.black12, // Subtle shadow
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          borderRadius: BorderRadius.all(Radius.circular(16)), // More modern radius
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          elevation: 2, // Reduced elevation
+          shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12), // Slightly more rounded
           ),
         ),
       ),
