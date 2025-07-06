@@ -44,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
         SliverAppBar(
           title: Text(
             AppConstants.appName,
-            style: AppTextStyles.h3.copyWith(color: Colors.white),
+            style: AppTextStyles.h2.copyWith(color: Colors.white),
           ),
           backgroundColor: AppColors.primary,
           elevation: 0,
@@ -73,6 +73,20 @@ class _MainScreenState extends State<MainScreen> {
 
               // Notification Preview Section
               const NotificationPreviewCard(),
+
+              const SizedBox(height: 32),
+
+              // App version label
+              Center(
+                child: Text(
+                  'LiveSpotAlert v1.0.1',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary.withValues(alpha: 153),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
             ]),
           ),
         ),

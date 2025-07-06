@@ -204,6 +204,6 @@ class NotificationPreviewCard extends StatelessWidget {
     );
     
     final payloadString = payload.toPayloadString();
-    context.go('/notification-display?payload=${Uri.encodeComponent(payloadString)}');
+    context.push('/notification-display?payload=${Uri.encodeComponent(payloadString)}');
   }
 }

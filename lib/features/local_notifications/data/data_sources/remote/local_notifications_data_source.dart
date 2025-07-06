@@ -344,7 +344,7 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
         AppLogger.info('Attempting to navigate to notification display with payload: ${response.payload}');
         
         // Use the router directly instead of context
-        AppRouter.router.go('/notification-display?payload=${Uri.encodeComponent(response.payload!)}');
+        AppRouter.router.push('/notification-display?payload=${Uri.encodeComponent(response.payload!)}');
         
         AppLogger.info('Navigation command sent successfully');
       } catch (e) {
@@ -379,7 +379,7 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
           // Delay navigation slightly to ensure the app is fully initialized
           Future.delayed(const Duration(milliseconds: 500), () {
             try {
-              AppRouter.router.go('/notification-display?payload=${Uri.encodeComponent(response.payload!)}');
+              AppRouter.router.push('/notification-display?payload=${Uri.encodeComponent(response.payload!)}');
               AppLogger.info('Navigation from launch successful');
             } catch (e) {
               AppLogger.error('Failed to navigate from launch: $e');
