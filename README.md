@@ -1,11 +1,15 @@
 # LiveSpotAlert
 
-iOS Flutter app with Live Activities triggered by geofencing - displays configurable images like QR codes when arriving at specific locations.
+iOS Flutter app with Live Activities and Notifications triggered by geofencing - displays configurable images like QR codes when arriving at specific locations.
+This is an experiment using Claude Code to build entirely an app from scratch.
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/remstation)
 
 ## Features
 
 - 🗺️ **Geofencing**: Create location-based triggers using flutter_background_geolocation
-- 📱 **Live Activities**: Display iOS Live Activities when entering geofenced areas
+- 📱 **Local Notifications**: Display local notification when entering geofenced areas
+- 📱 **Live Activities (Future)**: Display iOS Live Activities when entering geofenced areas - Disabled because currently works only when the app is in the foreground...
 - 🖼️ **Media Management**: Configure custom images, QR codes, or content for each location
 - 🏗️ **Clean Architecture**: Built with Feature-First Clean Architecture (FFCA)
 - 🧪 **State Management**: Uses BLoC pattern for predictable state management
@@ -19,6 +23,7 @@ This project follows **Feature-First Clean Architecture** principles with:
 - **Features Layer**: Independent features with their own Clean Architecture layers
   - `geofencing/`: Location monitoring and geofence management
   - `live_activities/`: iOS Live Activities integration
+  - `local_notifications/`: Local Notifications integration
   - `media_management/`: Image storage and QR code generation
 
 ## Requirements
@@ -26,7 +31,6 @@ This project follows **Feature-First Clean Architecture** principles with:
 - Flutter 3.5.3+
 - iOS 16.1+ (for Live Activities)
 - Xcode 14+
-- iOS device for testing (Live Activities don't work on simulator)
 
 ## Setup
 
@@ -40,19 +44,6 @@ cd LiveSpotAlert
 ```bash
 flutter pub get
 ```
-
-3. Configure iOS permissions in `ios/Runner/Info.plist`:
-```xml
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>This app needs location access to trigger alerts when you arrive at specific places.</string>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>This app needs location access to create location-based alerts.</string>
-```
-
-4. Enable required capabilities in Xcode:
-   - Background Modes (Location updates)
-   - Push Notifications
-   - WidgetKit Extension (for Live Activities)
 
 ## Running the App
 
@@ -74,6 +65,7 @@ lib/
 └── features/                      # Feature modules
     ├── geofencing/                # Location monitoring
     ├── live_activities/           # iOS Live Activities
+    ├── local_notifications/       # Local Notifications
     └── media_management/          # Image and QR code handling
 ```
 
