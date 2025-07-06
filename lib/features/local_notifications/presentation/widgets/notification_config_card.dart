@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/di/get_it_extensions.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
@@ -9,7 +10,6 @@ import '../../../../shared/ui_kit/text_styles.dart';
 import '../controllers/local_notifications_bloc.dart';
 import '../controllers/local_notifications_event.dart';
 import '../controllers/local_notifications_state.dart';
-import 'notification_configuration_widget.dart';
 
 /// Card widget displaying notification configuration and controls
 class NotificationConfigCard extends StatelessWidget {
@@ -282,14 +282,7 @@ class NotificationConfigCard extends StatelessWidget {
   void _showConfiguration(BuildContext context) {
     getIt<AnalyticsService>().screen(screenName: "notification-configuration");
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => NotificationConfigurationWidget(
-          onSave: () => Navigator.of(context).pop(),
-          onCancel: () => Navigator.of(context).pop(),
-        ),
-      ),
-    );
+    context.push('/notification-config');
   }
 
   void _requestPermissions(BuildContext context) {

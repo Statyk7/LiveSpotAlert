@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/di/get_it_extensions.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
@@ -8,7 +9,6 @@ import '../controllers/geofencing_bloc.dart';
 import '../controllers/geofencing_event.dart';
 import '../controllers/geofencing_state.dart';
 import '../../domain/models/geofence.dart';
-import 'geofence_configuration_widget.dart';
 
 /// Card widget displaying geofence configuration and controls
 class GeofenceConfigCard extends StatelessWidget {
@@ -296,15 +296,7 @@ class GeofenceConfigCard extends StatelessWidget {
         ? context.read<GeofencingBloc>().state.geofences.first
         : null;
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => GeofenceConfigurationWidget(
-          geofence: geofence,
-          onSave: () => Navigator.of(context).pop(),
-          onCancel: () => Navigator.of(context).pop(),
-        ),
-      ),
-    );
+    context.push('/geofence-config', extra: {'geofence': geofence});
   }
 
   void _requestPermissions(BuildContext context) {

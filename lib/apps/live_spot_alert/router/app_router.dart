@@ -5,6 +5,8 @@ import '../presentation/screens/main_screen.dart';
 import '../presentation/screens/splash_screen.dart';
 import '../../../features/local_notifications/presentation/screens/notification_display_screen.dart';
 import '../../../features/local_notifications/domain/models/notification_payload.dart';
+import '../../../features/local_notifications/presentation/widgets/notification_configuration_widget.dart';
+import '../../../features/geofencing/presentation/widgets/geofence_configuration_widget.dart';
 
 
 class AppRouter {
@@ -40,6 +42,28 @@ class AppRouter {
           
           debugPrint('AppRouter: Valid payload parsed, showing NotificationDisplayScreen');
           return NotificationDisplayScreen(payload: payload);
+        },
+      ),
+      GoRoute(
+        path: '/notification-config',
+        name: 'notification-config',
+        builder: (context, state) {
+          return NotificationConfigurationWidget(
+            onSave: () => context.pop(),
+            onCancel: () => context.pop(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/geofence-config',
+        name: 'geofence-config',
+        builder: (context, state) {
+          final geofenceData = state.extra as Map<String, dynamic>?;
+          return GeofenceConfigurationWidget(
+            geofence: geofenceData?['geofence'],
+            onSave: () => context.pop(),
+            onCancel: () => context.pop(),
+          );
         },
       ),
     ],
