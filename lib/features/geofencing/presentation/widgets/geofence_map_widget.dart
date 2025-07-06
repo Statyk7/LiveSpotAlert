@@ -191,7 +191,7 @@ class _GeofenceMapWidgetState extends State<GeofenceMapWidget> {
                 // Tile layer
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.live_spot_alert',
+                  userAgentPackageName: 'net.remstation.livespotalert',
                   maxZoom: 18,
                 ),
 

@@ -21,6 +21,7 @@ abstract class LocalNotificationsService {
     required String customTitle,
     bool isEntry = true,
     String? imagePath,
+    String? imageBase64Data,
   });
 
   /// Dismiss a geofence notification

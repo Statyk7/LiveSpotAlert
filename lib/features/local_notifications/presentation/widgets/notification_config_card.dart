@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/di/get_it_extensions.dart';
@@ -185,7 +186,7 @@ class NotificationConfigCard extends StatelessWidget {
             Icon(Icons.image, color: AppColors.info, size: 18),
             const SizedBox(width: 8),
             Expanded(
-              child: config.imagePath != null
+              child: config.hasImageData
                   ? Row(
                       children: [
                         Text(
@@ -201,49 +202,7 @@ class NotificationConfigCard extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(3),
-                            child: FutureBuilder<String?>(
-                              future: _getImagePath(context, config.imagePath!),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return Container(
-                                    color: AppColors.surface,
-                                    child: const Center(
-                                      child: SizedBox(
-                                        width: 12,
-                                        height: 12,
-                                        child: CircularProgressIndicator(strokeWidth: 1),
-                                      ),
-                                    ),
-                                  );
-                                }
-                                
-                                if (snapshot.hasData && snapshot.data != null) {
-                                  return Image.file(
-                                    File(snapshot.data!),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: AppColors.surface,
-                                        child: Icon(
-                                          Icons.broken_image,
-                                          color: AppColors.textSecondary,
-                                          size: 16,
-                                        ),
-                                      );
-                                    },
-                                  );
-                                }
-                                
-                                return Container(
-                                  color: AppColors.surface,
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    color: AppColors.textSecondary,
-                                    size: 16,
-                                  ),
-                                );
-                              },
-                            ),
+                            child: _buildImagePreview(context, config),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -342,6 +301,85 @@ class NotificationConfigCard extends StatelessWidget {
   void _showTestNotification(BuildContext context) {
     getIt<AnalyticsService>().event(eventName: "test_notification_1");
     context.read<LocalNotificationsBloc>().add(const ShowTestNotification());
+  }
+
+  Widget _buildImagePreview(BuildContext context, config) {
+    // Prefer Base64 data over legacy file path
+    if (config.imageBase64Data != null) {
+      return _buildBase64ImagePreview(context, config.imageBase64Data!);
+    } else if (config.imagePath != null) {
+      return _buildFileImagePreview(context, config.imagePath!);
+    } else {
+      return _buildErrorImagePreview();
+    }
+  }
+
+  Widget _buildBase64ImagePreview(BuildContext context, String base64Data) {
+    try {
+      final bloc = context.read<LocalNotificationsBloc>();
+      final imageService = bloc.imageService;
+      
+      final decodeResult = imageService.decodeBase64Image(base64Data);
+      return decodeResult.fold(
+        (failure) {
+          return _buildErrorImagePreview();
+        },
+        (bytes) {
+          return Image.memory(
+            Uint8List.fromList(bytes),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildErrorImagePreview();
+            },
+          );
+        },
+      );
+    } catch (e) {
+      return _buildErrorImagePreview();
+    }
+  }
+
+  Widget _buildFileImagePreview(BuildContext context, String fileName) {
+    return FutureBuilder<String?>(
+      future: _getImagePath(context, fileName),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: AppColors.surface,
+            child: const Center(
+              child: SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(strokeWidth: 1),
+              ),
+            ),
+          );
+        }
+        
+        if (snapshot.hasData && snapshot.data != null) {
+          return Image.file(
+            File(snapshot.data!),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildErrorImagePreview();
+            },
+          );
+        }
+        
+        return _buildErrorImagePreview();
+      },
+    );
+  }
+
+  Widget _buildErrorImagePreview() {
+    return Container(
+      color: AppColors.surface,
+      child: Icon(
+        Icons.broken_image,
+        color: AppColors.textSecondary,
+        size: 16,
+      ),
+    );
   }
 
   Future<String?> _getImagePath(BuildContext context, String fileName) async {

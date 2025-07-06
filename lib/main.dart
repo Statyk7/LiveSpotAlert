@@ -14,7 +14,7 @@ import 'features/local_notifications/presentation/controllers/local_notification
 
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  SentryWidgetsFlutterBinding.ensureInitialized();
 
   AppLogger.info(
       'Starting ${AppConstants.appName} v${AppConstants.appVersion}');

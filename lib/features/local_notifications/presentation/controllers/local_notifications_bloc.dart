@@ -1,7 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path/path.dart' as path;
+import 'package:dartz/dartz.dart';
 import '../../../../shared/base_domain/use_case.dart';
+import '../../../../shared/base_domain/failures/failure.dart';
 import '../../../../shared/utils/logger.dart';
+import '../../../../shared/services/user_preferences_service.dart';
+import '../../domain/models/notification_config.dart';
 import '../../domain/use_cases/load_notification_config_use_case.dart';
 import '../../domain/use_cases/save_notification_config_use_case.dart';
 import '../../domain/use_cases/request_notification_permissions_use_case.dart';
@@ -19,6 +22,7 @@ class LocalNotificationsBloc
     required this.requestNotificationPermissionsUseCase,
     required this.notificationsService,
     required this.imageService,
+    required this.userPreferencesService,
   }) : super(const LocalNotificationsState()) {
     on<LoadNotificationConfiguration>(_onLoadNotificationConfiguration);
     on<SaveNotificationConfiguration>(_onSaveNotificationConfiguration);
@@ -38,6 +42,7 @@ class LocalNotificationsBloc
       requestNotificationPermissionsUseCase;
   final LocalNotificationsService notificationsService;
   final NotificationImageService imageService;
+  final UserPreferencesService userPreferencesService;
 
   Future<void> _onLoadNotificationConfiguration(
     LoadNotificationConfiguration event,
@@ -68,14 +73,36 @@ class LocalNotificationsBloc
         (config) async {
           final hasPermissions = permissionsResult.getOrElse(() => false);
 
+          // Handle migration from file-based to Base64 storage
+          var finalConfig = config;
+          if (config.imagePath != null && config.imageBase64Data == null) {
+            AppLogger.info('Migrating legacy image configuration to Base64');
+            final migrationResult = await _migrateImagePathToBase64(config);
+            migrationResult.fold(
+              (failure) {
+                AppLogger.warning('Failed to migrate image: ${failure.message}');
+                // Continue with original config
+              },
+              (migratedConfig) {
+                finalConfig = migratedConfig;
+                AppLogger.info('Successfully migrated image to Base64 storage');
+                // Save the migrated configuration
+                add(SaveNotificationConfiguration(migratedConfig));
+              },
+            );
+          }
+
           emit(state.copyWith(
             status: NotificationStatus.loaded,
-            config: config,
+            config: finalConfig,
             hasPermissions: hasPermissions,
           ));
 
           AppLogger.info(
-              'Notification configuration loaded: ${config.toString()}');
+              'Notification configuration loaded: ${finalConfig.toString()}');
+
+          // Clean up temporary notification files (run in background)
+          _cleanupTempNotificationFiles();
         },
       );
     } catch (e, stackTrace) {
@@ -288,45 +315,49 @@ class LocalNotificationsBloc
             ));
           }
         },
-        (imagePath) async {
-          AppLogger.info('Image picked: $imagePath');
+        (imageBase64Data) async {
+          AppLogger.info('Image picked and converted to Base64 (${imageBase64Data.length} characters)');
 
-          // Save to persistent storage
-          final saveResult = await imageService.saveImageToPersistentStorage(imagePath);
+          // Store in user preferences
+          final saveResult = await userPreferencesService.setNotificationImageBase64(imageBase64Data);
 
           await saveResult.fold(
             (failure) async {
-              AppLogger.error('Failed to save image: ${failure.message}');
+              AppLogger.error('Failed to save Base64 image data: ${failure.message}');
               emit(state.copyWith(
                 status: NotificationStatus.error,
                 errorMessage: failure.message,
               ));
             },
-            (savedPath) async {
-              AppLogger.info('Image saved to: $savedPath');
+            (_) async {
+              AppLogger.info('Image Base64 data saved to user preferences');
 
-              // Delete old image if it exists
-              final currentImageFileName = state.effectiveConfig.imagePath;
-              if (currentImageFileName != null) {
-                final currentImagePathResult = await imageService.getImagePath(currentImageFileName);
-                await currentImagePathResult.fold(
-                  (failure) async {
-                    AppLogger.warning('Could not find old image to delete: ${failure.message}');
-                  },
-                  (currentImagePath) async {
-                    await imageService.deleteImage(currentImagePath);
-                  },
-                );
+              // Clear any old file-based image data
+              final currentImagePath = state.effectiveConfig.imagePath;
+              if (currentImagePath != null) {
+                // Try to delete old file if it exists
+                if (currentImagePath.contains('/')) {
+                  await imageService.deleteImage(currentImagePath);
+                  AppLogger.info('Deleted old image file: $currentImagePath');
+                } else {
+                  // Legacy config with filename only - try to resolve it
+                  final currentImagePathResult = await imageService.getImagePath(currentImagePath);
+                  await currentImagePathResult.fold(
+                    (failure) async {
+                      AppLogger.warning('Could not find old image to delete: ${failure.message}');
+                    },
+                    (resolvedPath) async {
+                      await imageService.deleteImage(resolvedPath);
+                      AppLogger.info('Deleted old image file (resolved): $resolvedPath');
+                    },
+                  );
+                }
               }
 
-              // Extract filename from saved path to store in config
-              final fileName = path.basename(savedPath);
-              AppLogger.info('Extracted filename from saved path: $fileName');
-              AppLogger.info('Full saved path was: $savedPath');
-              
-              // Update configuration with filename only (not full path)
+              // Update configuration with Base64 data and clear legacy path
               final updatedConfig = state.effectiveConfig.copyWith(
-                imagePath: fileName,
+                imageBase64Data: imageBase64Data,
+                clearImagePath: true, // Clear legacy file path
               );
 
               add(SaveNotificationConfiguration(updatedConfig));
@@ -348,28 +379,40 @@ class LocalNotificationsBloc
     Emitter<LocalNotificationsState> emit,
   ) async {
     try {
+      // Clear Base64 data from user preferences
+      final clearResult = await userPreferencesService.clearNotificationImageBase64();
+      clearResult.fold(
+        (failure) {
+          AppLogger.warning('Failed to clear Base64 image data: ${failure.message}');
+        },
+        (_) {
+          AppLogger.info('Base64 image data cleared from user preferences');
+        },
+      );
+
+      // Also clean up any legacy file
       final currentImageFileName = state.effectiveConfig.imagePath;
-      
       if (currentImageFileName != null) {
         // Get full path from filename and delete the image file
         final currentImagePathResult = await imageService.getImagePath(currentImageFileName);
         await currentImagePathResult.fold(
           (failure) async {
-            AppLogger.warning('Could not find image to delete: ${failure.message}');
+            AppLogger.warning('Could not find legacy image to delete: ${failure.message}');
           },
           (currentImagePath) async {
             final deleteResult = await imageService.deleteImage(currentImagePath);
             deleteResult.fold(
-              (failure) => AppLogger.warning('Failed to delete image file: ${failure.message}'),
-              (_) => AppLogger.info('Image file deleted successfully'),
+              (failure) => AppLogger.warning('Failed to delete legacy image file: ${failure.message}'),
+              (_) => AppLogger.info('Legacy image file deleted successfully'),
             );
           },
         );
       }
 
-      // Update configuration to remove image path
+      // Update configuration to remove both image path and Base64 data
       final updatedConfig = state.effectiveConfig.copyWith(
         clearImagePath: true,
+        clearImageBase64Data: true,
       );
 
       add(SaveNotificationConfiguration(updatedConfig));
@@ -379,6 +422,85 @@ class LocalNotificationsBloc
         status: NotificationStatus.error,
         errorMessage: 'Failed to remove image: $e',
       ));
+    }
+  }
+
+  /// Migrate legacy image path to Base64 storage
+  Future<Either<Failure, NotificationConfig>> _migrateImagePathToBase64(NotificationConfig config) async {
+    try {
+      if (config.imagePath == null) {
+        return Right(config);
+      }
+
+      AppLogger.info('Migrating image path to Base64: ${config.imagePath}');
+
+      // Get the full path to the image file
+      final imagePathResult = await imageService.getImagePath(config.imagePath!);
+      return await imagePathResult.fold(
+        (failure) async {
+          AppLogger.error('Failed to resolve image path for migration: ${failure.message}');
+          return Left(failure);
+        },
+        (fullImagePath) async {
+          // Convert file to Base64
+          final base64Result = await imageService.convertFileToBase64(fullImagePath);
+          return await base64Result.fold(
+            (failure) async {
+              AppLogger.error('Failed to convert image to Base64: ${failure.message}');
+              return Left(failure);
+            },
+            (base64Data) async {
+              // Store in user preferences
+              final saveResult = await userPreferencesService.setNotificationImageBase64(base64Data);
+              return saveResult.fold(
+                (failure) {
+                  AppLogger.error('Failed to save Base64 data during migration: ${failure.message}');
+                  return Left(failure);
+                },
+                (_) {
+                  AppLogger.info('Successfully migrated image to Base64 storage');
+                  
+                  // Create updated config with Base64 data and cleared legacy path
+                  final updatedConfig = config.copyWith(
+                    imageBase64Data: base64Data,
+                    clearImagePath: true,
+                  );
+                  
+                  // Clean up the old file
+                  imageService.deleteImage(fullImagePath);
+                  
+                  return Right(updatedConfig);
+                },
+              );
+            },
+          );
+        },
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error('Error during image migration', e, stackTrace);
+      return Left(CacheFailure(message: 'Migration failed: $e'));
+    }
+  }
+
+  /// Clean up temporary notification files in the background
+  void _cleanupTempNotificationFiles() async {
+    try {
+      if (imageService is NotificationImageServiceImpl) {
+        final serviceImpl = imageService as NotificationImageServiceImpl;
+        final result = await serviceImpl.cleanupTempNotificationFiles();
+        result.fold(
+          (failure) {
+            AppLogger.warning('Failed to cleanup temporary notification files: ${failure.message}');
+          },
+          (deletedCount) {
+            if (deletedCount > 0) {
+              AppLogger.info('Cleaned up $deletedCount temporary notification files');
+            }
+          },
+        );
+      }
+    } catch (e) {
+      AppLogger.warning('Error during temporary file cleanup: $e');
     }
   }
 }

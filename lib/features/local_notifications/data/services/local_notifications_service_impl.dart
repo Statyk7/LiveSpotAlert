@@ -75,6 +75,7 @@ class LocalNotificationsServiceImpl implements LocalNotificationsService {
     required String customTitle,
     bool isEntry = true,
     String? imagePath,
+    String? imageBase64Data,
   }) async {
     getIt<AnalyticsService>().event(
         eventName: "show_notification",
@@ -127,13 +128,16 @@ class LocalNotificationsServiceImpl implements LocalNotificationsService {
           ? '${config.title.isNotEmpty ? '${config.title} @' : 'Arrived at'} $geofenceName'
           : 'Left $geofenceName';
 
-      // Use provided imagePath or fall back to config imagePath
+      // Use provided image data or fall back to config data
       final notificationImagePath = imagePath ?? config.imagePath;
+      final notificationImageBase64Data = imageBase64Data ?? config.imageBase64Data;
       
-      if (notificationImagePath != null) {
-        AppLogger.info('Using notification image path: $notificationImagePath');
+      if (notificationImageBase64Data != null) {
+        AppLogger.info('Using notification image Base64 data (${notificationImageBase64Data.length} characters)');
+      } else if (notificationImagePath != null) {
+        AppLogger.info('Using legacy notification image path: $notificationImagePath');
       } else {
-        AppLogger.info('No image path configured for notification');
+        AppLogger.info('No image configured for notification');
       }
 
       // Show the notification
@@ -143,6 +147,7 @@ class LocalNotificationsServiceImpl implements LocalNotificationsService {
         body: body,
         payload: 'geofence_${isEntry ? 'entry' : 'exit'}_$geofenceId',
         imagePath: notificationImagePath,
+        imageBase64Data: notificationImageBase64Data,
       );
 
       if (showResult.isRight()) {

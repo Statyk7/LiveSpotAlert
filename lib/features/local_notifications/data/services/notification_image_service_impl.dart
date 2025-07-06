@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_app_group_directory/flutter_app_group_directory.dart';
@@ -62,8 +63,15 @@ class NotificationImageServiceImpl implements NotificationImageService {
         );
       }
       
-      AppLogger.info('Image selected successfully: ${pickedFile.path}');
-      return Right(pickedFile.path);
+      // Convert picked file to Base64
+      final base64Result = await convertFileToBase64(pickedFile.path);
+      return base64Result.fold(
+        (failure) => Left(failure),
+        (base64Data) {
+          AppLogger.info('Image selected and converted to Base64 successfully');
+          return Right(base64Data);
+        },
+      );
       
     } catch (e, stackTrace) {
       AppLogger.error('Failed to pick image from gallery', e, stackTrace);
@@ -72,104 +80,80 @@ class NotificationImageServiceImpl implements NotificationImageService {
   }
 
   @override
-  Future<Either<Failure, String>> saveImageToPersistentStorage(String sourcePath) async {
+  Either<Failure, List<int>> decodeBase64Image(String base64Data) {
     try {
-      AppLogger.info('Saving image to persistent storage: $sourcePath');
+      final List<int> bytes = base64Decode(base64Data);
+      AppLogger.info('Successfully decoded Base64 image data (${bytes.length} bytes)');
+      return Right(bytes);
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to decode Base64 image data', e, stackTrace);
+      return Left(MediaFailure(message: 'Failed to decode image data: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> convertFileToBase64(String filePath) async {
+    try {
+      AppLogger.info('Converting file to Base64: $filePath');
       
-      // Try app group directory first (for notifications)
-      Directory? primaryDir;
-      String primaryDirType = 'app_group';
-      
-      final Directory? appGroupDir = await FlutterAppGroupDirectory.getAppGroupDirectory(_appGroupId);
-      if (appGroupDir != null) {
-        primaryDir = Directory(path.join(appGroupDir.path, _notificationImagesDir));
-        AppLogger.info('Using app group directory: ${primaryDir.path}');
-      } else {
-        AppLogger.warning('App group directory not available, using documents directory');
-        // Fallback to documents directory
-        final Directory documentsDir = await getApplicationDocumentsDirectory();
-        primaryDir = Directory(path.join(documentsDir.path, _notificationImagesDir));
-        primaryDirType = 'documents';
-        AppLogger.info('Using documents directory: ${primaryDir.path}');
+      final File imageFile = File(filePath);
+      if (!await imageFile.exists()) {
+        return const Left(MediaFailure(message: 'Image file not found'));
       }
       
-      // Create directory if it doesn't exist
-      if (!await primaryDir.exists()) {
-        await primaryDir.create(recursive: true);
-        AppLogger.info('Created notification images directory in $primaryDirType');
-      }
+      final List<int> imageBytes = await imageFile.readAsBytes();
+      final String base64Data = base64Encode(imageBytes);
       
-      // Generate persistent filename (using hash for consistency)
-      final String extension = path.extension(sourcePath);
-      final String baseFileName = path.basenameWithoutExtension(sourcePath);
-      // Use source file hash to ensure same file gets same name
-      final String fileName = 'notification_persistent_${baseFileName.hashCode.abs()}$extension';
-      final String destinationPath = path.join(primaryDir.path, fileName);
-      
-      AppLogger.info('Generated filename: $fileName');
-      AppLogger.info('Full destination path: $destinationPath');
-      
-      // Copy the file (check if it already exists first)
-      final File sourceFile = File(sourcePath);
-      final File destinationFile = File(destinationPath);
-      
-      // Only copy if destination doesn't exist or is different
-      if (!await destinationFile.exists()) {
-        await sourceFile.copy(destinationPath);
-        AppLogger.info('Copied new image to: $destinationPath');
-      } else {
-        AppLogger.info('Image already exists at: $destinationPath');
-      }
-      
-      // Create backup copies for iOS notification persistence with proper extensions
-      final String fileNameWithoutExt = path.basenameWithoutExtension(destinationPath);
-      final String directory = path.dirname(destinationPath);
-      final String backupPath1 = path.join(directory, '${fileNameWithoutExt}_backup1$extension');
-      final String backupPath2 = path.join(directory, '${fileNameWithoutExt}_backup2$extension');
-      
-      if (!await File(backupPath1).exists()) {
-        await sourceFile.copy(backupPath1);
-        AppLogger.info('Created backup copy 1: $backupPath1');
-      }
-      
-      if (!await File(backupPath2).exists()) {
-        await sourceFile.copy(backupPath2);
-        AppLogger.info('Created backup copy 2: $backupPath2');
-      }
-      
-      // Also save to documents directory as fallback (if we used app group as primary)
-      if (primaryDirType == 'app_group') {
-        try {
-          final Directory documentsDir = await getApplicationDocumentsDirectory();
-          final Directory fallbackDir = Directory(path.join(documentsDir.path, _notificationImagesDir));
-          
-          if (!await fallbackDir.exists()) {
-            await fallbackDir.create(recursive: true);
-          }
-          
-          final String fallbackPath = path.join(fallbackDir.path, fileName);
-          if (!await File(fallbackPath).exists()) {
-            await sourceFile.copy(fallbackPath);
-            AppLogger.info('Created fallback copy in documents: $fallbackPath');
-          }
-        } catch (e) {
-          AppLogger.warning('Failed to create fallback copy: $e');
-          // Continue anyway, this is just a backup
-        }
-      }
-      
-      // Verify the primary file was saved
-      final bool fileExists = await destinationFile.exists();
-      final int fileSize = fileExists ? await destinationFile.length() : 0;
-      
-      AppLogger.info('Image saved successfully to: $destinationPath');
-      AppLogger.info('Saved file exists: $fileExists, size: ${fileSize}bytes');
-      
-      return Right(destinationFile.path);
+      AppLogger.info('Image converted to Base64 successfully (${imageBytes.length} bytes -> ${base64Data.length} characters)');
+      return Right(base64Data);
       
     } catch (e, stackTrace) {
-      AppLogger.error('Failed to save image to persistent storage', e, stackTrace);
-      return Left(MediaFailure(message: 'Failed to save image: $e'));
+      AppLogger.error('Failed to convert file to Base64', e, stackTrace);
+      return Left(MediaFailure(message: 'Failed to convert image to Base64: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> createTempFileFromBase64(String base64Data) async {
+    try {
+      AppLogger.info('Creating temporary file from Base64 data for notifications');
+      
+      // Decode Base64 data
+      final decodeResult = decodeBase64Image(base64Data);
+      if (decodeResult.isLeft()) {
+        return decodeResult.fold(
+          (failure) => Left(failure),
+          (_) => throw Exception('Unexpected right value'),
+        );
+      }
+      
+      final List<int> imageBytes = decodeResult.getOrElse(() => []);
+      
+      // Get application documents directory for temporary notification images
+      final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
+      final Directory tempNotificationDir = Directory(path.join(appDocumentsDir.path, 'temp_notifications'));
+      
+      // Create directory if it doesn't exist
+      if (!await tempNotificationDir.exists()) {
+        await tempNotificationDir.create(recursive: true);
+        AppLogger.info('Created temporary notifications directory: ${tempNotificationDir.path}');
+      }
+      
+      // Generate unique filename with timestamp
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String fileName = 'notification_temp_$timestamp.jpg';
+      final String tempFilePath = path.join(tempNotificationDir.path, fileName);
+      
+      // Write bytes to temporary file
+      final File tempFile = File(tempFilePath);
+      await tempFile.writeAsBytes(imageBytes);
+      
+      AppLogger.info('Temporary notification image created: $tempFilePath (${imageBytes.length} bytes)');
+      return Right(tempFilePath);
+      
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to create temporary file from Base64', e, stackTrace);
+      return Left(MediaFailure(message: 'Failed to create temporary file: $e'));
     }
   }
 
@@ -206,9 +190,19 @@ class NotificationImageServiceImpl implements NotificationImageService {
   }
 
   @override
-  Future<Either<Failure, String>> getImagePath(String fileName) async {
+  Future<Either<Failure, String>> getImagePath(String imagePathOrFileName) async {
     try {
-      AppLogger.info('Getting image path for fileName: $fileName');
+      AppLogger.info('Getting image path for: $imagePathOrFileName');
+      
+      // If it's already a full path and the file exists, return it
+      if (imagePathOrFileName.contains('/')) {
+        final File imageFile = File(imagePathOrFileName);
+        if (await imageFile.exists()) {
+          AppLogger.info('Image found at full path: $imagePathOrFileName');
+          return Right(imagePathOrFileName);
+        }
+        AppLogger.warning('Full path provided but file does not exist: $imagePathOrFileName');
+      }
       
       // Get the app group directory (shared with notification service)
       final Directory? appGroupDir = await FlutterAppGroupDirectory.getAppGroupDirectory(_appGroupId);
@@ -217,28 +211,21 @@ class NotificationImageServiceImpl implements NotificationImageService {
         return const Left(MediaFailure(message: 'Failed to access app group directory'));
       }
       
-      AppLogger.info('App group directory for retrieval: ${appGroupDir.path}');
+      // Extract filename from path if a full path was provided
+      final String fileName = imagePathOrFileName.contains('/') 
+          ? path.basename(imagePathOrFileName) 
+          : imagePathOrFileName;
       
-      // Debug: List all files in the notification images directory
       final Directory notificationImagesDir = Directory(
         path.join(appGroupDir.path, _notificationImagesDir),
       );
       
-      if (await notificationImagesDir.exists()) {
-        try {
-          final List<FileSystemEntity> files = notificationImagesDir.listSync();
-          AppLogger.info('Files in notification images directory:');
-          for (final file in files) {
-            AppLogger.info('  - ${path.basename(file.path)}');
-          }
-        } catch (e) {
-          AppLogger.warning('Failed to list directory contents: $e');
-        }
-      } else {
+      if (!await notificationImagesDir.exists()) {
         AppLogger.warning('Notification images directory does not exist');
+        return const Left(MediaFailure(message: 'Notification images directory not found'));
       }
       
-      final String imagePath = path.join(appGroupDir.path, _notificationImagesDir, fileName);
+      final String imagePath = path.join(notificationImagesDir.path, fileName);
       AppLogger.info('Constructed image path: $imagePath');
       
       final bool exists = await imageExists(imagePath);
@@ -247,32 +234,71 @@ class NotificationImageServiceImpl implements NotificationImageService {
       if (exists) {
         return Right(imagePath);
       } else {
-        AppLogger.warning('Image not found in app group directory, checking fallback locations');
+        AppLogger.error('Image not found: $imagePath');
         
-        // Fallback: Try documents directory
+        // Debug: List all files in the directory
         try {
-          final Directory documentsDir = await getApplicationDocumentsDirectory();
-          final String fallbackImagePath = path.join(documentsDir.path, _notificationImagesDir, fileName);
-          AppLogger.info('Checking fallback path: $fallbackImagePath');
-          
-          final bool fallbackExists = await imageExists(fallbackImagePath);
-          AppLogger.info('Fallback image exists: $fallbackExists');
-          
-          if (fallbackExists) {
-            AppLogger.info('Image found in documents directory fallback');
-            return Right(fallbackImagePath);
+          final List<FileSystemEntity> files = notificationImagesDir.listSync();
+          AppLogger.info('Available files in notification images directory:');
+          for (final file in files) {
+            AppLogger.info('  - ${path.basename(file.path)}');
           }
-          
-          AppLogger.error('Image not found in any location');
-          return const Left(MediaFailure(message: 'Image file not found in app group or documents directory'));
         } catch (e) {
-          AppLogger.error('Fallback check failed: $e');
-          return const Left(MediaFailure(message: 'Image file not found'));
+          AppLogger.warning('Failed to list directory contents: $e');
         }
+        
+        return const Left(MediaFailure(message: 'Image file not found'));
       }
     } catch (e, stackTrace) {
       AppLogger.error('Failed to get image path', e, stackTrace);
       return Left(MediaFailure(message: 'Failed to get image path: $e'));
+    }
+  }
+
+  /// Clean up temporary notification files
+  Future<Either<Failure, int>> cleanupTempNotificationFiles() async {
+    try {
+      AppLogger.info('Starting cleanup of temporary notification files');
+      
+      final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
+      final Directory tempNotificationDir = Directory(path.join(appDocumentsDir.path, 'temp_notifications'));
+      
+      if (!await tempNotificationDir.exists()) {
+        AppLogger.info('Temporary notifications directory does not exist - nothing to clean up');
+        return const Right(0);
+      }
+      
+      final List<FileSystemEntity> files = tempNotificationDir.listSync();
+      int deletedCount = 0;
+      
+      for (final file in files) {
+        if (file is File) {
+          final String fileName = path.basename(file.path);
+          
+          // Skip if this file was created recently (within last hour)
+          final FileStat fileStat = await file.stat();
+          final Duration timeSinceCreation = DateTime.now().difference(fileStat.modified);
+          if (timeSinceCreation.inHours < 1) {
+            AppLogger.info('Skipping recently created temporary file: $fileName');
+            continue;
+          }
+          
+          try {
+            await file.delete();
+            deletedCount++;
+            AppLogger.info('Deleted temporary notification file: $fileName');
+          } catch (e) {
+            AppLogger.warning('Failed to delete temporary file $fileName: $e');
+          }
+        }
+      }
+      
+      AppLogger.info('Temporary file cleanup completed - deleted $deletedCount files');
+      return Right(deletedCount);
+      
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to cleanup temporary notification files', e, stackTrace);
+      return Left(MediaFailure(message: 'Failed to cleanup temporary files: $e'));
     }
   }
 

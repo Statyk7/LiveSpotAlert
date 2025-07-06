@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -108,57 +109,27 @@ class NotificationDisplayScreen extends StatelessWidget {
 
   /// Build the notification image section
   Widget _buildNotificationImage(BuildContext context, LocalNotificationsState state) {
-    final imageFileName = state.effectiveConfig.imagePath;
+    final config = state.effectiveConfig;
     
-    debugPrint('NotificationDisplayScreen: Image filename from config: $imageFileName');
+    debugPrint('NotificationDisplayScreen: Config has image data: ${config.hasImageData}');
+    debugPrint('NotificationDisplayScreen: Base64 data: ${config.imageBase64Data != null ? "present (${config.imageBase64Data!.length} chars)" : "null"}');
+    debugPrint('NotificationDisplayScreen: Legacy image path: ${config.imagePath}');
     
-    if (imageFileName == null) {
+    if (!config.hasImageData) {
       debugPrint('NotificationDisplayScreen: No image configured, showing placeholder');
       return _buildPlaceholderImage();
     }
     
-    return FutureBuilder<String?>(
-      future: _getImagePath(context, imageFileName),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        
-        if (snapshot.hasData && snapshot.data != null) {
-          debugPrint('NotificationDisplayScreen: Attempting to load image from: ${snapshot.data}');
-          final imageFile = File(snapshot.data!);
-          return FutureBuilder<bool>(
-            future: imageFile.exists(),
-            builder: (context, existsSnapshot) {
-              if (existsSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              
-              if (existsSnapshot.hasData && existsSnapshot.data == true) {
-                debugPrint('NotificationDisplayScreen: Image file exists, displaying');
-                return Image.file(
-                  imageFile,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    debugPrint('NotificationDisplayScreen: Error loading image: $error');
-                    return _buildPlaceholderImage();
-                  },
-                );
-              } else {
-                debugPrint('NotificationDisplayScreen: Image file does not exist at path: ${snapshot.data}');
-                return _buildPlaceholderImage();
-              }
-            },
-          );
-        }
-        
-        return _buildPlaceholderImage();
-      },
-    );
+    // Prefer Base64 data over legacy file path
+    if (config.imageBase64Data != null) {
+      debugPrint('NotificationDisplayScreen: Using Base64 image data');
+      return _buildBase64Image(context, config.imageBase64Data!);
+    } else if (config.imagePath != null) {
+      debugPrint('NotificationDisplayScreen: Using legacy image path: ${config.imagePath}');
+      return _buildLegacyFileImage(context, config.imagePath!);
+    }
+    
+    return _buildPlaceholderImage();
   }
 
   /// Build placeholder image when no image is available
@@ -224,7 +195,83 @@ class NotificationDisplayScreen extends StatelessWidget {
     );
   }
 
-  /// Helper method to get image path from filename
+  /// Build image from Base64 data
+  Widget _buildBase64Image(BuildContext context, String base64Data) {
+    try {
+      final bloc = context.read<LocalNotificationsBloc>();
+      final imageService = bloc.imageService;
+      
+      final decodeResult = imageService.decodeBase64Image(base64Data);
+      return decodeResult.fold(
+        (failure) {
+          debugPrint('NotificationDisplayScreen: Failed to decode Base64 image: ${failure.message}');
+          return _buildPlaceholderImage();
+        },
+        (bytes) {
+          debugPrint('NotificationDisplayScreen: Successfully decoded Base64 image (${bytes.length} bytes)');
+          return Image.memory(
+            Uint8List.fromList(bytes),
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              debugPrint('NotificationDisplayScreen: Error displaying Base64 image: $error');
+              return _buildPlaceholderImage();
+            },
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('NotificationDisplayScreen: Exception with Base64 image: $e');
+      return _buildPlaceholderImage();
+    }
+  }
+
+  /// Build image from legacy file path
+  Widget _buildLegacyFileImage(BuildContext context, String imageFileName) {
+    return FutureBuilder<String?>(
+      future: _getImagePath(context, imageFileName),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        
+        if (snapshot.hasData && snapshot.data != null) {
+          debugPrint('NotificationDisplayScreen: Attempting to load legacy image from: ${snapshot.data}');
+          final imageFile = File(snapshot.data!);
+          return FutureBuilder<bool>(
+            future: imageFile.exists(),
+            builder: (context, existsSnapshot) {
+              if (existsSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              
+              if (existsSnapshot.hasData && existsSnapshot.data == true) {
+                debugPrint('NotificationDisplayScreen: Legacy image file exists, displaying');
+                return Image.file(
+                  imageFile,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    debugPrint('NotificationDisplayScreen: Error loading legacy image: $error');
+                    return _buildPlaceholderImage();
+                  },
+                );
+              } else {
+                debugPrint('NotificationDisplayScreen: Legacy image file does not exist at path: ${snapshot.data}');
+                return _buildPlaceholderImage();
+              }
+            },
+          );
+        }
+        
+        return _buildPlaceholderImage();
+      },
+    );
+  }
+
+  /// Helper method to get image path from filename (legacy support)
   Future<String?> _getImagePath(BuildContext context, String fileName) async {
     try {
       final bloc = context.read<LocalNotificationsBloc>();

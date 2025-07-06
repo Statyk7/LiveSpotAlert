@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import '../../../../../shared/base_domain/failures/failure.dart';
 import '../../../../../shared/utils/logger.dart';
 import '../../../../../apps/live_spot_alert/router/app_router.dart';
+import '../../services/notification_image_service_impl.dart';
 
 /// Data source for managing local notifications using flutter_local_notifications
 abstract class LocalNotificationsDataSource {
@@ -19,6 +20,7 @@ abstract class LocalNotificationsDataSource {
     required String body,
     String? payload,
     String? imagePath,
+    String? imageBase64Data,
   });
 
   /// Cancel a specific notification
@@ -35,9 +37,11 @@ abstract class LocalNotificationsDataSource {
 }
 
 class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
-  LocalNotificationsDataSourceImpl();
+  LocalNotificationsDataSourceImpl({NotificationImageServiceImpl? imageService})
+      : _imageService = imageService;
 
   late final FlutterLocalNotificationsPlugin _notificationsPlugin;
+  final NotificationImageServiceImpl? _imageService;
   bool _isInitialized = false;
 
   @override
@@ -101,6 +105,7 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
     required String body,
     String? payload,
     String? imagePath,
+    String? imageBase64Data,
   }) async {
     try {
       if (!_isInitialized) {
@@ -118,63 +123,86 @@ class LocalNotificationsDataSourceImpl implements LocalNotificationsDataSource {
         interruptionLevel: InterruptionLevel.active,
       );
 
-      // Add image attachment if provided and file exists
-      if (imagePath != null && imagePath.isNotEmpty) {
-        AppLogger.info('Attempting to attach image: $imagePath');
+      // Handle image attachment - prefer Base64 data over legacy file path
+      String? imageAttachmentPath;
+      
+      if (imageBase64Data != null && imageBase64Data.isNotEmpty && _imageService != null) {
+        AppLogger.info('Creating temporary file from Base64 image data for notification');
         
-        // Use helper method to find valid image path
-        final String? validImagePath = await _findValidImagePath(imagePath);
+        try {
+          final tempFileResult = await _imageService.createTempFileFromBase64(imageBase64Data);
+          tempFileResult.fold(
+            (failure) {
+              AppLogger.error('Failed to create temporary file from Base64: ${failure.message}');
+            },
+            (tempFilePath) {
+              imageAttachmentPath = tempFilePath;
+              AppLogger.info('Successfully created temporary file for notification: $tempFilePath');
+            },
+          );
+        } catch (e, stackTrace) {
+          AppLogger.error('Error creating temporary file from Base64', e, stackTrace);
+        }
+      } else if (imagePath != null && imagePath.isNotEmpty) {
+        AppLogger.info('Using legacy image path for notification: $imagePath');
         
-        if (validImagePath != null) {
-          try {
-            final File imageFile = File(validImagePath);
-            final int fileSize = await imageFile.length();
-            
-            // Validate file size (iOS has limits)
-            if (fileSize > 10 * 1024 * 1024) { // 10MB limit for iOS notifications
-              AppLogger.error('Image file too large for notification: ${fileSize}bytes');
-              // Continue with notification without image (don't return, just skip attachment)
-            } else {
-            
-            // Validate file extension
-            final String extension = path.extension(validImagePath).toLowerCase();
-            if (!_isValidImageExtension(extension)) {
-              AppLogger.error('Invalid image extension for notification: $extension');
-              // Skip attachment but continue with notification
-            } else {
-            
-            AppLogger.info('Using valid image path: $validImagePath (${fileSize}bytes, ext: $extension)');
-            
-            // Create attachment with proper file extension for type recognition
-            final String uti = _getUTIForImagePath(validImagePath);
-            AppLogger.info('Using UTI for image attachment: $uti');
-            
-            // Create attachment with proper file extension for type recognition
-            final List<DarwinNotificationAttachment> attachments = [
-              DarwinNotificationAttachment(
-                validImagePath,
-                identifier: 'image-${DateTime.now().millisecondsSinceEpoch}',
-              ),
-            ];
-            AppLogger.info('Created attachment with identifier for: $validImagePath');
-            
-            iosDetails = DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-              interruptionLevel: InterruptionLevel.active,
-              attachments: attachments,
-            );
-            
-            AppLogger.info('Successfully added image attachment to notification: $validImagePath');
-            } // Close extension validation
-            } // Close file size validation
-          } catch (e, stackTrace) {
-            AppLogger.error('Failed to add image attachment', e, stackTrace);
-            // Continue with notification without image
-          }
-        } else {
+        // Use helper method to find valid image path (legacy support)
+        imageAttachmentPath = await _findValidImagePath(imagePath);
+        
+        if (imageAttachmentPath == null) {
           AppLogger.warning('No valid image path found for: $imagePath');
+        }
+      }
+      
+      // Add image attachment if we have a valid path
+      final String? finalImagePath = imageAttachmentPath;
+      if (finalImagePath != null) {
+        try {
+          final File imageFile = File(finalImagePath);
+          final int fileSize = await imageFile.length();
+          
+          // Validate file size (iOS has limits)
+          if (fileSize > 10 * 1024 * 1024) { // 10MB limit for iOS notifications
+            AppLogger.error('Image file too large for notification: ${fileSize}bytes');
+            // Continue with notification without image (don't return, just skip attachment)
+          } else {
+          
+          // Validate file extension
+          final String extension = path.extension(finalImagePath).toLowerCase();
+          if (!_isValidImageExtension(extension)) {
+            AppLogger.error('Invalid image extension for notification: $extension');
+            // Skip attachment but continue with notification
+          } else {
+          
+          AppLogger.info('Using valid image path: $finalImagePath (${fileSize}bytes, ext: $extension)');
+          
+          // Create attachment with proper file extension for type recognition
+          final String uti = _getUTIForImagePath(finalImagePath);
+          AppLogger.info('Using UTI for image attachment: $uti');
+          
+          // Create attachment with proper file extension for type recognition
+          final List<DarwinNotificationAttachment> attachments = [
+            DarwinNotificationAttachment(
+              finalImagePath,
+              identifier: 'image-${DateTime.now().millisecondsSinceEpoch}',
+            ),
+          ];
+          AppLogger.info('Created attachment with identifier for: $finalImagePath');
+          
+          iosDetails = DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.active,
+            attachments: attachments,
+          );
+          
+          AppLogger.info('Successfully added image attachment to notification: $finalImagePath');
+          } // Close extension validation
+          } // Close file size validation
+        } catch (e, stackTrace) {
+          AppLogger.error('Failed to add image attachment', e, stackTrace);
+          // Continue with notification without image
         }
       }
 

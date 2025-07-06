@@ -123,7 +123,9 @@ class ServiceLocator {
     );
 
     getIt.registerLazySingleton<LocalNotificationsDataSource>(
-      () => LocalNotificationsDataSourceImpl(),
+      () => LocalNotificationsDataSourceImpl(
+        imageService: getIt<NotificationImageService>() as NotificationImageServiceImpl,
+      ),
     );
 
     // Register ImagePicker
@@ -265,6 +267,7 @@ class ServiceLocator {
           getIt<RequestNotificationPermissionsUseCase>(),
       notificationsService: getIt<LocalNotificationsService>(),
       imageService: getIt<NotificationImageService>(),
+      userPreferencesService: getIt<UserPreferencesService>(),
     );
   }
 

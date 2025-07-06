@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/ui_kit/colors.dart';
-import '../../../../shared/ui_kit/text_styles.dart';
 import 'geofence_map_widget.dart';
 
 class LocationPicker extends StatefulWidget {
@@ -38,16 +36,12 @@ class _LocationPickerState extends State<LocationPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return
-      // Map widget takes full remaining space
-      Expanded(
-        child: GeofenceMapWidget(
-          initialLatitude: widget.initialLatitude,
-          initialLongitude: widget.initialLongitude,
-          initialRadius: widget.initialRadius,
-          onLocationChanged: _onMapLocationChanged,
-          onRadiusChanged: _onMapRadiusChanged,
-        ),
-      );
+    return GeofenceMapWidget(
+      initialLatitude: widget.initialLatitude,
+      initialLongitude: widget.initialLongitude,
+      initialRadius: widget.initialRadius,
+      onLocationChanged: _onMapLocationChanged,
+      onRadiusChanged: _onMapRadiusChanged,
+    );
   }
 }

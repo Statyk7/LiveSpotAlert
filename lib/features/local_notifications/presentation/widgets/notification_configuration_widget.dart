@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/di/get_it_extensions.dart';
@@ -352,8 +353,8 @@ class _NotificationConfigurationWidgetState
   }
 
   Widget _buildImageSection(LocalNotificationsState state) {
-    final imageFileName = state.effectiveConfig.imagePath;
-    final hasImage = imageFileName != null;
+    final config = state.effectiveConfig;
+    final hasImage = config.hasImageData;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -365,7 +366,7 @@ class _NotificationConfigurationWidgetState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hasImage) ...[
-            // Display current image using FutureBuilder to get full path
+            // Display current image (prefer Base64 over legacy file path)
             Container(
               height: 120,
               width: double.infinity,
@@ -375,69 +376,7 @@ class _NotificationConfigurationWidgetState
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(7),
-                child: FutureBuilder<String?>(
-                  future: _getImagePath(imageFileName),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container(
-                        color: AppColors.surface,
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return Image.file(
-                        File(snapshot.data!),
-                        fit: BoxFit.scaleDown,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppColors.surface,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.broken_image,
-                                  color: AppColors.textSecondary,
-                                  size: 32,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Image not found',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    }
-                    
-                    return Container(
-                      color: AppColors.surface,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.broken_image,
-                            color: AppColors.textSecondary,
-                            size: 32,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Image not found',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                child: _buildImagePreview(config),
               ),
             ),
             const SizedBox(height: 12),
@@ -623,6 +562,93 @@ class _NotificationConfigurationWidgetState
   void _showTestNotification(BuildContext context) {
     getIt<AnalyticsService>().event(eventName: "test_notification_2");
     context.read<LocalNotificationsBloc>().add(const ShowTestNotification());
+  }
+
+  Widget _buildImagePreview(config) {
+    // Prefer Base64 data over legacy file path
+    if (config.imageBase64Data != null) {
+      return _buildBase64ImagePreview(config.imageBase64Data!);
+    } else if (config.imagePath != null) {
+      return _buildFileImagePreview(config.imagePath!);
+    } else {
+      return _buildErrorImagePreview();
+    }
+  }
+
+  Widget _buildBase64ImagePreview(String base64Data) {
+    try {
+      final bloc = context.read<LocalNotificationsBloc>();
+      final imageService = bloc.imageService;
+      
+      final decodeResult = imageService.decodeBase64Image(base64Data);
+      return decodeResult.fold(
+        (failure) {
+          return _buildErrorImagePreview();
+        },
+        (bytes) {
+          return Image.memory(
+            Uint8List.fromList(bytes),
+            fit: BoxFit.scaleDown,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildErrorImagePreview();
+            },
+          );
+        },
+      );
+    } catch (e) {
+      return _buildErrorImagePreview();
+    }
+  }
+
+  Widget _buildFileImagePreview(String fileName) {
+    return FutureBuilder<String?>(
+      future: _getImagePath(fileName),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: AppColors.surface,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        if (snapshot.hasData && snapshot.data != null) {
+          return Image.file(
+            File(snapshot.data!),
+            fit: BoxFit.scaleDown,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildErrorImagePreview();
+            },
+          );
+        }
+        
+        return _buildErrorImagePreview();
+      },
+    );
+  }
+
+  Widget _buildErrorImagePreview() {
+    return Container(
+      color: AppColors.surface,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.broken_image,
+            color: AppColors.textSecondary,
+            size: 32,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Image not found',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<String?> _getImagePath(String fileName) async {
