@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.transistorsoft.fetch</string>
@@ -77,15 +79,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-
-	<!-- Posthog Configuration -->
-    <key>com.posthog.posthog.API_KEY</key>
-    <string>phc_CUYvJxHeEOiLkNH9LfPYQhFnyyBFG7IdJJ6fvdObz2R</string>
-    <key>com.posthog.posthog.POSTHOG_HOST</key>
-    <string>https://us.i.posthog.com</string>
-    <key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
-    <true/>
-
+	<key>com.posthog.posthog.API_KEY</key>
+	<string>phc_CUYvJxHeEOiLkNH9LfPYQhFnyyBFG7IdJJ6fvdObz2R</string>
+	<key>com.posthog.posthog.POSTHOG_HOST</key>
+	<string>https://us.i.posthog.com</string>
+	<key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
+	<true/>
 	<key>aps-environment</key>
 	<string>development</string>
 </dict>
