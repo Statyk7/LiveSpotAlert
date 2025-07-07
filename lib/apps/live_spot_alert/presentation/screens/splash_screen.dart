@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Location-based Live Notification',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.white.withValues(alpha: 204),
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 48),

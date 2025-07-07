@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../shared/di/service_locator.dart';
 import '../../../../shared/services/analytics_service.dart';
@@ -22,12 +23,21 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final AnalyticsService _analyticsService = getIt<AnalyticsService>();
+  String _appVersion = 'Loading...';
 
   @override
   void initState() {
     super.initState();
+    _loadAppVersion();
     // Load saved Live Activity configuration
     // context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = '${packageInfo.appName} v${packageInfo.version}+${packageInfo.buildNumber}';
+    });
   }
 
   @override
@@ -79,9 +89,9 @@ class _MainScreenState extends State<MainScreen> {
               // App version label
               Center(
                 child: Text(
-                  'LiveSpotAlert v1.0.1',
+                  _appVersion,
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary.withValues(alpha: 153),
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -160,10 +170,10 @@ class _MainScreenState extends State<MainScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 26),
+                      //color: AppColors.warning.withValues(alpha: 26),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: AppColors.warning.withValues(alpha: 77)),
+                          color: AppColors.warning),
                     ),
                     child: Row(
                       children: [
@@ -193,7 +203,7 @@ class _MainScreenState extends State<MainScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.info.withValues(alpha: 26),
+                      // color: AppColors.info.withValues(alpha: 26),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(

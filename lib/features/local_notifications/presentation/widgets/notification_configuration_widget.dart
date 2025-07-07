@@ -183,7 +183,7 @@ class _NotificationConfigurationWidgetState
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppColors.info.withValues(alpha: 26),
+                                //color: AppColors.info.withValues(alpha: 26),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
@@ -423,7 +423,7 @@ class _NotificationConfigurationWidgetState
               height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 128),
+                //color: AppColors.surface.withValues(alpha: 128),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: AppColors.textHint,
@@ -482,7 +482,7 @@ class _NotificationConfigurationWidgetState
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 26),
+              //color: AppColors.info.withValues(alpha: 26),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

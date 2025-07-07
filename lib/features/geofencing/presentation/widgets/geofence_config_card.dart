@@ -212,9 +212,6 @@ class GeofenceConfigCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: isUserInside
-                ? AppColors.success.withValues(alpha: 26)
-                : AppColors.info.withValues(alpha: 26),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isUserInside ? AppColors.success : AppColors.info,

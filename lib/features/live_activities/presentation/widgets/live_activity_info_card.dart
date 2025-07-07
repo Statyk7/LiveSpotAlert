@@ -254,7 +254,7 @@ class LiveActivityInfoCard extends StatelessWidget {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 26),
+        //color: AppColors.primary.withValues(alpha: 26),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(

@@ -93,10 +93,10 @@ class NotificationConfigCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 26),
+                      //color: AppColors.error.withValues(alpha: 26),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: AppColors.error.withValues(alpha: 77)),
+                      // border: Border.all(
+                      //     color: AppColors.error.withValues(alpha: 77)),
                     ),
                     child: Row(
                       children: [
@@ -121,10 +121,10 @@ class NotificationConfigCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 26),
+                      //color: AppColors.warning.withValues(alpha: 26),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: AppColors.warning.withValues(alpha: 77)),
+                      // border: Border.all(
+                      //     color: AppColors.warning.withValues(alpha: 77)),
                     ),
                     child: Row(
                       children: [
