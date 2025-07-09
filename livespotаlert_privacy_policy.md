@@ -3,7 +3,6 @@
 
 **Simple version:** Everything stays on your phone. We don't collect anything.
 
---
 
 **Effective Date:** July 2025
 
