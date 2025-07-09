@@ -39,25 +39,6 @@ This project follows **Feature-First Clean Architecture** principles with:
 - iOS 16.1+ (for Live Activities)
 - Xcode 14+
 
-## Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Statyk7/LiveSpotAlert.git
-cd LiveSpotAlert
-```
-
-2. Install dependencies:
-```bash
-flutter pub get
-```
-
-## Running the App
-
-```bash
-flutter run --flavor dev -t lib/main.dart
-```
-
 ## Project Structure
 
 ```
@@ -76,13 +57,6 @@ lib/
     └── media_management/          # Image and QR code handling
 ```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Follow the established FFCA patterns
-4. Add tests for new functionality
-5. Submit a pull request
 
 ## License
 
