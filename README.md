@@ -5,6 +5,11 @@ This is an experiment using Claude Code to build entirely an app from scratch.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/remstation)
 
+!(specs/screenshots/LiveSpotAlert - Main View.png)
+!(specs/screenshots/LiveSpotAlert - Geofence Configuration.png)
+!(specs/screenshots/LiveSpotAlert - Notification Configuration.png)
+!(specs/screenshots/LiveSpotAlert - Notification View.png)
+
 ## Features
 
 - 🗺️ **Geofencing**: Create location-based triggers using flutter_background_geolocation
