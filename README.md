@@ -3,14 +3,14 @@
 iOS Flutter app with Live Activities and Notifications triggered by geofencing - displays configurable images like QR codes when arriving at specific locations.
 This is an experiment using Claude Code to build entirely an app from scratch.
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/remstation)
-
 <p>
   <image alt="Main View" src="./specs/screenshots/LiveSpotAlert%20-%20Main%20View.png" width="200" />
   <image alt="Geofence Configuration" src="./specs/screenshots/LiveSpotAlert%20-%20Geofence%20Configuration.png" width="200" />
   <image alt="Notification Configuration" src="./specs/screenshots/LiveSpotAlert%20-%20Notification%20Configuration.png" width="200" />
   <image alt="Notification View" src="./specs/screenshots/LiveSpotAlert%20-%20Notification%20View.png" width="200" />
 </p>
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/remstation)
 
 ## Features
 
