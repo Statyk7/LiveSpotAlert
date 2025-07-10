@@ -7,6 +7,7 @@ import '../../../features/local_notifications/presentation/screens/notification_
 import '../../../features/local_notifications/domain/models/notification_payload.dart';
 import '../../../features/local_notifications/presentation/widgets/notification_configuration_widget.dart';
 import '../../../features/geofencing/presentation/widgets/geofence_configuration_widget.dart';
+import '../../../features/donations/presentation/screens/donation_screen.dart';
 
 
 class AppRouter {
@@ -65,6 +66,11 @@ class AppRouter {
             onCancel: () => context.pop(),
           );
         },
+      ),
+      GoRoute(
+        path: '/donation',
+        name: 'donation',
+        builder: (context, state) => const DonationScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

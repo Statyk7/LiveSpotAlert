@@ -41,6 +41,14 @@ import '../../features/local_notifications/domain/services/notification_image_se
 import '../../features/local_notifications/data/services/notification_image_service_impl.dart';
 import '../../features/geofencing/data/services/geofencing_notification_integration.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../features/donations/data/data_sources/local/donation_local_data_source.dart';
+import '../../features/donations/data/data_sources/remote/in_app_purchase_data_source.dart';
+import '../../features/donations/data/services/donation_service_impl.dart';
+import '../../features/donations/domain/services/donation_service.dart';
+import '../../features/donations/domain/use_cases/get_donation_products_use_case.dart';
+import '../../features/donations/domain/use_cases/make_donation_use_case.dart';
+import '../../features/donations/domain/use_cases/check_purchase_history_use_case.dart';
+import '../../features/donations/presentation/controllers/donation_bloc.dart';
 
 // Global GetIt instance
 final GetIt getIt = GetIt.instance;
@@ -131,6 +139,15 @@ class ServiceLocator {
     // Register ImagePicker
     getIt.registerLazySingleton<ImagePicker>(() => ImagePicker());
 
+    // Register Donation data sources
+    getIt.registerLazySingleton<DonationLocalDataSource>(
+      () => DonationLocalDataSourceImpl(getIt<SharedPreferences>()),
+    );
+
+    getIt.registerLazySingleton<InAppPurchaseDataSource>(
+      () => InAppPurchaseDataSourceImpl(),
+    );
+
     // Register Notification Image service
     getIt.registerLazySingleton<NotificationImageService>(
       () => NotificationImageServiceImpl(getIt<ImagePicker>()),
@@ -159,6 +176,14 @@ class ServiceLocator {
             getIt<BackgroundGeolocationDataSource>(),
         liveActivityIntegration: getIt<GeofencingLiveActivityIntegration>(),
         notificationIntegration: getIt<GeofencingNotificationIntegration>(),
+      ),
+    );
+
+    // Register Donation service
+    getIt.registerLazySingleton<DonationService>(
+      () => DonationServiceImpl(
+        inAppPurchaseDataSource: getIt<InAppPurchaseDataSource>(),
+        localDataSource: getIt<DonationLocalDataSource>(),
       ),
     );
 
@@ -230,6 +255,19 @@ class ServiceLocator {
           getIt<LocalNotificationsService>()),
     );
 
+    // Register Donation use cases
+    getIt.registerLazySingleton<GetDonationProductsUseCase>(
+      () => GetDonationProductsUseCase(getIt<DonationService>()),
+    );
+
+    getIt.registerLazySingleton<MakeDonationUseCase>(
+      () => MakeDonationUseCase(getIt<DonationService>()),
+    );
+
+    getIt.registerLazySingleton<CheckPurchaseHistoryUseCase>(
+      () => CheckPurchaseHistoryUseCase(getIt<DonationService>()),
+    );
+
     _isInitialized = true;
   }
 
@@ -271,11 +309,25 @@ class ServiceLocator {
     );
   }
 
+  /// Create a new DonationBloc instance with all dependencies
+  static DonationBloc createDonationBloc() {
+    return DonationBloc(
+      getDonationProductsUseCase: getIt<GetDonationProductsUseCase>(),
+      makeDonationUseCase: getIt<MakeDonationUseCase>(),
+      checkPurchaseHistoryUseCase: getIt<CheckPurchaseHistoryUseCase>(),
+    );
+  }
+
   /// Clean up resources and reset GetIt
   static Future<void> reset() async {
     // Dispose of services that need cleanup
     if (getIt.isRegistered<GeofencingService>()) {
       final service = getIt<GeofencingService>() as GeofencingServiceImpl;
+      service.dispose();
+    }
+
+    if (getIt.isRegistered<DonationService>()) {
+      final service = getIt<DonationService>() as DonationServiceImpl;
       service.dispose();
     }
 

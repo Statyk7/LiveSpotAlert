@@ -36,3 +36,7 @@ class LiveActivityFailure extends Failure {
 class NotificationFailure extends Failure {
   const NotificationFailure({required super.message});
 }
+
+class GeneralFailure extends Failure {
+  const GeneralFailure(String message) : super(message: message);
+}

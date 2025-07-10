@@ -1,5 +1,8 @@
+// import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../shared/di/service_locator.dart';
@@ -13,6 +16,8 @@ import '../../../../features/geofencing/presentation/controllers/geofencing_even
 import '../../../../features/geofencing/presentation/widgets/geofence_config_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_config_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_preview_card.dart';
+import '../../../../features/donations/presentation/widgets/donation_button.dart';
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -25,10 +30,15 @@ class _MainScreenState extends State<MainScreen> {
   final AnalyticsService _analyticsService = getIt<AnalyticsService>();
   String _appVersion = 'Loading...';
 
+
   @override
   void initState() {
     super.initState();
+
     _loadAppVersion();
+
+    // _loadPurchases();
+
     // Load saved Live Activity configuration
     // context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
   }
@@ -39,6 +49,27 @@ class _MainScreenState extends State<MainScreen> {
       _appVersion = '${packageInfo.appName} v${packageInfo.version}+${packageInfo.buildNumber}';
     });
   }
+
+  /// Works only on real device
+  // Future<void> _loadPurchases() async {
+  //   if(!(await _iap.isAvailable())) return;
+  //
+  //   if (Platform.isIOS) {
+  //     final iosPlatformAddition = _iap
+  //         .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+  //
+  //     // await iosPlatformAddition.setDelegate(PaymentQueueDelegate());
+  //   }
+  //
+  //   const Set<String> ids = {"small_tip", "medium_tip", "large_tip", "giant_tip"};
+  //   ProductDetailsResponse response = await _iap.queryProductDetails(ids);
+  //
+  //   if (response.notFoundIDs.isNotEmpty) {
+  //     // Handle not found product IDs
+  //   }
+  //   AppLogger.debug("IAP Products: ${response.productDetails.length}");
+  // }
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +116,16 @@ class _MainScreenState extends State<MainScreen> {
               const NotificationPreviewCard(),
 
               const SizedBox(height: 32),
+
+              // Donation button
+              DonationButton(
+                onPressed: () {
+                  _analyticsService.event(eventName: "donation_button_tapped");
+                  context.push('/donation');
+                },
+              ),
+
+              const SizedBox(height: 16),
 
               // App version label
               Center(
