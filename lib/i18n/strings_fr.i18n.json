@@ -1,0 +1,216 @@
+{
+  "app": {
+    "name": "LiveSpotAlert",
+    "tagline": "Notification en direct basée sur la localisation"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "grant": "Accorder",
+    "loading": "Chargement...",
+    "retry": "Réessayer",
+    "error": "Une erreur s'est produite",
+    "dismiss": "Ignorer",
+    "selected": "Sélectionné",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "yes": "Oui",
+    "no": "Non",
+    "stay": "Rester",
+    "remove": "Supprimer",
+    "time": {
+      "justNow": "à l'instant",
+      "minutesAgo": "il y a ${minutes} min",
+      "hoursAgo": "il y a ${hours} h", 
+      "daysAgo": "il y a ${days} jours"
+    },
+    "errors": {
+      "required": "Veuillez saisir un nom",
+      "imageNotFound": "Image introuvable",
+      "noImageConfigured": "Aucune image configurée",
+      "unknownLocation": "Emplacement inconnu"
+    }
+  },
+  "monitoring": {
+    "title": "Surveillance de Localisation",
+    "status": {
+      "active": "Surveillance active de votre localisation",
+      "disabled": "La surveillance est désactivée"
+    },
+    "permissions": {
+      "required": "Autorisations de localisation requises"
+    },
+    "lastEvent": "Dernier événement : ${event}",
+    "events": {
+      "entered": "Entré dans ${name}",
+      "exited": "Sorti de ${name}",
+      "locationUpdate": "Mise à jour de localisation"
+    }
+  },
+  "geofencing": {
+    "title": "Emplacement de Géofence",
+    "config": {
+      "title": "Emplacement de Géofence",
+      "createTitle": "Créer une Géofence",
+      "editTitle": "Modifier la Géofence",
+      "configure": "Configurer la Géofence",
+      "nameLabel": "Nom de la Géofence",
+      "nameHint": "ex. Maison, Bureau, Salle de sport",
+      "locationLabel": "Emplacement",
+      "radiusLabel": "Rayon : ${radius}m",
+      "minRadius": "10m",
+      "maxRadius": "1km",
+      "defaultName": "Mon Emplacement",
+      "noConfigured": "Aucune géofence configurée"
+    },
+    "map": {
+      "instructions": "Touchez la carte ou faites glisser le marqueur pour définir l'emplacement",
+      "centerOnLocation": "Centrer sur ma localisation",
+      "centerOnGeofence": "Centrer sur la géofence",
+      "locationInfo": "Emplacement : ${lat}, ${lng}"
+    },
+    "status": {
+      "loading": "Chargement...",
+      "error": "Une erreur s'est produite",
+      "inactive": "Géofence inactive",
+      "inside": "À l'intérieur de la zone de géofence",
+      "outside": "À l'extérieur de la zone de géofence",
+      "youAreInside": "Vous êtes dans cette zone",
+      "youAreOutside": "Vous êtes hors de cette zone",
+      "distance": "Distance : ${distance}m",
+      "hasMedia": "A des médias attachés"
+    },
+    "card": {
+      "radiusInfo": "Rayon de ${radius}m",
+      "distanceInfo": "À ${distance}m de distance",
+      "recentActivity": "Activité Récente"
+    },
+    "events": {
+      "entered": "Entré",
+      "exited": "Sorti", 
+      "dwelling": "En séjour"
+    },
+    "description": {
+      "active": "La géofence déclenchera des notifications",
+      "inactive": "La géofence est configurée mais inactive"
+    }
+  },
+  "notifications": {
+    "title": "Notification",
+    "localTitle": "Notifications Locales",
+    "config": {
+      "title": "Paramètres de Notification",
+      "configure": "Configurer la Notification",
+      "saving": "Enregistrement...",
+      "content": "Contenu de la Notification",
+      "titleLabel": "Titre",
+      "titleHint": "ex. Arrivé à l'emplacement, Alerte de localisation",
+      "defaultTitle": "Alerte de Localisation",
+      "locationSuffix": "@ Emplacement",
+      "preview": "Aperçu :",
+      "image": "Image",
+      "changeImage": "Changer l'Image",
+      "noImageSelected": "Aucune image sélectionnée",
+      "selectFromGallery": "Sélectionner depuis la Galerie",
+      "selecting": "Sélection...",
+      "imageInfo": "Les images seront affichées dans les notifications. Formats pris en charge : JPG, PNG. Taille maximale : 5 Mo.",
+      "permissions": "Autorisations",
+      "testNotification": "Tester la Notification"
+    },
+    "status": {
+      "loading": "Chargement...",
+      "error": "Une erreur s'est produite",
+      "disabled": "Notifications désactivées",
+      "permissionsRequired": "Autorisations requises",
+      "enabled": "Notifications activées",
+      "titleFormat": "Titre : \"${title}\"",
+      "customImage": "Image personnalisée : ",
+      "imageNotSelected": "Image : Non sélectionnée"
+    },
+    "permissions": {
+      "required": "Autorisations de notification requises",
+      "granted": "Autorisations de notification accordées"
+    },
+    "preview": {
+      "title": "Aperçu de Notification",
+      "description": "Testez comment votre notification apparaîtra lorsqu'elle sera déclenchée par un événement de géofence.",
+      "entryButton": "Aperçu d'Alerte d'Entrée",
+      "exitButton": "Aperçu d'Alerte de Sortie",
+      "info": "L'aperçu utilisera la géofence \"${name}\" et vos paramètres de notification actuels.",
+      "noGeofence": "Aucune géofence configurée",
+      "noGeofenceMessage": "Configurez d'abord une géofence pour prévisualiser les notifications."
+    },
+    "display": {
+      "placeholderTitle": "Aucune image configurée",
+      "placeholderMessage": "Configurez une image dans les paramètres de notification"
+    },
+    "dialogs": {
+      "unsavedChanges": "Modifications Non Enregistrées",
+      "unsavedMessage": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir annuler ?"
+    }
+  },
+  "donations": {
+    "title": "Pot à Pourboires",
+    "button": "Soutenir le Développement",
+    "header": "Si vous appréciez LiveSpotAlert et souhaitez soutenir le développement futur de l'application, ajouter un pourboire serait d'une grande aide.",
+    "processing": "Traitement de votre don...",
+    "success": "Merci pour votre généreux don !",
+    "error": "Impossible de charger les options de don",
+    "products": {
+      "smallTip": "Petit Pourboire",
+      "mediumTip": "Pourboire Moyen", 
+      "largeTip": "Gros Pourboire",
+      "giantTip": "Pourboire Géant"
+    },
+    "thankYou": {
+      "title": "Merci !",
+      "message": "Votre soutien aide à maintenir cette application gratuite et en amélioration continue. Nous apprécions vraiment votre générosité !"
+    }
+  },
+  "defaults": {
+    "geofence": {
+      "name": "Mon Emplacement",
+      "description": "Configurez cette géofence en touchant le bouton d'édition"
+    },
+    "notification": {
+      "title": "Alerte de Localisation"
+    },
+    "location": {
+      "unknown": "Emplacement Inconnu",
+      "update": "Mise à jour d'Emplacement"
+    }
+  },
+  "validation": {
+    "geofence": {
+      "idEmpty": "L'ID de géofence ne peut pas être vide",
+      "nameEmpty": "Le nom de géofence ne peut pas être vide",
+      "nameLength": "Le nom de géofence ne peut pas dépasser 100 caractères",
+      "invalidLatitude": "Latitude invalide. Doit être entre -90 et 90",
+      "invalidLongitude": "Longitude invalide. Doit être entre -180 et 180",
+      "radiusPositive": "Le rayon doit être supérieur à 0",
+      "radiusMax": "Le rayon ne peut pas dépasser 10 000 mètres",
+      "radiusMin": "Le rayon doit être d'au moins 10 mètres pour une détection fiable",
+      "descriptionLength": "La description ne peut pas dépasser 500 caractères"
+    }
+  },
+  "geofenceEvents": {
+    "entry": {
+      "displayName": "Entré",
+      "actionDescription": "Vous êtes arrivé à"
+    },
+    "exit": {
+      "displayName": "Sorti",
+      "actionDescription": "Vous avez quitté"
+    }
+  },
+  "liveActivities": {
+    "config": {
+      "title": "Configurer l'Activité en Direct",
+      "notificationTitle": "Titre de la Notification",
+      "titleHint": "ex. Vous êtes arrivé !",
+      "notificationImage": "Image de la Notification",
+      "addImagePrompt": "Touchez pour ajouter une image",
+      "imageUnavailable": "Image indisponible"
+    }
+  }
+}

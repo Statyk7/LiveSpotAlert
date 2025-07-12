@@ -1,0 +1,261 @@
+{
+  "app": {
+    "name": "LiveSpotAlert",
+    "tagline": "Location-based Live Notification"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "grant": "Grant",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "error": "Error occurred",
+    "dismiss": "Dismiss",
+    "selected": "Selected",
+    "active": "Active",
+    "inactive": "Inactive",
+    "yes": "Yes",
+    "no": "No",
+    "stay": "Stay",
+    "remove": "Remove",
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "${minutes}m ago",
+      "hoursAgo": "${hours}h ago", 
+      "daysAgo": "${days}d ago"
+    },
+    "errors": {
+      "required": "Please enter a name",
+      "imageNotFound": "Image not found",
+      "noImageConfigured": "No image configured",
+      "unknownLocation": "Unknown Location"
+    }
+  },
+  "defaults": {
+    "geofence": {
+      "name": "My Location",
+      "description": "Configure this geofence by tapping the edit button"
+    },
+    "notification": {
+      "title": "Location Alert"
+    },
+    "location": {
+      "unknown": "Unknown Location",
+      "update": "Location Update"
+    }
+  },
+  "validation": {
+    "geofence": {
+      "idEmpty": "Geofence ID cannot be empty",
+      "nameEmpty": "Geofence name cannot be empty",
+      "nameLength": "Geofence name cannot exceed 100 characters",
+      "invalidLatitude": "Invalid latitude. Must be between -90 and 90",
+      "invalidLongitude": "Invalid longitude. Must be between -180 and 180",
+      "radiusPositive": "Radius must be greater than 0",
+      "radiusMax": "Radius cannot exceed 10,000 meters",
+      "radiusMin": "Radius must be at least 10 meters for reliable detection",
+      "descriptionLength": "Description cannot exceed 500 characters"
+    }
+  },
+  "errors": {
+    "liveActivity": {
+      "notEnabled": "Live Activities are not enabled on this device",
+      "createFailed": "Failed to create Live Activity",
+      "startFailed": "Error starting Live Activity: {error}",
+      "stopFailed": "Error stopping Live Activity: {error}",
+      "updateFailed": "Error updating Live Activity: {error}",
+      "imageFailed": "Failed to process image: {error}"
+    },
+    "donations": {
+      "notAvailable": "In-app purchases are not available",
+      "productNotFound": "Product not found: {productId}",
+      "purchaseFailed": "Failed to initiate purchase",
+      "purchaseTimeout": "Purchase timeout",
+      "purchaseError": "Purchase failed: {error}",
+      "historyFailed": "Failed to get purchase history: {error}",
+      "historyCheckFailed": "Failed to check purchase history: {error}"
+    },
+    "geofencing": {
+      "permissionsFailed": "Failed to request permissions: {error}",
+      "permissionsCheckFailed": "Failed to check permissions: {error}",
+      "locationEventError": "Location event stream error: {error}",
+      "geofenceStatusError": "Geofence status stream error: {error}",
+      "entryNotificationFailed": "Failed to handle geofence entry notification: {error}",
+      "exitNotificationFailed": "Failed to handle geofence exit notification: {error}",
+      "dwellNotificationFailed": "Failed to handle geofence dwell notification: {error}"
+    },
+    "notifications": {
+      "initFailed": "Failed to initialize notifications service: {error}",
+      "loadConfigFailed": "Failed to load notification configuration: {error}",
+      "saveConfigFailed": "Failed to save notification configuration: {error}",
+      "notAvailable": "Notifications not available",
+      "showFailed": "Failed to show geofence notification: {error}",
+      "dismissFailed": "Failed to dismiss geofence notification: {error}",
+      "dismissAllFailed": "Failed to dismiss all notifications: {error}",
+      "availabilityCheckFailed": "Failed to check notifications availability: {error}",
+      "permissionsFailed": "Failed to request notification permissions: {error}"
+    }
+  },
+  "geofenceEvents": {
+    "entry": {
+      "displayName": "Entered",
+      "actionDescription": "You have arrived at"
+    },
+    "exit": {
+      "displayName": "Exited", 
+      "actionDescription": "You have left"
+    }
+  },
+  "notifications": {
+    "actions": {
+      "left": "Left",
+      "stillAt": "Still at"
+    }
+  },
+  "monitoring": {
+    "title": "Location Monitoring",
+    "status": {
+      "active": "Actively monitoring your location",
+      "disabled": "Monitoring is disabled"
+    },
+    "permissions": {
+      "required": "Location permissions required"
+    },
+    "lastEvent": "Last event: ${event}",
+    "events": {
+      "entered": "Entered ${name}",
+      "exited": "Exited ${name}",
+      "locationUpdate": "Location update"
+    }
+  },
+  "geofencing": {
+    "title": "Geofence Location",
+    "config": {
+      "title": "Geofence Location",
+      "createTitle": "Create Geofence",
+      "editTitle": "Edit Geofence",
+      "configure": "Configure Geofence",
+      "nameLabel": "Geofence Name",
+      "nameHint": "e.g., Home, Office, Gym",
+      "locationLabel": "Location",
+      "radiusLabel": "Radius: ${radius}m",
+      "minRadius": "10m",
+      "maxRadius": "1km",
+      "defaultName": "My Location",
+      "noConfigured": "No geofence configured"
+    },
+    "map": {
+      "instructions": "Tap map or drag marker to set location",
+      "centerOnLocation": "Center on my location",
+      "centerOnGeofence": "Center on geofence",
+      "locationInfo": "Location: ${lat}, ${lng}"
+    },
+    "status": {
+      "loading": "Loading...",
+      "error": "Error occurred",
+      "inactive": "Geofence inactive",
+      "inside": "Inside geofence area",
+      "outside": "Outside geofence area",
+      "youAreInside": "You are inside this area",
+      "youAreOutside": "You are outside this area",
+      "distance": "Distance: ${distance}m",
+      "hasMedia": "Has attached media"
+    },
+    "card": {
+      "radiusInfo": "${radius}m radius",
+      "distanceInfo": "${distance}m away",
+      "recentActivity": "Recent Activity"
+    },
+    "events": {
+      "entered": "Entered",
+      "exited": "Exited", 
+      "dwelling": "Dwelling"
+    },
+    "description": {
+      "active": "Geofence will trigger notifications",
+      "inactive": "Geofence is configured but inactive"
+    }
+  },
+  "notifications": {
+    "title": "Notification",
+    "localTitle": "Local Notifications",
+    "config": {
+      "title": "Notification Settings",
+      "configure": "Configure Notification",
+      "saving": "Saving...",
+      "content": "Notification Content",
+      "titleLabel": "Title",
+      "titleHint": "e.g., Arrived at location, Location alert",
+      "defaultTitle": "Location Alert",
+      "locationSuffix": "@ Location",
+      "preview": "Preview:",
+      "image": "Image",
+      "changeImage": "Change Image",
+      "noImageSelected": "No image selected",
+      "selectFromGallery": "Select from Gallery",
+      "selecting": "Selecting...",
+      "imageInfo": "Images will be displayed in notifications. Supported formats: JPG, PNG. Max size: 5MB.",
+      "permissions": "Permissions",
+      "testNotification": "Test Notification"
+    },
+    "status": {
+      "loading": "Loading...",
+      "error": "Error occurred",
+      "disabled": "Notifications disabled",
+      "permissionsRequired": "Permissions required",
+      "enabled": "Notifications enabled",
+      "titleFormat": "Title: \"${title}\"",
+      "customImage": "Custom image: ",
+      "imageNotSelected": "Image: Not selected"
+    },
+    "permissions": {
+      "required": "Notification permissions required",
+      "granted": "Notification permissions granted"
+    },
+    "preview": {
+      "title": "Preview Live Spot Alert",
+      "description": "Test how your notification will look when triggered by a geofence event.",
+      "entryButton": "Preview Entry Alert",
+      "exitButton": "Preview Exit Alert",
+      "info": "Preview will use \"${name}\" geofence and your current notification settings.",
+      "noGeofence": "No geofence configured",
+      "noGeofenceMessage": "Configure a geofence first to preview notifications."
+    },
+    "display": {
+      "placeholderTitle": "No image configured",
+      "placeholderMessage": "Configure an image in notification settings"
+    },
+    "dialogs": {
+      "unsavedChanges": "Unsaved Changes",
+      "unsavedMessage": "You have unsaved changes. Are you sure you want to cancel?"
+    }
+  },
+  "donations": {
+    "title": "Tip Jar",
+    "button": "Support Development",
+    "header": "If you are enjoying LiveSpotAlert and would like to support the app's future development, adding a tip would be greatly helpful.",
+    "processing": "Processing your donation...",
+    "success": "Thank you for your generous donation!",
+    "error": "Unable to load donation options",
+    "products": {
+      "smallTip": "Small Tip",
+      "mediumTip": "Medium Tip", 
+      "largeTip": "Large Tip",
+      "giantTip": "Giant Tip"
+    },
+    "thankYou": {
+      "title": "Thank You!",
+      "message": "Your support helps keep this app free and continuously improving. We truly appreciate your generosity!"
+    }
+  },
+  "liveActivities": {
+    "config": {
+      "title": "Configure Live Activity",
+      "notificationTitle": "Notification Title",
+      "titleHint": "e.g., You've arrived!",
+      "notificationImage": "Notification Image",
+      "addImagePrompt": "Tap to add image",
+      "imageUnavailable": "Image unavailable"
+    }
+  }
+}

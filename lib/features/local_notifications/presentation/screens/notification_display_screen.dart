@@ -12,6 +12,7 @@ import '../../../geofencing/domain/models/geofence.dart';
 import '../controllers/local_notifications_bloc.dart';
 import '../controllers/local_notifications_state.dart';
 import '../../domain/models/notification_payload.dart';
+import '../../../../i18n/translations.g.dart';
 
 /// Full-screen widget displayed when notification is tapped
 class NotificationDisplayScreen extends StatelessWidget {
@@ -82,8 +83,10 @@ class NotificationDisplayScreen extends StatelessWidget {
 
   /// Build the geofence name header
   Widget _buildGeofenceHeader(Geofence? geofence) {
-    final geofenceName = geofence?.name ?? 'Unknown Location';
-    final eventDescription = payload.eventType.actionDescription;
+    final geofenceName = geofence?.name ?? t.defaults.location.unknown;
+    final eventDescription = payload.eventType == GeofenceEventType.entry 
+        ? t.geofenceEvents.entry.actionDescription
+        : t.geofenceEvents.exit.actionDescription;
     
     return Column(
       children: [
@@ -145,14 +148,14 @@ class NotificationDisplayScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No image configured',
+            t.notifications.display.placeholderTitle,
             style: AppTextStyles.h4.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Configure an image in notification settings',
+            t.notifications.display.placeholderMessage,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -182,7 +185,7 @@ class NotificationDisplayScreen extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () => _dismissScreen(context),
-        label: const Text('Dismiss', style: AppTextStyles.h4),
+        label: Text(t.common.dismiss, style: AppTextStyles.h4),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,

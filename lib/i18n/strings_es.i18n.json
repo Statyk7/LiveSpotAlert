@@ -1,0 +1,216 @@
+{
+  "app": {
+    "name": "LiveSpotAlert",
+    "tagline": "Notificación en vivo basada en ubicación"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "grant": "Conceder",
+    "loading": "Cargando...",
+    "retry": "Reintentar",
+    "error": "Ocurrió un error",
+    "dismiss": "Descartar",
+    "selected": "Seleccionado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "yes": "Sí",
+    "no": "No",
+    "stay": "Quedarse",
+    "remove": "Eliminar",
+    "time": {
+      "justNow": "ahora mismo",
+      "minutesAgo": "hace ${minutes} min",
+      "hoursAgo": "hace ${hours} h", 
+      "daysAgo": "hace ${days} días"
+    },
+    "errors": {
+      "required": "Por favor ingrese un nombre",
+      "imageNotFound": "Imagen no encontrada",
+      "noImageConfigured": "No hay imagen configurada",
+      "unknownLocation": "Ubicación desconocida"
+    }
+  },
+  "monitoring": {
+    "title": "Monitoreo de Ubicación",
+    "status": {
+      "active": "Monitoreando activamente su ubicación",
+      "disabled": "El monitoreo está deshabilitado"
+    },
+    "permissions": {
+      "required": "Se requieren permisos de ubicación"
+    },
+    "lastEvent": "Último evento: ${event}",
+    "events": {
+      "entered": "Entró a ${name}",
+      "exited": "Salió de ${name}",
+      "locationUpdate": "Actualización de ubicación"
+    }
+  },
+  "geofencing": {
+    "title": "Ubicación de Geocerca",
+    "config": {
+      "title": "Ubicación de Geocerca",
+      "createTitle": "Crear Geocerca",
+      "editTitle": "Editar Geocerca",
+      "configure": "Configurar Geocerca",
+      "nameLabel": "Nombre de la Geocerca",
+      "nameHint": "ej. Casa, Oficina, Gimnasio",
+      "locationLabel": "Ubicación",
+      "radiusLabel": "Radio: ${radius}m",
+      "minRadius": "10m",
+      "maxRadius": "1km",
+      "defaultName": "Mi Ubicación",
+      "noConfigured": "No hay geocerca configurada"
+    },
+    "map": {
+      "instructions": "Toque el mapa o arrastre el marcador para establecer la ubicación",
+      "centerOnLocation": "Centrar en mi ubicación",
+      "centerOnGeofence": "Centrar en la geocerca",
+      "locationInfo": "Ubicación: ${lat}, ${lng}"
+    },
+    "status": {
+      "loading": "Cargando...",
+      "error": "Ocurrió un error",
+      "inactive": "Geocerca inactiva",
+      "inside": "Dentro del área de geocerca",
+      "outside": "Fuera del área de geocerca",
+      "youAreInside": "Está dentro de esta área",
+      "youAreOutside": "Está fuera de esta área",
+      "distance": "Distancia: ${distance}m",
+      "hasMedia": "Tiene medios adjuntos"
+    },
+    "card": {
+      "radiusInfo": "Radio de ${radius}m",
+      "distanceInfo": "A ${distance}m de distancia",
+      "recentActivity": "Actividad Reciente"
+    },
+    "events": {
+      "entered": "Entró",
+      "exited": "Salió", 
+      "dwelling": "Permaneciendo"
+    },
+    "description": {
+      "active": "La geocerca activará notificaciones",
+      "inactive": "La geocerca está configurada pero inactiva"
+    }
+  },
+  "notifications": {
+    "title": "Notificación",
+    "localTitle": "Notificaciones Locales",
+    "config": {
+      "title": "Configuración de Notificaciones",
+      "configure": "Configurar Notificación",
+      "saving": "Guardando...",
+      "content": "Contenido de la Notificación",
+      "titleLabel": "Título",
+      "titleHint": "ej. Llegó a la ubicación, Alerta de ubicación",
+      "defaultTitle": "Alerta de Ubicación",
+      "locationSuffix": "@ Ubicación",
+      "preview": "Vista previa:",
+      "image": "Imagen",
+      "changeImage": "Cambiar Imagen",
+      "noImageSelected": "No se ha seleccionado imagen",
+      "selectFromGallery": "Seleccionar de la Galería",
+      "selecting": "Seleccionando...",
+      "imageInfo": "Las imágenes se mostrarán en las notificaciones. Formatos compatibles: JPG, PNG. Tamaño máximo: 5MB.",
+      "permissions": "Permisos",
+      "testNotification": "Probar Notificación"
+    },
+    "status": {
+      "loading": "Cargando...",
+      "error": "Ocurrió un error",
+      "disabled": "Notificaciones deshabilitadas",
+      "permissionsRequired": "Se requieren permisos",
+      "enabled": "Notificaciones habilitadas",
+      "titleFormat": "Título: \"${title}\"",
+      "customImage": "Imagen personalizada: ",
+      "imageNotSelected": "Imagen: No seleccionada"
+    },
+    "permissions": {
+      "required": "Se requieren permisos de notificación",
+      "granted": "Permisos de notificación concedidos"
+    },
+    "preview": {
+      "title": "Vista Previa de Notificación",
+      "description": "Pruebe cómo se verá su notificación cuando sea activada por un evento de geocerca.",
+      "entryButton": "Vista Previa de Alerta de Entrada",
+      "exitButton": "Vista Previa de Alerta de Salida",
+      "info": "La vista previa usará la geocerca \"${name}\" y su configuración actual de notificaciones.",
+      "noGeofence": "No hay geocerca configurada",
+      "noGeofenceMessage": "Configure una geocerca primero para ver las notificaciones."
+    },
+    "display": {
+      "placeholderTitle": "No hay imagen configurada",
+      "placeholderMessage": "Configure una imagen en la configuración de notificaciones"
+    },
+    "dialogs": {
+      "unsavedChanges": "Cambios No Guardados",
+      "unsavedMessage": "Tiene cambios no guardados. ¿Está seguro de que quiere cancelar?"
+    }
+  },
+  "donations": {
+    "title": "Bote de Propinas",
+    "button": "Apoyar el Desarrollo",
+    "header": "Si está disfrutando LiveSpotAlert y le gustaría apoyar el desarrollo futuro de la aplicación, agregar una propina sería de gran ayuda.",
+    "processing": "Procesando su donación...",
+    "success": "¡Gracias por su generosa donación!",
+    "error": "No se pudieron cargar las opciones de donación",
+    "products": {
+      "smallTip": "Propina Pequeña",
+      "mediumTip": "Propina Mediana", 
+      "largeTip": "Propina Grande",
+      "giantTip": "Propina Gigante"
+    },
+    "thankYou": {
+      "title": "¡Gracias!",
+      "message": "Su apoyo ayuda a mantener esta aplicación gratuita y en continua mejora. ¡Realmente apreciamos su generosidad!"
+    }
+  },
+  "defaults": {
+    "geofence": {
+      "name": "Mi Ubicación",
+      "description": "Configura esta geocerca tocando el botón de editar"
+    },
+    "notification": {
+      "title": "Alerta de Ubicación"
+    },
+    "location": {
+      "unknown": "Ubicación Desconocida",
+      "update": "Actualización de Ubicación"
+    }
+  },
+  "validation": {
+    "geofence": {
+      "idEmpty": "El ID de geocerca no puede estar vacío",
+      "nameEmpty": "El nombre de geocerca no puede estar vacío",
+      "nameLength": "El nombre de geocerca no puede exceder 100 caracteres",
+      "invalidLatitude": "Latitud inválida. Debe estar entre -90 y 90",
+      "invalidLongitude": "Longitud inválida. Debe estar entre -180 y 180",
+      "radiusPositive": "El radio debe ser mayor que 0",
+      "radiusMax": "El radio no puede exceder 10,000 metros",
+      "radiusMin": "El radio debe ser al menos 10 metros para detección confiable",
+      "descriptionLength": "La descripción no puede exceder 500 caracteres"
+    }
+  },
+  "geofenceEvents": {
+    "entry": {
+      "displayName": "Entró",
+      "actionDescription": "Has llegado a"
+    },
+    "exit": {
+      "displayName": "Salió",
+      "actionDescription": "Has salido de"
+    }
+  },
+  "liveActivities": {
+    "config": {
+      "title": "Configurar Actividad en Vivo",
+      "notificationTitle": "Título de la Notificación",
+      "titleHint": "ej. ¡Has llegado!",
+      "notificationImage": "Imagen de la Notificación",
+      "addImagePrompt": "Toque para agregar imagen",
+      "imageUnavailable": "Imagen no disponible"
+    }
+  }
+}

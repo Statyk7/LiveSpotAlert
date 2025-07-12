@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../i18n/translations.g.dart';
 
 class DonationButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -22,7 +23,7 @@ class DonationButton extends StatelessWidget {
           color: Colors.white,
           size: 20,
         ),
-        label: const Text('Support Development'),
+        label: Text(t.donations.button),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,

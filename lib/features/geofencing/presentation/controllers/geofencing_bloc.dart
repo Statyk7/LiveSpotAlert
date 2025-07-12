@@ -12,6 +12,7 @@ import '../../domain/use_cases/stop_monitoring_use_case.dart';
 import '../../domain/use_cases/update_geofence_use_case.dart';
 import '../../domain/services/geofencing_service.dart';
 import '../../../../shared/services/user_preferences_service.dart';
+import '../../../../i18n/translations.g.dart';
 import 'geofencing_event.dart';
 import 'geofencing_state.dart';
 
@@ -167,11 +168,11 @@ class GeofencingBloc extends Bloc<GeofencingEvent, GeofencingState> {
             AppLogger.info(
                 'No geofences found, creating default empty geofence');
             final defaultGeofence = CreateGeofenceParams(
-              name: 'My Location',
+              name: t.defaults.geofence.name,
               latitude: 0.0,
               longitude: 0.0,
               radius: 100.0,
-              description: 'Configure this geofence by tapping the edit button',
+              description: t.defaults.geofence.description,
             );
 
             final createResult = await createGeofenceUseCase(defaultGeofence);

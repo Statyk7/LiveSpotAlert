@@ -9,7 +9,6 @@ import '../../../../shared/di/service_locator.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
-import '../../../../shared/utils/constants.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_state.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_event.dart';
@@ -17,6 +16,7 @@ import '../../../../features/geofencing/presentation/widgets/geofence_config_car
 import '../../../../features/local_notifications/presentation/widgets/notification_config_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_preview_card.dart';
 import '../../../../features/donations/presentation/widgets/donation_button.dart';
+import '../../../../i18n/translations.g.dart';
 
 
 class MainScreen extends StatefulWidget {
@@ -28,7 +28,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final AnalyticsService _analyticsService = getIt<AnalyticsService>();
-  String _appVersion = 'Loading...';
+  String _appVersion = '';
 
 
   @override
@@ -84,7 +84,7 @@ class _MainScreenState extends State<MainScreen> {
       slivers: [
         SliverAppBar(
           title: Text(
-            AppConstants.appName,
+            t.app.name,
             style: AppTextStyles.h2.copyWith(color: Colors.white),
           ),
           backgroundColor: AppColors.primary,
@@ -106,8 +106,8 @@ class _MainScreenState extends State<MainScreen> {
               const SizedBox(height: 24),
 
               // Local Notifications Section
-              const NotificationConfigCard(
-                title: 'Notification',
+              NotificationConfigCard(
+                title: t.notifications.title,
               ),
 
               const SizedBox(height: 24),
@@ -130,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
               // App version label
               Center(
                 child: Text(
-                  _appVersion,
+                  _appVersion.isEmpty ? t.common.loading : _appVersion,
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -171,26 +171,32 @@ class _MainScreenState extends State<MainScreen> {
                       size: 24,
                     ),
                     const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Location Monitoring',
-                          style: AppTextStyles.h4,
-                        ),
-                        Text(
-                          state.isMonitoring
-                              ? 'Actively monitoring your location'
-                              : 'Monitoring is disabled',
-                          style: AppTextStyles.caption.copyWith(
-                            color: state.isMonitoring
-                                ? AppColors.success
-                                : AppColors.textSecondary,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t.monitoring.title,
+                            style: AppTextStyles.h4,
+                            maxLines: 2,
+                            overflow: TextOverflow.visible,
                           ),
-                        ),
-                      ],
+                          Text(
+                            state.isMonitoring
+                                ? t.monitoring.status.active
+                                : t.monitoring.status.disabled,
+                            style: AppTextStyles.caption.copyWith(
+                              color: state.isMonitoring
+                                  ? AppColors.success
+                                  : AppColors.textSecondary,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.visible,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 16),
                     Switch(
                       value: state.isMonitoring,
                       onChanged: state.hasLocationPermissions
@@ -222,7 +228,7 @@ class _MainScreenState extends State<MainScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Location permissions required',
+                            t.monitoring.permissions.required,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.warning,
                             ),
@@ -231,7 +237,7 @@ class _MainScreenState extends State<MainScreen> {
                         TextButton(
                           onPressed: () => _requestLocationPermissions(),
                           child: Text(
-                            'Grant',
+                            t.common.grant,
                             style: TextStyle(color: AppColors.warning),
                           ),
                         ),
@@ -251,10 +257,14 @@ class _MainScreenState extends State<MainScreen> {
                       children: [
                         Icon(Icons.history, color: AppColors.info, size: 16),
                         const SizedBox(width: 8),
-                        Text(
-                          'Last event: ${_formatLastLocationEvent(state.locationEvents.first)}',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.info,
+                        Expanded(
+                          child: Text(
+                            t.monitoring.lastEvent(event: _formatLastLocationEvent(state.locationEvents.first)),
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.info,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.visible,
                           ),
                         ),
                       ],
@@ -291,25 +301,25 @@ class _MainScreenState extends State<MainScreen> {
     switch (eventType) {
       case 'geofence_enter':
       case 'enter':
-        eventDescription = 'Entered ${locationEvent.geofence.name}';
+        eventDescription = t.monitoring.events.entered(name: locationEvent.geofence.name);
         break;
       case 'geofence_exit':
       case 'exit':
-        eventDescription = 'Exited ${locationEvent.geofence.name}';
+        eventDescription = t.monitoring.events.exited(name: locationEvent.geofence.name);
         break;
       default:
-        eventDescription = 'Location update';
+        eventDescription = t.monitoring.events.locationUpdate;
     }
 
     String timeDescription;
     if (timeAgo.inMinutes < 1) {
-      timeDescription = 'just now';
+      timeDescription = t.common.time.justNow;
     } else if (timeAgo.inHours < 1) {
-      timeDescription = '${timeAgo.inMinutes}m ago';
+      timeDescription = t.common.time.minutesAgo(minutes: timeAgo.inMinutes);
     } else if (timeAgo.inDays < 1) {
-      timeDescription = '${timeAgo.inHours}h ago';
+      timeDescription = t.common.time.hoursAgo(hours: timeAgo.inHours);
     } else {
-      timeDescription = '${timeAgo.inDays}d ago';
+      timeDescription = t.common.time.daysAgo(days: timeAgo.inDays);
     }
 
     return '$eventDescription $timeDescription';

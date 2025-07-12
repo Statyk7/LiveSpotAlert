@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../../../../shared/utils/constants.dart';
+import '../../../../i18n/translations.g.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -46,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Location-based Live Notification',
+              t.app.tagline,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: Colors.white,
               ),

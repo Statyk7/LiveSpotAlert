@@ -10,6 +10,7 @@ import '../../../../shared/utils/constants.dart';
 import '../controllers/local_notifications_bloc.dart';
 import '../controllers/local_notifications_event.dart';
 import '../controllers/local_notifications_state.dart';
+import '../../../../i18n/translations.g.dart';
 
 /// Widget for configuring notification settings
 class NotificationConfigurationWidget extends StatefulWidget {
@@ -90,7 +91,7 @@ class _NotificationConfigurationWidgetState
         backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
-            'Notification Settings',
+            t.notifications.config.title,
             style: AppTextStyles.h3.copyWith(color: Colors.white),
           ),
           backgroundColor: AppColors.primary,
@@ -105,7 +106,7 @@ class _NotificationConfigurationWidgetState
                   onPressed:
                       _hasUnsavedChanges && !state.isLoading ? _onSave : null,
                   child: Text(
-                    state.isLoading ? 'Saving...' : 'Save',
+                    state.isLoading ? t.notifications.config.saving : t.common.save,
                     style: TextStyle(
                       color: _hasUnsavedChanges && !state.isLoading
                           ? Colors.white
@@ -152,7 +153,7 @@ class _NotificationConfigurationWidgetState
 
                   // Notification Title Section
                   _buildSectionCard(
-                    title: 'Notification Content',
+                    title: t.notifications.config.content,
                     icon: Icons.title,
                     children: [
                       Padding(
@@ -161,7 +162,7 @@ class _NotificationConfigurationWidgetState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Title',
+                              t.notifications.config.titleLabel,
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -169,8 +170,7 @@ class _NotificationConfigurationWidgetState
                             TextField(
                               controller: _titleController,
                               decoration: InputDecoration(
-                                hintText:
-                                    'e.g., Arrived at location, Location alert',
+                                hintText: t.notifications.config.titleHint,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -190,7 +190,7 @@ class _NotificationConfigurationWidgetState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Preview:',
+                                    t.notifications.config.preview,
                                     style: AppTextStyles.bodySmall.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.info,
@@ -204,7 +204,7 @@ class _NotificationConfigurationWidgetState
                                     ),
                                   ),
                                   Text(
-                                    '${_titleController.text.isEmpty ? "Location Alert" : _titleController.text} @ Location',
+                                    '${_titleController.text.isEmpty ? t.notifications.config.defaultTitle : _titleController.text}${t.notifications.config.locationSuffix}',
                                     style: AppTextStyles.bodyMedium,
                                   ),
                                 ],
@@ -214,7 +214,7 @@ class _NotificationConfigurationWidgetState
                             
                             // Image Selection Section
                             Text(
-                              'Image',
+                              t.notifications.config.image,
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
@@ -266,7 +266,7 @@ class _NotificationConfigurationWidgetState
                       child: OutlinedButton.icon(
                         onPressed: () => _showTestNotification(context),
                         icon: const Icon(Icons.notifications),
-                        label: const Text('Test Notification'),
+                        label: Text(t.notifications.config.testNotification),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           side: BorderSide(color: AppColors.primary),
@@ -317,7 +317,7 @@ class _NotificationConfigurationWidgetState
 
   Widget _buildPermissionsSection(LocalNotificationsState state) {
     return _buildSectionCard(
-      title: 'Permissions',
+      title: t.notifications.config.permissions,
       icon: Icons.security,
       children: [
         Padding(
@@ -335,15 +335,15 @@ class _NotificationConfigurationWidgetState
               Expanded(
                 child: Text(
                   state.hasPermissions
-                      ? 'Notification permissions granted'
-                      : 'Notification permissions required',
+                      ? t.notifications.permissions.granted
+                      : t.notifications.permissions.required,
                   style: AppTextStyles.bodyMedium,
                 ),
               ),
               if (!state.hasPermissions)
                 TextButton(
                   onPressed: () => _requestPermissions(context),
-                  child: const Text('Grant'),
+                  child: Text(t.common.grant),
                 ),
             ],
           ),
@@ -392,7 +392,7 @@ class _NotificationConfigurationWidgetState
                       _onSettingChanged();
                     },
                     icon: const Icon(Icons.photo_library),
-                    label: const Text('Change Image'),
+                    label: Text(t.notifications.config.changeImage),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: BorderSide(color: AppColors.primary),
@@ -408,7 +408,7 @@ class _NotificationConfigurationWidgetState
                       _onSettingChanged();
                     },
                     icon: const Icon(Icons.delete_outline),
-                    label: const Text('Remove'),
+                    label: Text(t.common.remove),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: BorderSide(color: AppColors.error),
@@ -440,7 +440,7 @@ class _NotificationConfigurationWidgetState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'No image selected',
+                    t.notifications.config.noImageSelected,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -466,7 +466,7 @@ class _NotificationConfigurationWidgetState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.photo_library),
-                label: Text(state.isLoading ? 'Selecting...' : 'Select from Gallery'),
+                label: Text(state.isLoading ? t.notifications.config.selecting : t.notifications.config.selectFromGallery),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -495,7 +495,7 @@ class _NotificationConfigurationWidgetState
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Images will be displayed in notifications. Supported formats: JPG, PNG. Max size: 5MB.',
+                    t.notifications.config.imageInfo,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.info,
                     ),
@@ -515,7 +515,7 @@ class _NotificationConfigurationWidgetState
 
     final newConfig = currentConfig.copyWith(
       title: _titleController.text.trim().isEmpty
-          ? 'Location Alert'
+          ? t.notifications.config.defaultTitle
           : _titleController.text.trim(),
       //isEnabled: _isEnabled,
       // showInForeground: _showInForeground,
@@ -530,20 +530,19 @@ class _NotificationConfigurationWidgetState
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Unsaved Changes'),
-          content: const Text(
-              'You have unsaved changes. Are you sure you want to cancel?'),
+          title: Text(t.notifications.dialogs.unsavedChanges),
+          content: Text(t.notifications.dialogs.unsavedMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Stay'),
+              child: Text(t.common.stay),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 widget.onCancel();
               },
-              child: const Text('Cancel'),
+              child: Text(t.common.cancel),
             ),
           ],
         ),
@@ -641,7 +640,7 @@ class _NotificationConfigurationWidgetState
           ),
           const SizedBox(height: 8),
           Text(
-            'Image not found',
+            t.common.errors.imageNotFound,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),

@@ -6,15 +6,16 @@ import '../../../../shared/ui_kit/text_styles.dart';
 import '../../../geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../../geofencing/presentation/controllers/geofencing_state.dart';
 import '../../domain/models/notification_payload.dart';
+import '../../../../i18n/translations.g.dart';
 
 /// Card widget for previewing the notification display screen
 class NotificationPreviewCard extends StatelessWidget {
   const NotificationPreviewCard({
     super.key,
-    this.title = 'Preview Live Spot Alert',
+    this.title,
   });
 
-  final String title;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,7 @@ class NotificationPreviewCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        title,
+                        title ?? t.notifications.preview.title,
                         style: AppTextStyles.h4,
                       ),
                     ),
@@ -54,7 +55,7 @@ class NotificationPreviewCard extends StatelessWidget {
                 
                 // Description text
                 Text(
-                  'Test how your notification will look when triggered by a geofence event.',
+                  t.notifications.preview.description,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -93,7 +94,7 @@ class NotificationPreviewCard extends StatelessWidget {
               GeofenceEventType.entry,
             ),
             icon: const Icon(Icons.login),
-            label: const Text('Preview Entry Alert'),
+            label: Text(t.notifications.preview.entryButton),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.success,
               side: BorderSide(color: AppColors.success),
@@ -114,7 +115,7 @@ class NotificationPreviewCard extends StatelessWidget {
               GeofenceEventType.exit,
             ),
             icon: const Icon(Icons.logout),
-            label: const Text('Preview Exit Alert'),
+            label: Text(t.notifications.preview.exitButton),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.warning,
               side: BorderSide(color: AppColors.warning),
@@ -142,7 +143,7 @@ class NotificationPreviewCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Preview will use "${currentGeofence.name}" geofence and your current notification settings.',
+                  t.notifications.preview.info(name: currentGeofence.name),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.info,
                   ),
@@ -176,7 +177,7 @@ class NotificationPreviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'No geofence configured',
+                  t.notifications.preview.noGeofence,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.warning,
                     fontWeight: FontWeight.bold,
@@ -184,7 +185,7 @@ class NotificationPreviewCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Configure a geofence first to preview notifications.',
+                  t.notifications.preview.noGeofenceMessage,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.warning,
                   ),

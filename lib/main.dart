@@ -11,10 +11,15 @@ import 'features/geofencing/presentation/controllers/geofencing_event.dart';
 import 'features/live_activities/presentation/controllers/live_activity_bloc.dart';
 import 'features/local_notifications/presentation/controllers/local_notifications_bloc.dart';
 import 'features/local_notifications/presentation/controllers/local_notifications_event.dart';
+import 'i18n/translations.g.dart';
 
 
 void main() async {
   SentryWidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize internationalization
+  WidgetsFlutterBinding.ensureInitialized();
+  LocaleSettings.useDeviceLocale();
 
   AppLogger.info(
       'Starting ${AppConstants.appName} v${AppConstants.appVersion}');
@@ -62,11 +67,13 @@ class LiveSpotAlertApp extends StatelessWidget {
             ..add(const LoadNotificationConfiguration()),
         ),
       ],
-      child: MaterialApp.router(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: _buildTheme(),
-        routerConfig: AppRouter.router,
+      child: TranslationProvider(
+        child: MaterialApp.router(
+          title: t.app.name,
+          debugShowCheckedModeBanner: false,
+          theme: _buildTheme(),
+          routerConfig: AppRouter.router,
+        ),
       ),
     );
   }

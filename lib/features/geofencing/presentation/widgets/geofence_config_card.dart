@@ -9,16 +9,17 @@ import '../controllers/geofencing_bloc.dart';
 import '../controllers/geofencing_event.dart';
 import '../controllers/geofencing_state.dart';
 import '../../domain/models/geofence.dart';
+import '../../../../i18n/translations.g.dart';
 
 /// Card widget displaying geofence configuration and controls
 class GeofenceConfigCard extends StatelessWidget {
   const GeofenceConfigCard({
     super.key,
-    this.title = 'Geofence Location',
+    this.title,
     this.onConfigurePressed,
   });
 
-  final String title;
+  final String? title;
   final VoidCallback? onConfigurePressed;
 
   @override
@@ -54,7 +55,7 @@ class GeofenceConfigCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            geofence?.name ?? 'Geofence Location',
+                            geofence?.name ?? (title ?? t.geofencing.config.title),
                             style: AppTextStyles.h4,
                           ),
                           Text(
@@ -70,7 +71,7 @@ class GeofenceConfigCard extends StatelessWidget {
                       onPressed: onConfigurePressed ??
                           () => _showConfiguration(context),
                       icon: const Icon(Icons.edit),
-                      tooltip: 'Configure Geofence',
+                      tooltip: t.geofencing.config.configure,
                       style: IconButton.styleFrom(
                         foregroundColor: AppColors.primary,
                       ),
@@ -130,7 +131,7 @@ class GeofenceConfigCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Location permissions required',
+                            t.monitoring.permissions.required,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.warning,
                             ),
@@ -139,7 +140,7 @@ class GeofenceConfigCard extends StatelessWidget {
                         TextButton(
                           onPressed: () => _requestPermissions(context),
                           child: Text(
-                            'Grant',
+                            t.common.grant,
                             style: TextStyle(color: AppColors.warning),
                           ),
                         ),
@@ -172,7 +173,10 @@ class GeofenceConfigCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Location: ${geofence.latitude.toStringAsFixed(4)}, ${geofence.longitude.toStringAsFixed(4)}',
+                t.geofencing.map.locationInfo(
+                  lat: geofence.latitude.toStringAsFixed(4), 
+                  lng: geofence.longitude.toStringAsFixed(4)
+                ),
                 style: AppTextStyles.bodyMedium,
               ),
             ),
@@ -186,7 +190,7 @@ class GeofenceConfigCard extends StatelessWidget {
             Icon(Icons.radio_button_checked, color: AppColors.info, size: 18),
             const SizedBox(width: 8),
             Text(
-              'Radius: ${geofence.radius.toInt()}m',
+              t.geofencing.config.radiusLabel(radius: geofence.radius.toInt()),
               style: AppTextStyles.bodyMedium,
             ),
           ],
@@ -200,7 +204,7 @@ class GeofenceConfigCard extends StatelessWidget {
               Icon(Icons.near_me, color: AppColors.info, size: 18),
               const SizedBox(width: 8),
               Text(
-                'Distance: ${distanceToCenter.toInt()}m',
+                t.geofencing.status.distance(distance: distanceToCenter.toInt()),
                 style: AppTextStyles.bodyMedium,
               ),
             ],
@@ -226,13 +230,17 @@ class GeofenceConfigCard extends StatelessWidget {
                 color: isUserInside ? AppColors.success : AppColors.info,
               ),
               const SizedBox(width: 8),
-              Text(
-                isUserInside
-                    ? 'You are inside this area'
-                    : 'You are outside this area',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: isUserInside ? AppColors.success : AppColors.info,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  isUserInside
+                      ? t.geofencing.status.youAreInside
+                      : t.geofencing.status.youAreOutside,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isUserInside ? AppColors.success : AppColors.info,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
             ],
@@ -273,17 +281,17 @@ class GeofenceConfigCard extends StatelessWidget {
   }
 
   String _getStatusText(GeofencingState state, Geofence? geofence) {
-    if (state.status == GeofencingStatus.loading) return 'Loading...';
-    if (state.status == GeofencingStatus.error) return 'Error occurred';
-    if (geofence == null) return 'No geofence configured';
-    if (!geofence.isActive) return 'Geofence inactive';
+    if (state.status == GeofencingStatus.loading) return t.geofencing.status.loading;
+    if (state.status == GeofencingStatus.error) return t.geofencing.status.error;
+    if (geofence == null) return t.geofencing.config.noConfigured;
+    if (!geofence.isActive) return t.geofencing.status.inactive;
 
     final status = state.getGeofenceStatus(geofence.id);
     if (status?.isUserInside == true) {
-      return 'Inside geofence area';
+      return t.geofencing.status.inside;
     }
 
-    return 'Outside geofence area';
+    return t.geofencing.status.outside;
   }
 
   void _showConfiguration(BuildContext context) {

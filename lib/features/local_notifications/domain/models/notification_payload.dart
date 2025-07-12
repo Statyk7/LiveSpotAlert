@@ -66,23 +66,3 @@ enum GeofenceEventType {
   exit,
 }
 
-/// Extension for GeofenceEventType to provide display strings
-extension GeofenceEventTypeExtension on GeofenceEventType {
-  String get displayName {
-    switch (this) {
-      case GeofenceEventType.entry:
-        return 'Entered';
-      case GeofenceEventType.exit:
-        return 'Exited';
-    }
-  }
-
-  String get actionDescription {
-    switch (this) {
-      case GeofenceEventType.entry:
-        return 'You have arrived at';
-      case GeofenceEventType.exit:
-        return 'You have left';
-    }
-  }
-}

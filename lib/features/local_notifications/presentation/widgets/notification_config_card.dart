@@ -10,12 +10,13 @@ import '../../../../shared/ui_kit/text_styles.dart';
 import '../controllers/local_notifications_bloc.dart';
 import '../controllers/local_notifications_event.dart';
 import '../controllers/local_notifications_state.dart';
+import '../../../../i18n/translations.g.dart';
 
 /// Card widget displaying notification configuration and controls
 class NotificationConfigCard extends StatelessWidget {
   const NotificationConfigCard({
     super.key,
-    this.title = 'Local Notifications',
+    required this.title,
     this.onConfigurePressed,
   });
 
@@ -132,7 +133,7 @@ class NotificationConfigCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Notification permissions required',
+                            t.notifications.permissions.required,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.warning,
                             ),
@@ -141,7 +142,7 @@ class NotificationConfigCard extends StatelessWidget {
                         TextButton(
                           onPressed: () => _requestPermissions(context),
                           child: Text(
-                            'Grant',
+                            t.common.grant,
                             style: TextStyle(color: AppColors.warning),
                           ),
                         ),
@@ -172,8 +173,10 @@ class NotificationConfigCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Title: "${config.title}"',
+                t.notifications.status.titleFormat(title: config.title),
                 style: AppTextStyles.bodyMedium,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               ),
             ),
           ],
@@ -189,9 +192,12 @@ class NotificationConfigCard extends StatelessWidget {
               child: config.hasImageData
                   ? Row(
                       children: [
-                        Text(
-                          'Custom image: ',
-                          style: AppTextStyles.bodyMedium,
+                        Flexible(
+                          child: Text(
+                            t.notifications.status.customImage,
+                            style: AppTextStyles.bodyMedium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         Container(
                           width: 32,
@@ -206,20 +212,24 @@ class NotificationConfigCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'Selected',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w500,
+                        Flexible(
+                          child: Text(
+                            t.common.selected,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.success,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     )
                   : Text(
-                      'Image: Not selected',
+                      t.notifications.status.imageNotSelected,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textSecondary,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
             ),
           ],
@@ -250,7 +260,7 @@ class NotificationConfigCard extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => _showTestNotification(context),
               icon: const Icon(Icons.notifications),
-              label: const Text('Test Notification'),
+              label: Text(t.notifications.config.testNotification),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: BorderSide(color: AppColors.primary),
@@ -264,11 +274,11 @@ class NotificationConfigCard extends StatelessWidget {
   }
 
   String _getStatusText(LocalNotificationsState state) {
-    if (state.isLoading) return 'Loading...';
-    if (state.hasError) return 'Error occurred';
-    if (!state.effectiveConfig.isEnabled) return 'Notifications disabled';
-    if (!state.hasPermissions) return 'Permissions required';
-    return 'Notifications enabled';
+    if (state.isLoading) return t.notifications.status.loading;
+    if (state.hasError) return t.notifications.status.error;
+    if (!state.effectiveConfig.isEnabled) return t.notifications.status.disabled;
+    if (!state.hasPermissions) return t.notifications.status.permissionsRequired;
+    return t.notifications.status.enabled;
   }
 
   Color _getStatusColor(LocalNotificationsState state) {

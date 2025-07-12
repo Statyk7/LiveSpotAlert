@@ -9,6 +9,7 @@ import '../controllers/donation_event.dart';
 import '../controllers/donation_state.dart';
 import '../widgets/donation_option_card.dart';
 import '../widgets/thank_you_message.dart';
+import '../../../../i18n/translations.g.dart';
 
 class DonationScreen extends StatelessWidget {
   const DonationScreen({super.key});
@@ -32,7 +33,7 @@ class _DonationScreenContent extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Tip Jar',
+          t.donations.title,
           style: AppTextStyles.h2.copyWith(color: Colors.white),
         ),
         backgroundColor: AppColors.primary,
@@ -46,8 +47,8 @@ class _DonationScreenContent extends StatelessWidget {
         listener: (context, state) {
           if (state is DonationPurchaseSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Thank you for your generous donation!'),
+              SnackBar(
+                content: Text(t.donations.success),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -97,7 +98,7 @@ class _DonationScreenContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'If you are enjoying LiveSpotAlert and would like to support the app\'s future development, adding a tip would be greatly helpful.',
+            t.donations.header,
             style: AppTextStyles.bodyLarge.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -159,7 +160,7 @@ class _DonationScreenContent extends StatelessWidget {
                 ),
               ),
               Text(
-                'Processing your donation...',
+                t.donations.processing,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -180,7 +181,7 @@ class _DonationScreenContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Unable to load donation options',
+                  t.donations.error,
                   style: AppTextStyles.h4,
                   textAlign: TextAlign.center,
                 ),
@@ -201,7 +202,7 @@ class _DonationScreenContent extends StatelessWidget {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Retry'),
+                  child: Text(t.common.retry),
                 ),
               ],
             ),

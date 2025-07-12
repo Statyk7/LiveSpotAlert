@@ -81,6 +81,10 @@ dependencies:
   in_app_purchase: ^3.2.3
   in_app_purchase_storekit: ^0.4.3
 
+  # Internationalization
+  slang: ^3.31.2
+  slang_flutter: ^3.31.0
+
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +96,9 @@ dev_dependencies:
   # Testing
   bloc_test: ^10.0.0
   mocktail: ^1.0.0
+  
+  # Build runner for slang code generation
+  build_runner: ^2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
