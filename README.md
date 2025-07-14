@@ -10,6 +10,10 @@ This is an experiment using Claude Code to build entirely an app from scratch. M
   <image alt="Notification View" src="./specs/screenshots/LiveSpotAlert%20-%20Notification%20View.png" width="200" />
 </p>
 
+<p>
+  <image alt="Download on the App Store" src="./specs/App%20Store%20Connect%20Assets/Link%20Card%20Preview%20Image%20-%201200x628.png" width="600" />
+</p>
+
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/remstation)
 
 ## Features
@@ -56,6 +60,16 @@ lib/
     ├── local_notifications/       # Local Notifications
     └── media_management/          # Image and QR code handling
 ```
+
+## Notable Flutter packages used:
+- flutter_background_geolocation - True background geofencing (even when app is killed)
+- flutter_map - OpenStreetMap integration
+- flutter_local_notifications - Smart notification system • bloc - State Management • go_router - Navigation
+- get_it - Dependency Injection
+- slang - i18n support (EN/ES/FR)
+- posthog_flutter & sentry_flutter - Analytics & monitoring
+- in_app_purchase - Donation system
+- shorebird (future) - Patch relase updates
 
 
 ## License
