@@ -1,7 +1,7 @@
 # LiveSpotAlert
 
 iOS Flutter app with Live Activities and Notifications triggered by geofencing - displays configurable images like QR codes when arriving at specific locations.
-This is an experiment using Claude Code to build entirely an app from scratch.
+This is an experiment using Claude Code to build entirely an app from scratch. More details in this ![article](https://medium.com/@remy.baudet/building-a-flutter-app-with-claude-code-and-feature-first-clean-architecture-fa89fe5aa58b).
 
 <p>
   <image alt="Main View" src="./specs/screenshots/LiveSpotAlert%20-%20Main%20View.png" width="200" />
@@ -18,7 +18,7 @@ This is an experiment using Claude Code to build entirely an app from scratch.
 - 📱 **Local Notifications**: Display local notification when entering geofenced areas
 - 📱 **Live Activities (Future)**: Display iOS Live Activities when entering geofenced areas - Disabled because currently works only when the app is in the foreground...
 - 🖼️ **Media Management**: Configure custom images, QR codes, or content for each location
-- 🏗️ **Clean Architecture**: Built with Feature-First Clean Architecture (FFCA)
+- 🏗️ **Clean Architecture**: Built with ![Feature-First Clean Architecture (FFCA)](https://medium.com/@remy.baudet/feature-first-clean-architecture-for-flutter-246366e71c18)
 - 🧪 **State Management**: Uses BLoC pattern for predictable state management
 
 ## Architecture
