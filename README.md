@@ -11,7 +11,9 @@ This is an experiment using Claude Code to build entirely an app from scratch. M
 </p>
 
 <p>
-  <image alt="Download on the App Store" src="./specs/App%20Store%20Connect%20Assets/Link%20Card%20Preview%20Image%20-%201200x628.png" width="600" />
+  <a href="https://apps.apple.com/us/app/livespotalert/id6748239112?itscg=30200&itsct=apps_box_link&mttnsubad=6748239112">
+     <img alt="Download on the App Store" src="./specs/App%20Store%20Connect%20Assets/Link%20Card%20Preview%20Image%20-%201200x628.png" width="600">
+  </a>
 </p>
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/remstation)
@@ -69,7 +71,7 @@ lib/
 - slang - i18n support (EN/ES/FR)
 - posthog_flutter & sentry_flutter - Analytics & monitoring
 - in_app_purchase - Donation system
-- shorebird (future) - Patch relase updates
+- shorebird (future) - Patch release updates
 
 
 ## License
