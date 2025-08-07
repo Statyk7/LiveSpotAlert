@@ -1,0 +1,46 @@
+{
+  "formatVersion" : 1,
+  "passTypeIdentifier" : "pass.net.remstation.livespotalert",
+  "serialNumber" : "1234567890",
+  "teamIdentifier" : "N8C46Y9YYX",
+  "webServiceURL" : "https://example.com/passes/",
+  "authenticationToken" : "vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc",
+  "barcode" : {
+    "message" : "123456789",
+    "format" : "PKBarcodeFormatPDF417",
+    "messageEncoding" : "iso-8859-1"
+  },
+  "locations" : [
+    {
+      "longitude" : -122.3748889,
+      "latitude" : 37.6189722
+    },
+    {
+      "longitude" : -122.03118,
+      "latitude" : 37.33182
+    }
+  ],
+  "organizationName" : "Paw Planet",
+  "description" : "Paw Planet Coupon",
+  "logoText" : "Paw Planet",
+  "foregroundColor" : "rgb(255, 255, 255)",
+  "backgroundColor" : "rgb(206, 140, 53)",
+  "coupon" : {
+    "primaryFields" : [
+      {
+        "key" : "offer",
+        "label" : "Any premium dog food",
+        "value" : "20% off"
+      }
+    ],
+    "auxiliaryFields" : [
+      {
+        "key" : "expires",
+        "label" : "EXPIRES",
+        "value" : "2013-04-24T10:00-05:00",
+        "isRelative" : true,
+        "dateStyle" : "PKDateStyleShort"
+      }
+    ]
+  }
+}

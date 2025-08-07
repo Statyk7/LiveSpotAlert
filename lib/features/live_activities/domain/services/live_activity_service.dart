@@ -47,7 +47,6 @@ abstract class LiveActivityService {
 
   // Configuration
   Future<Either<Failure, bool>> isLiveActivitiesSupported();
-  Future<Either<Failure, bool>> isLiveActivitiesEnabled();
   Future<Either<Failure, void>> requestLiveActivitiesPermission();
 
   // Live Activity Configuration Management

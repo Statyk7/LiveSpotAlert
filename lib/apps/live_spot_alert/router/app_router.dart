@@ -7,6 +7,7 @@ import '../../../features/local_notifications/presentation/screens/notification_
 import '../../../features/local_notifications/domain/models/notification_payload.dart';
 import '../../../features/local_notifications/presentation/widgets/notification_configuration_widget.dart';
 import '../../../features/geofencing/presentation/widgets/geofence_configuration_widget.dart';
+import '../../../features/live_activities/presentation/widgets/live_activity_configuration_widget.dart';
 import '../../../features/donations/presentation/screens/donation_screen.dart';
 
 
@@ -62,6 +63,16 @@ class AppRouter {
           final geofenceData = state.extra as Map<String, dynamic>?;
           return GeofenceConfigurationWidget(
             geofence: geofenceData?['geofence'],
+            onSave: () => context.pop(),
+            onCancel: () => context.pop(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/live-activity-config',
+        name: 'live-activity-config',
+        builder: (context, state) {
+          return LiveActivityConfigurationWidget(
             onSave: () => context.pop(),
             onCancel: () => context.pop(),
           );

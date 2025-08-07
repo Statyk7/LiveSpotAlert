@@ -13,6 +13,9 @@ import '../../../../features/geofencing/presentation/controllers/geofencing_bloc
 import '../../../../features/geofencing/presentation/controllers/geofencing_state.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_event.dart';
 import '../../../../features/geofencing/presentation/widgets/geofence_config_card.dart';
+import '../../../../features/live_activities/presentation/controllers/live_activity_bloc.dart';
+import '../../../../features/live_activities/presentation/controllers/live_activity_event.dart';
+import '../../../../features/live_activities/presentation/widgets/live_activity_info_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_config_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_preview_card.dart';
 import '../../../../features/donations/presentation/widgets/donation_button.dart';
@@ -37,10 +40,8 @@ class _MainScreenState extends State<MainScreen> {
 
     _loadAppVersion();
 
-    // _loadPurchases();
-
     // Load saved Live Activity configuration
-    // context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
+    context.read<LiveActivityBloc>().add(const LoadSavedConfiguration());
   }
 
   Future<void> _loadAppVersion() async {
@@ -49,27 +50,6 @@ class _MainScreenState extends State<MainScreen> {
       _appVersion = '${packageInfo.appName} v${packageInfo.version}+${packageInfo.buildNumber}';
     });
   }
-
-  /// Works only on real device
-  // Future<void> _loadPurchases() async {
-  //   if(!(await _iap.isAvailable())) return;
-  //
-  //   if (Platform.isIOS) {
-  //     final iosPlatformAddition = _iap
-  //         .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
-  //
-  //     // await iosPlatformAddition.setDelegate(PaymentQueueDelegate());
-  //   }
-  //
-  //   const Set<String> ids = {"small_tip", "medium_tip", "large_tip", "giant_tip"};
-  //   ProductDetailsResponse response = await _iap.queryProductDetails(ids);
-  //
-  //   if (response.notFoundIDs.isNotEmpty) {
-  //     // Handle not found product IDs
-  //   }
-  //   AppLogger.debug("IAP Products: ${response.productDetails.length}");
-  // }
-
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +82,17 @@ class _MainScreenState extends State<MainScreen> {
 
               // Geofence Configuration Card
               const GeofenceConfigCard(),
+
+              const SizedBox(height: 24),
+
+              // Live Activity Section
+              LiveActivityInfoCard(
+                title: 'Live Activity',
+                onConfigurePressed: () {
+                  _analyticsService.event(eventName: "live_activity_configure_tapped");
+                  context.push('/live-activity-config');
+                },
+              ),
 
               const SizedBox(height: 24),
 
