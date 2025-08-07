@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/ui_kit/colors.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../controllers/live_activity_bloc.dart';
 import '../controllers/live_activity_state.dart';
@@ -26,10 +27,10 @@ class LiveActivityInfoCard extends StatelessWidget {
           elevation: 4,
           color: AppColors.surface,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: AppSpacing.cardPaddingLarge,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -43,7 +44,7 @@ class LiveActivityInfoCard extends StatelessWidget {
                           : AppColors.primary,
                       size: 28,
                     ),
-                    const SizedBox(width: 12),
+                    AppSpacing.horizontalSpaceMedium,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +64,7 @@ class LiveActivityInfoCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    AppSpacing.horizontalSpaceSmall,
                     if (onConfigurePressed != null)
                       IconButton(
                         onPressed: state.isLoading ? null : onConfigurePressed,
@@ -75,17 +76,17 @@ class LiveActivityInfoCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                AppSpacing.verticalSpaceLarge,
                 // Content Row
                 if (state.imagePath != null || state.title.isNotEmpty) ...[
                   Row(
                     children: [
                       if (state.imagePath != null) ...[
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                           child: _buildImage(state.imagePath!),
                         ),
-                        const SizedBox(width: 12),
+                        AppSpacing.horizontalSpaceMedium,
                       ],
                       Expanded(
                         child: Column(
@@ -95,7 +96,7 @@ class LiveActivityInfoCard extends StatelessWidget {
                               children: [
                                 Icon(Icons.title,
                                     color: AppColors.info, size: 18),
-                                const SizedBox(width: 8),
+                                AppSpacing.horizontalSpaceSmall,
                                 Expanded(
                                   child: Text(
                                     state.title.isEmpty ? title : state.title,
@@ -105,12 +106,12 @@ class LiveActivityInfoCard extends StatelessWidget {
                               ],
                             ),
                             if (state.imagePath != null) ...[
-                              const SizedBox(height: 8),
+                              AppSpacing.verticalSpaceSmall,
                               Row(
                                 children: [
                                   Icon(Icons.image,
                                       color: AppColors.info, size: 18),
-                                  const SizedBox(width: 8),
+                                  AppSpacing.horizontalSpaceSmall,
                                   Text(
                                     'Custom image configured',
                                     style: AppTextStyles.bodyMedium,
@@ -124,7 +125,7 @@ class LiveActivityInfoCard extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  AppSpacing.verticalSpaceLarge,
 
                   // Live Activity Preview/Controls
                   LiveActivityControllerWidget(
@@ -135,7 +136,7 @@ class LiveActivityInfoCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.info_outline, color: AppColors.info, size: 18),
-                      const SizedBox(width: 8),
+                      AppSpacing.horizontalSpaceSmall,
                       Text(
                         'Configure your Live Activity notification',
                         style: AppTextStyles.bodyMedium.copyWith(
@@ -255,7 +256,7 @@ class LiveActivityInfoCard extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         //color: AppColors.primary.withValues(alpha: 26),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
       ),
       child: Icon(
         Icons.image,

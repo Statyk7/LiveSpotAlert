@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../../../shared/ui_kit/colors.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
 import '../../domain/models/live_activity.dart';
 
@@ -35,20 +36,20 @@ class LiveActivityPreview extends StatelessWidget {
             style:
                 AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          AppSpacing.verticalSpaceSmall,
         ],
         Card(
           elevation: 4,
           color: AppColors.surface,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.cardPadding,
               child: Row(
                 children: [
                   _buildImage(),
-                  if (_hasImage()) const SizedBox(width: 12),
+                  if (_hasImage()) AppSpacing.horizontalSpaceMedium,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +79,7 @@ class LiveActivityPreview extends StatelessWidget {
   Widget _buildImage() {
     if (imageFile != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
         child: Image.file(
           imageFile!,
           width: 48,
@@ -90,7 +91,7 @@ class LiveActivityPreview extends StatelessWidget {
 
     if (imageUrl != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
         child: Image.network(
           imageUrl!,
           width: 48,
@@ -116,7 +117,7 @@ class LiveActivityPreview extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         //color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
       ),
       child: Icon(
         Icons.image,
@@ -155,22 +156,22 @@ class LiveActivityDetailedPreview extends StatelessWidget {
             style:
                 AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          AppSpacing.verticalSpaceSmall,
         ],
         Card(
           elevation: 4,
           color: AppColors.surface,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.cardPadding,
               child: Column(
                 children: [
                   Row(
                     children: [
                       _buildActivityImage(),
-                      if (liveActivity.hasImage) const SizedBox(width: 12),
+                      if (liveActivity.hasImage) AppSpacing.horizontalSpaceMedium,
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +193,7 @@ class LiveActivityDetailedPreview extends StatelessWidget {
                     ],
                   ),
                   if (liveActivity.locationName != null) ...[
-                    const SizedBox(height: 12),
+                    AppSpacing.verticalSpaceMedium,
                     Row(
                       children: [
                         Icon(
@@ -200,7 +201,7 @@ class LiveActivityDetailedPreview extends StatelessWidget {
                           size: 16,
                           color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: AppSpacing.micro),
                         Text(
                           liveActivity.locationName!,
                           style: AppTextStyles.caption.copyWith(
@@ -222,7 +223,7 @@ class LiveActivityDetailedPreview extends StatelessWidget {
   Widget _buildActivityImage() {
     if (liveActivity.imageUrl != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
         child: Image.network(
           liveActivity.imageUrl!,
           width: 48,
@@ -248,7 +249,7 @@ class LiveActivityDetailedPreview extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         //color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
       ),
       child: Icon(
         _getContentTypeIcon(),
@@ -286,10 +287,10 @@ class LiveActivityDetailedPreview extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.micro),
       decoration: BoxDecoration(
         //color: chipColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
         //border: Border.all(color: chipColor.withValues(alpha: 0.3)),
       ),
       child: Text(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/ui_kit/colors.dart';
-import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../../../../i18n/translations.g.dart';
 
 class DonationButton extends StatelessWidget {
@@ -16,27 +15,11 @@ class DonationButton extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: ElevatedButton.icon(
+      child: PrimaryButton(
+        text: t.donations.button,
         onPressed: onPressed,
-        icon: const Icon(
-          Icons.favorite,
-          color: Colors.white,
-          size: 20,
-        ),
-        label: Text(t.donations.button),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-          textStyle: AppTextStyles.button,
-        ),
+        icon: Icons.favorite,
+        isFullWidth: true,
       ),
     );
   }

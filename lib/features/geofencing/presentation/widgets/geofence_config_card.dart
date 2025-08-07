@@ -5,6 +5,8 @@ import '../../../../shared/di/get_it_extensions.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/spacing.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../controllers/geofencing_bloc.dart';
 import '../controllers/geofencing_event.dart';
 import '../controllers/geofencing_state.dart';
@@ -37,7 +39,7 @@ class GeofenceConfigCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: AppSpacing.cardPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -137,12 +139,10 @@ class GeofenceConfigCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        TextButton(
+                        AppTextButton(
+                          text: t.common.grant,
                           onPressed: () => _requestPermissions(context),
-                          child: Text(
-                            t.common.grant,
-                            style: TextStyle(color: AppColors.warning),
-                          ),
+                          size: AppButtonSize.small,
                         ),
                       ],
                     ),

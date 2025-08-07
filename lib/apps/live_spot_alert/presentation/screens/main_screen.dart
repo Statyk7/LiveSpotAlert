@@ -9,6 +9,7 @@ import '../../../../shared/di/service_locator.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_state.dart';
 import '../../../../features/geofencing/presentation/controllers/geofencing_event.dart';
@@ -19,6 +20,7 @@ import '../../../../features/live_activities/presentation/widgets/live_activity_
 import '../../../../features/local_notifications/presentation/widgets/notification_config_card.dart';
 import '../../../../features/local_notifications/presentation/widgets/notification_preview_card.dart';
 import '../../../../features/donations/presentation/widgets/donation_button.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../../../../i18n/translations.g.dart';
 
 
@@ -72,18 +74,18 @@ class _MainScreenState extends State<MainScreen> {
           floating: true,
         ),
         SliverPadding(
-          padding: const EdgeInsets.all(16.0),
+          padding: AppSpacing.screenPadding,
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Location Monitoring Section
               _buildMonitoringControlCard(),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalSpaceSection,
 
               // Geofence Configuration Card
               const GeofenceConfigCard(),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalSpaceSection,
 
               // Live Activity Section
               LiveActivityInfoCard(
@@ -94,14 +96,14 @@ class _MainScreenState extends State<MainScreen> {
                 },
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalSpaceSection,
 
               // Local Notifications Section
               NotificationConfigCard(
                 title: t.notifications.title,
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalSpaceSection,
 
               // Notification Preview Section
               const NotificationPreviewCard(),
@@ -145,10 +147,10 @@ class _MainScreenState extends State<MainScreen> {
           color: AppColors.surface,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLarge),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.cardPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -204,12 +206,12 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
                 if (!state.hasLocationPermissions) ...[
-                  const SizedBox(height: 12),
+                  AppSpacing.verticalSpaceMedium,
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: AppSpacing.cardPadding,
                     decoration: BoxDecoration(
                       //color: AppColors.warning.withValues(alpha: 26),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                       border: Border.all(
                           color: AppColors.warning),
                     ),
@@ -225,24 +227,22 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           ),
                         ),
-                        TextButton(
+                        AppTextButton(
+                          text: t.common.grant,
                           onPressed: () => _requestLocationPermissions(),
-                          child: Text(
-                            t.common.grant,
-                            style: TextStyle(color: AppColors.warning),
-                          ),
+                          size: AppButtonSize.small,
                         ),
                       ],
                     ),
                   ),
                 ],
                 if (state.isMonitoring && state.locationEvents.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  AppSpacing.verticalSpaceMedium,
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: AppSpacing.cardPaddingSmall,
                     decoration: BoxDecoration(
                       // color: AppColors.info.withValues(alpha: 26),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                     ),
                     child: Row(
                       children: [

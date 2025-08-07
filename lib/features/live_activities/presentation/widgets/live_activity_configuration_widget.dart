@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../shared/ui_kit/colors.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../controllers/live_activity_bloc.dart';
 import '../controllers/live_activity_event.dart';
 import '../controllers/live_activity_state.dart';
@@ -140,20 +142,15 @@ class _LiveActivityConfigurationWidgetState
                 icon: const Icon(Icons.close),
               ),
               actions: [
-                TextButton(
+                AppTextButton(
+                  text: 'Save',
                   onPressed: () => _onSave(context),
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  size: AppButtonSize.small,
                 ),
               ],
             ),
             body: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: AppSpacing.cardPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -163,13 +160,13 @@ class _LiveActivityConfigurationWidgetState
                     style: AppTextStyles.bodyLarge
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  AppSpacing.verticalSpaceSmall,
                   TextField(
                     controller: _titleController,
                     decoration: InputDecoration(
                       hintText: 'e.g., You\'ve arrived!',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                       ),
                       filled: true,
                       fillColor: AppColors.surface,
@@ -180,7 +177,7 @@ class _LiveActivityConfigurationWidgetState
                     },
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxlarge),
 
                   // Image Section
                   Text(
@@ -188,7 +185,7 @@ class _LiveActivityConfigurationWidgetState
                     style: AppTextStyles.bodyLarge
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  AppSpacing.verticalSpaceSmall,
                   Card(
                     elevation: 2,
                     color: AppColors.surface,
@@ -198,10 +195,10 @@ class _LiveActivityConfigurationWidgetState
                       child: Container(
                         height: 120,
                         width: double.infinity,
-                        padding: const EdgeInsets.all(16),
+                        padding: AppSpacing.cardPadding,
                         child: _selectedImage != null
                             ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                                 child: Image.file(
                                   _selectedImage!,
                                   fit: BoxFit.cover,
@@ -209,7 +206,7 @@ class _LiveActivityConfigurationWidgetState
                               )
                             : _base64ImageData != null
                                 ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                                     child: _buildBase64Image(_base64ImageData!),
                                   )
                                 : Column(
@@ -220,7 +217,7 @@ class _LiveActivityConfigurationWidgetState
                                         size: 48,
                                         color: AppColors.textSecondary,
                                       ),
-                                      const SizedBox(height: 8),
+                                      AppSpacing.verticalSpaceSmall,
                                       Text(
                                         'Tap to add image',
                                         style:
@@ -234,7 +231,7 @@ class _LiveActivityConfigurationWidgetState
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.xxlarge),
 
                   // Preview Section
                   LiveActivityPreview(
