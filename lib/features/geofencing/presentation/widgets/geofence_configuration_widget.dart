@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/ui_kit/colors.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../controllers/geofencing_bloc.dart';
 import '../controllers/geofencing_event.dart';
 import '../controllers/geofencing_state.dart';
@@ -103,38 +105,25 @@ class _GeofenceConfigurationWidgetState
             icon: const Icon(Icons.close),
           ),
           actions: [
-            TextButton(
-              onPressed: _isLoading ? null : _saveGeofence,
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text(
-                      'Save',
-                      style: TextStyle(
-                        color: _canSave() ? Colors.white : Colors.white54,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            AppTextButton(
+              text: 'Save',
+              onPressed: _isLoading || !_canSave() ? null : _saveGeofence,
+              isLoading: _isLoading,
+              size: AppButtonSize.small,
             ),
           ],
         ),
         body: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.cardPadding,
             children: [
               // Name field
               Card(
                 elevation: 2,
                 color: AppColors.surface,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppSpacing.cardPadding,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -143,7 +132,7 @@ class _GeofenceConfigurationWidgetState
                         style: AppTextStyles.bodyLarge
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
+                      AppSpacing.verticalSpaceSmall,
                       TextFormField(
                         controller: _nameController,
                         decoration: const InputDecoration(
@@ -163,14 +152,14 @@ class _GeofenceConfigurationWidgetState
                 ),
               ),
 
-              const SizedBox(height: 16),
+              AppSpacing.verticalSpaceLarge,
 
               // Location section
               Card(
                 elevation: 2,
                 color: AppColors.surface,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppSpacing.cardPadding,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -179,7 +168,7 @@ class _GeofenceConfigurationWidgetState
                         style: AppTextStyles.bodyLarge
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
+                      AppSpacing.verticalSpaceSmall,
                       SizedBox(
                         height: 600, // Optimized height for map-only interface
                         child: LocationPicker(
@@ -208,14 +197,14 @@ class _GeofenceConfigurationWidgetState
                 ),
               ),
 
-              const SizedBox(height: 16),
+              AppSpacing.verticalSpaceLarge,
 
               // Active toggle
               Card(
                 elevation: 2,
                 color: AppColors.surface,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppSpacing.cardPadding,
                   child: Row(
                     children: [
                       Expanded(
@@ -227,7 +216,7 @@ class _GeofenceConfigurationWidgetState
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: AppSpacing.micro),
                             Text(
                               _isActive
                                   ? 'Geofence will trigger notifications'

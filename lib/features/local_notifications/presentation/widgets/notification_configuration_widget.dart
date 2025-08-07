@@ -5,7 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/di/get_it_extensions.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../../../../shared/utils/constants.dart';
 import '../controllers/local_notifications_bloc.dart';
 import '../controllers/local_notifications_event.dart';
@@ -102,18 +104,11 @@ class _NotificationConfigurationWidgetState
           actions: [
             BlocBuilder<LocalNotificationsBloc, LocalNotificationsState>(
               builder: (context, state) {
-                return TextButton(
-                  onPressed:
-                      _hasUnsavedChanges && !state.isLoading ? _onSave : null,
-                  child: Text(
-                    state.isLoading ? t.notifications.config.saving : t.common.save,
-                    style: TextStyle(
-                      color: _hasUnsavedChanges && !state.isLoading
-                          ? Colors.white
-                          : Colors.white54,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                return AppTextButton(
+                  text: state.isLoading ? t.notifications.config.saving : t.common.save,
+                  onPressed: _hasUnsavedChanges && !state.isLoading ? _onSave : null,
+                  isLoading: state.isLoading,
+                  size: AppButtonSize.small,
                 );
               },
             ),
@@ -122,7 +117,7 @@ class _NotificationConfigurationWidgetState
         body: BlocBuilder<LocalNotificationsBloc, LocalNotificationsState>(
           builder: (context, state) {
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: AppSpacing.cardPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -149,7 +144,7 @@ class _NotificationConfigurationWidgetState
                   //   ],
                   // ),
 
-                  const SizedBox(height: 16),
+                  AppSpacing.verticalSpaceLarge,
 
                   // Notification Title Section
                   _buildSectionCard(
@@ -157,7 +152,7 @@ class _NotificationConfigurationWidgetState
                     icon: Icons.title,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: AppSpacing.screenPaddingHorizontal,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -166,25 +161,25 @@ class _NotificationConfigurationWidgetState
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(height: 8),
+                            AppSpacing.verticalSpaceSmall,
                             TextField(
                               controller: _titleController,
                               decoration: InputDecoration(
                                 hintText: t.notifications.config.titleHint,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                                 ),
                                 filled: true,
                                 fillColor: AppColors.surface,
                               ),
                               maxLength: 50,
                             ),
-                            const SizedBox(height: 8),
+                            AppSpacing.verticalSpaceSmall,
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 //color: AppColors.info.withValues(alpha: 26),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,7 +191,7 @@ class _NotificationConfigurationWidgetState
                                       color: AppColors.info,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: AppSpacing.micro),
                                   Text(
                                     AppConstants.appName,
                                     style: AppTextStyles.bodyMedium.copyWith(
@@ -210,7 +205,7 @@ class _NotificationConfigurationWidgetState
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: AppSpacing.xxlarge),
                             
                             // Image Selection Section
                             Text(
@@ -218,16 +213,16 @@ class _NotificationConfigurationWidgetState
                               style: AppTextStyles.bodyLarge
                                   .copyWith(fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(height: 8),
+                            AppSpacing.verticalSpaceSmall,
                             _buildImageSection(state),
-                            const SizedBox(height: 16),
+                            AppSpacing.verticalSpaceLarge,
                           ],
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  AppSpacing.verticalSpaceLarge,
 
                   // Display Options Section
                   // _buildSectionCard(
@@ -252,27 +247,21 @@ class _NotificationConfigurationWidgetState
                   //   ],
                   // ),
 
-                  const SizedBox(height: 16),
+                  AppSpacing.verticalSpaceLarge,
 
                   // Permissions Section
                   _buildPermissionsSection(state),
 
-                  const SizedBox(height: 32),
+                  SizedBox(height: AppSpacing.xxlarge + AppSpacing.small),
 
                   // Test Notification Button
                   if (state.hasPermissions)
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showTestNotification(context),
-                        icon: const Icon(Icons.notifications),
-                        label: Text(t.notifications.config.testNotification),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: BorderSide(color: AppColors.primary),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
+                    AppOutlinedButton(
+                      text: t.notifications.config.testNotification,
+                      onPressed: () => _showTestNotification(context),
+                      icon: Icons.notifications,
+                      isFullWidth: true,
+                      size: AppButtonSize.large,
                     ),
                 ],
               ),
@@ -292,16 +281,16 @@ class _NotificationConfigurationWidgetState
       elevation: 2,
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
       ),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: AppSpacing.cardPadding,
             child: Row(
               children: [
                 Icon(icon, color: AppColors.primary, size: 24),
-                const SizedBox(width: 12),
+                AppSpacing.horizontalSpaceMedium,
                 Text(
                   title,
                   style: AppTextStyles.h4,
@@ -341,9 +330,10 @@ class _NotificationConfigurationWidgetState
                 ),
               ),
               if (!state.hasPermissions)
-                TextButton(
+                AppTextButton(
+                  text: t.common.grant,
                   onPressed: () => _requestPermissions(context),
-                  child: Text(t.common.grant),
+                  size: AppButtonSize.small,
                 ),
             ],
           ),
@@ -357,10 +347,10 @@ class _NotificationConfigurationWidgetState
     final hasImage = config.hasImageData;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.textHint),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,40 +369,34 @@ class _NotificationConfigurationWidgetState
                 child: _buildImagePreview(config),
               ),
             ),
-            const SizedBox(height: 12),
+            AppSpacing.verticalSpaceMedium,
             
             // Image action buttons
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: AppOutlinedButton(
+                    text: t.notifications.config.changeImage,
                     onPressed: state.isLoading ? null : () {
                       context.read<LocalNotificationsBloc>()
                           .add(const SelectNotificationImage());
                       _onSettingChanged();
                     },
-                    icon: const Icon(Icons.photo_library),
-                    label: Text(t.notifications.config.changeImage),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: BorderSide(color: AppColors.primary),
-                    ),
+                    icon: Icons.photo_library,
+                    isFullWidth: true,
                   ),
                 ),
-                const SizedBox(width: 12),
+                AppSpacing.horizontalSpaceMedium,
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: AppOutlinedButton(
+                    text: t.common.remove,
                     onPressed: state.isLoading ? null : () {
                       context.read<LocalNotificationsBloc>()
                           .add(const RemoveNotificationImage());
                       _onSettingChanged();
                     },
-                    icon: const Icon(Icons.delete_outline),
-                    label: Text(t.common.remove),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: BorderSide(color: AppColors.error),
-                    ),
+                    icon: Icons.delete_outline,
+                    isFullWidth: true,
                   ),
                 ),
               ],
@@ -438,7 +422,7 @@ class _NotificationConfigurationWidgetState
                     color: AppColors.textSecondary,
                     size: 48,
                   ),
-                  const SizedBox(height: 8),
+                  AppSpacing.verticalSpaceSmall,
                   Text(
                     t.notifications.config.noImageSelected,
                     style: AppTextStyles.bodyMedium.copyWith(
@@ -448,31 +432,19 @@ class _NotificationConfigurationWidgetState
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            AppSpacing.verticalSpaceMedium,
             
             // Select image button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: state.isLoading ? null : () {
-                  context.read<LocalNotificationsBloc>()
-                      .add(const SelectNotificationImage());
-                  _onSettingChanged();
-                },
-                icon: state.isLoading 
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.photo_library),
-                label: Text(state.isLoading ? t.notifications.config.selecting : t.notifications.config.selectFromGallery),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
+            PrimaryButton(
+              text: state.isLoading ? t.notifications.config.selecting : t.notifications.config.selectFromGallery,
+              onPressed: state.isLoading ? null : () {
+                context.read<LocalNotificationsBloc>()
+                    .add(const SelectNotificationImage());
+                _onSettingChanged();
+              },
+              icon: Icons.photo_library,
+              isLoading: state.isLoading,
+              isFullWidth: true,
             ),
           ],
           
@@ -492,7 +464,7 @@ class _NotificationConfigurationWidgetState
                   color: AppColors.info,
                   size: 16,
                 ),
-                const SizedBox(width: 8),
+                AppSpacing.horizontalSpaceSmall,
                 Expanded(
                   child: Text(
                     t.notifications.config.imageInfo,
@@ -533,16 +505,18 @@ class _NotificationConfigurationWidgetState
           title: Text(t.notifications.dialogs.unsavedChanges),
           content: Text(t.notifications.dialogs.unsavedMessage),
           actions: [
-            TextButton(
+            AppTextButton(
+              text: t.common.stay,
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(t.common.stay),
+              size: AppButtonSize.small,
             ),
-            TextButton(
+            AppTextButton(
+              text: t.common.cancel,
               onPressed: () {
                 Navigator.of(context).pop();
                 widget.onCancel();
               },
-              child: Text(t.common.cancel),
+              size: AppButtonSize.small,
             ),
           ],
         ),

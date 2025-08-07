@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'apps/live_spot_alert/router/app_router.dart';
 import 'shared/di/service_locator.dart';
-import 'shared/ui_kit/colors.dart';
+import 'shared/ui_kit/theme/app_theme.dart';
 import 'shared/utils/constants.dart';
 import 'shared/utils/logger.dart';
 import 'features/geofencing/presentation/controllers/geofencing_bloc.dart';
@@ -71,46 +71,11 @@ class LiveSpotAlertApp extends StatelessWidget {
         child: MaterialApp.router(
           title: t.app.name,
           debugShowCheckedModeBanner: false,
-          theme: _buildTheme(),
+          theme: AppTheme.lightTheme,
           routerConfig: AppRouter.router,
         ),
       ),
     );
   }
 
-  ThemeData _buildTheme() {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.light,
-        surface: AppColors.surface,
-      ),
-      scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      cardTheme: const CardThemeData(
-        color: AppColors.surface,
-        elevation: 2, // Reduced elevation for minimalist look
-        shadowColor: Colors.black12, // Subtle shadow
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)), // More modern radius
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 2, // Reduced elevation
-          shadowColor: Colors.black12,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Slightly more rounded
-          ),
-        ),
-      ),
-    );
-  }
 }

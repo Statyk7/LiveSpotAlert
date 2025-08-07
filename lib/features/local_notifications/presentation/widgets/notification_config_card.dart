@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/di/get_it_extensions.dart';
 import '../../../../shared/services/analytics_service.dart';
 import '../../../../shared/ui_kit/colors.dart';
+import '../../../../shared/ui_kit/spacing.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../controllers/local_notifications_bloc.dart';
 import '../controllers/local_notifications_event.dart';
 import '../controllers/local_notifications_state.dart';
@@ -34,10 +36,10 @@ class NotificationConfigCard extends StatelessWidget {
           color: AppColors.surface,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLarge),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: AppSpacing.cardPaddingLarge,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -53,7 +55,7 @@ class NotificationConfigCard extends StatelessWidget {
                           : AppColors.textSecondary,
                       size: 28,
                     ),
-                    const SizedBox(width: 12),
+                    AppSpacing.horizontalSpaceMedium,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,26 +85,26 @@ class NotificationConfigCard extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                AppSpacing.verticalSpaceLarge,
 
                 // Configuration details
                 _buildConfigDetails(context, state, config),
 
                 // Error message if present
                 if (state.hasError && state.errorMessage != null) ...[
-                  const SizedBox(height: 12),
+                  AppSpacing.verticalSpaceMedium,
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: AppSpacing.cardPadding,
                     decoration: BoxDecoration(
                       //color: AppColors.error.withValues(alpha: 26),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                       // border: Border.all(
                       //     color: AppColors.error.withValues(alpha: 77)),
                     ),
                     child: Row(
                       children: [
                         Icon(Icons.error, color: AppColors.error, size: 20),
-                        const SizedBox(width: 8),
+                        AppSpacing.horizontalSpaceSmall,
                         Expanded(
                           child: Text(
                             state.errorMessage!,
@@ -118,19 +120,19 @@ class NotificationConfigCard extends StatelessWidget {
 
                 // Permission request if needed
                 if (!state.hasPermissions && config.isEnabled) ...[
-                  const SizedBox(height: 12),
+                  AppSpacing.verticalSpaceMedium,
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: AppSpacing.cardPadding,
                     decoration: BoxDecoration(
                       //color: AppColors.warning.withValues(alpha: 26),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
                       // border: Border.all(
                       //     color: AppColors.warning.withValues(alpha: 77)),
                     ),
                     child: Row(
                       children: [
                         Icon(Icons.warning, color: AppColors.warning, size: 20),
-                        const SizedBox(width: 8),
+                        AppSpacing.horizontalSpaceSmall,
                         Expanded(
                           child: Text(
                             t.notifications.permissions.required,
@@ -139,12 +141,10 @@ class NotificationConfigCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        TextButton(
+                        AppTextButton(
+                          text: t.common.grant,
                           onPressed: () => _requestPermissions(context),
-                          child: Text(
-                            t.common.grant,
-                            style: TextStyle(color: AppColors.warning),
-                          ),
+                          size: AppButtonSize.small,
                         ),
                       ],
                     ),
@@ -152,7 +152,7 @@ class NotificationConfigCard extends StatelessWidget {
                 ],
 
                 // Action buttons
-                const SizedBox(height: 16),
+                AppSpacing.verticalSpaceLarge,
                 _buildActionButtons(context, state),
               ],
             ),
@@ -181,7 +181,7 @@ class NotificationConfigCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        AppSpacing.verticalSpaceSmall,
 
         // Image configuration
         Row(
@@ -211,7 +211,7 @@ class NotificationConfigCard extends StatelessWidget {
                             child: _buildImagePreview(context, config),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        AppSpacing.horizontalSpaceSmall,
                         Flexible(
                           child: Text(
                             t.common.selected,
@@ -257,18 +257,15 @@ class NotificationConfigCard extends StatelessWidget {
         // Test notification button
         if (state.areNotificationsAvailable)
           Expanded(
-            child: OutlinedButton.icon(
+            child: AppOutlinedButton(
+              text: t.notifications.config.testNotification,
               onPressed: () => _showTestNotification(context),
-              icon: const Icon(Icons.notifications),
-              label: Text(t.notifications.config.testNotification),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: BorderSide(color: AppColors.primary),
-              ),
+              icon: Icons.notifications,
+              isFullWidth: true,
             ),
           ),
 
-        if (state.areNotificationsAvailable) const SizedBox(width: 12),
+        if (state.areNotificationsAvailable) AppSpacing.horizontalSpaceMedium,
       ],
     );
   }

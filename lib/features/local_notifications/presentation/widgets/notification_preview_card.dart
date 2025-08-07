@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../../../geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../../geofencing/presentation/controllers/geofencing_state.dart';
 import '../../domain/models/notification_payload.dart';
@@ -85,43 +86,29 @@ class NotificationPreviewCard extends StatelessWidget {
     return Column(
       children: [
         // Entry preview button
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showPreview(
-              context, 
-              currentGeofence.id, 
-              GeofenceEventType.entry,
-            ),
-            icon: const Icon(Icons.login),
-            label: Text(t.notifications.preview.entryButton),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.success,
-              side: BorderSide(color: AppColors.success),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
+        AppOutlinedButton(
+          text: t.notifications.preview.entryButton,
+          onPressed: () => _showPreview(
+            context, 
+            currentGeofence.id, 
+            GeofenceEventType.entry,
           ),
+          icon: Icons.login,
+          isFullWidth: true,
         ),
         
         const SizedBox(height: 8),
         
         // Exit preview button
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showPreview(
-              context, 
-              currentGeofence.id, 
-              GeofenceEventType.exit,
-            ),
-            icon: const Icon(Icons.logout),
-            label: Text(t.notifications.preview.exitButton),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.warning,
-              side: BorderSide(color: AppColors.warning),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
+        AppOutlinedButton(
+          text: t.notifications.preview.exitButton,
+          onPressed: () => _showPreview(
+            context, 
+            currentGeofence.id, 
+            GeofenceEventType.exit,
           ),
+          icon: Icons.logout,
+          isFullWidth: true,
         ),
         
         const SizedBox(height: 12),

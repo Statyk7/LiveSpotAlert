@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/di/service_locator.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../controllers/donation_bloc.dart';
 import '../controllers/donation_event.dart';
 import '../controllers/donation_state.dart';
@@ -194,15 +195,12 @@ class _DonationScreenContent extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
+                PrimaryButton(
+                  text: t.common.retry,
                   onPressed: () {
                     context.read<DonationBloc>().add(const LoadDonationProducts());
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(t.common.retry),
+                  isFullWidth: false,
                 ),
               ],
             ),

@@ -38,23 +38,14 @@ class LiveActivityServiceImpl implements LiveActivityService {
   Future<Either<Failure, bool>> isLiveActivitiesSupported() async {
     try {
       final isSupported = await liveActivitiesPlugin.areActivitiesEnabled();
-      return Right(isSupported);
+      final isPushToStartSupported = await liveActivitiesPlugin.allowsPushStart();
+      AppLogger.debug('Activities Enabled: $isSupported, Push to Start Supported: $isPushToStartSupported');
+
+      return Right(isSupported && isPushToStartSupported);
     } catch (e) {
       debugPrint("Error checking Live Activities support: $e");
       return Left(LiveActivityFailure(
           message: 'Failed to check Live Activities support: $e'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> isLiveActivitiesEnabled() async {
-    try {
-      final isEnabled = await liveActivitiesPlugin.areActivitiesEnabled();
-      return Right(isEnabled);
-    } catch (e) {
-      debugPrint("Error checking Live Activities enabled: $e");
-      return Left(LiveActivityFailure(
-          message: 'Failed to check if Live Activities are enabled: $e'));
     }
   }
 

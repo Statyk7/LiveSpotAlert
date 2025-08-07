@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:live_activities/live_activities.dart';
+import 'package:live_activities/models/activity_update.dart';
 import '../../../../../shared/utils/logger.dart';
 import '../../dto/activity_dto.dart';
 
@@ -31,6 +32,17 @@ class LiveActivitiesDataSourceImpl implements LiveActivitiesDataSource {
   void _initializeLiveActivities() {
     // Initialize the LiveActivities plugin with the group ID
     _liveActivities.init(appGroupId: "group.livespotalert.liveactivities");
+
+    _liveActivities.activityUpdateStream.listen((event) {
+      event.map(
+        active: (activity) {
+          // Get the token
+          AppLogger.debug('Activity Push Token: ${activity.activityToken}');
+        },
+        ended: (activity) {},
+        unknown: (activity) {}, stale: (StaleActivityUpdate value) {  },
+      );
+    });
   }
 
   void _initializeStreams() {

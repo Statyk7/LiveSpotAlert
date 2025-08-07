@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/ui_kit/colors.dart';
 import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../../../../shared/utils/constants.dart';
 import '../../../geofencing/presentation/controllers/geofencing_bloc.dart';
 import '../../../geofencing/presentation/controllers/geofencing_state.dart';
@@ -181,20 +182,11 @@ class NotificationDisplayScreen extends StatelessWidget {
 
   /// Build the dismiss button
   Widget _buildDismissButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () => _dismissScreen(context),
-        label: Text(t.common.dismiss, style: AppTextStyles.h4),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+    return PrimaryButton(
+      text: t.common.dismiss,
+      onPressed: () => _dismissScreen(context),
+      isFullWidth: true,
+      size: AppButtonSize.large,
     );
   }
 

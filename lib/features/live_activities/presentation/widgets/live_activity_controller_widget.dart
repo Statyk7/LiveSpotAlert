@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../shared/ui_kit/colors.dart';
-import '../../../../shared/ui_kit/text_styles.dart';
+import '../../../../shared/ui_kit/widgets/app_buttons.dart';
 import '../controllers/live_activity_bloc.dart';
 import '../controllers/live_activity_event.dart';
 import '../controllers/live_activity_state.dart';
@@ -53,29 +51,14 @@ class LiveActivityControllerWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Control Button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: state.isLoading
-                    ? null
-                    : () => _onTogglePressed(context, state),
-                icon: state.isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(state.isActive ? Icons.stop : Icons.play_arrow),
-                label: Text(_getButtonText(state)),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(
-                    color: state.isActive ? Colors.red : AppColors.primary,
-                  ),
-                  foregroundColor:
-                      state.isActive ? Colors.red : AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
+            AppOutlinedButton(
+              text: _getButtonText(state),
+              onPressed: state.isLoading
+                  ? null
+                  : () => _onTogglePressed(context, state),
+              isLoading: state.isLoading,
+              isFullWidth: true,
+              icon: state.isActive ? Icons.stop : Icons.play_arrow,
             ),
           ],
         );
@@ -106,15 +89,4 @@ class LiveActivityControllerWidget extends StatelessWidget {
     return state.isActive ? 'Stop Live Activity' : 'Test Live Activity';
   }
 
-  String _getStatusDescription(LiveActivityState state) {
-    if (state.isLoading) {
-      return 'Processing...';
-    } else if (state.isActive) {
-      return 'This will appear when you enter the geofence';
-    } else if (state.hasError) {
-      return 'Error occurred';
-    } else {
-      return 'Ready to test';
-    }
-  }
 }
