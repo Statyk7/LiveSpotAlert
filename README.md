@@ -64,9 +64,11 @@ lib/
 ```
 
 ## Notable Flutter packages used:
-- flutter_background_geolocation - True background geofencing (even when app is killed)
+- flutter_background_geolocation - True background geofencing (even when app is not running)
 - flutter_map - OpenStreetMap integration
-- flutter_local_notifications - Smart notification system • bloc - State Management • go_router - Navigation
+- flutter_local_notifications - Smart notification system
+- bloc - State Management
+- go_router - Navigation
 - get_it - Dependency Injection
 - slang - i18n support (EN/ES/FR)
 - posthog_flutter & sentry_flutter - Analytics & monitoring
